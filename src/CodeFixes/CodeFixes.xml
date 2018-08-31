@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <CodeFixes>
-  <CodeFix Id="RCF0001" Identifier="RemoveUnusedVariable" Title="Remove unused variable">
+  <CodeFix Id="RCF0001" Identifier="RemoveUnusedVariable" Title="Remove unused variable" IsObsolete="true">
     <FixableDiagnosticIds>
       <Id>CS0168</Id>
       <Id>CS0219</Id>
@@ -210,6 +210,7 @@
   <CodeFix Id="RCF0039" Identifier="AddArgumentList" Title="Add argument list">
     <FixableDiagnosticIds>
       <Id>CS0023</Id>
+      <Id>CS0119</Id>
       <Id>CS0428</Id>
       <Id>CS0201</Id>
       <Id>CS1526</Id>
