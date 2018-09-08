@@ -10,9 +10,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp;
+using Roslynator.CSharp.Analysis.RemoveAsyncAwait;
 using Roslynator.CSharp.Syntax;
 
-namespace Roslynator.CSharp.Analysis.RemoveRedundantAsyncAwait
+namespace Roslynator.CSharp.Analysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class RemoveRedundantAsyncAwaitAnalyzer : BaseDiagnosticAnalyzer

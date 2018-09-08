@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CSharp.SyntaxWalkers;
 
-namespace Roslynator.CSharp.Analysis.RemoveRedundantAsyncAwait
+namespace Roslynator.CSharp.Analysis.RemoveAsyncAwait
 {
     internal class RemoveRedundantAsyncAwaitWalker : CSharpSyntaxNodeWalker
     {

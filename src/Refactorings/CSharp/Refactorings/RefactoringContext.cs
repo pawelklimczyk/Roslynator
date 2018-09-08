@@ -302,6 +302,13 @@ namespace Roslynator.CSharp.Refactorings
 
                         break;
                     }
+                case SyntaxKind.AsyncKeyword:
+                    {
+                        if (IsRefactoringEnabled(RefactoringIdentifiers.RemoveAsyncAwait))
+                            await RemoveAsyncAwaitRefactoring.ComputeRefactoringsAsync(this, token).ConfigureAwait(false);
+
+                        break;
+                    }
             }
         }
 

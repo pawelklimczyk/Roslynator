@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Roslynator.CSharp.Analysis.RemoveRedundantAsyncAwait
+namespace Roslynator.CSharp.Analysis.RemoveAsyncAwait
 {
     internal static class RemoveRedundantAsyncAwaitWalkerCache
     {
