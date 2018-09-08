@@ -146,9 +146,8 @@ namespace Roslynator.CSharp.Analysis
 
             foreach (KeyValuePair<string, IParameterSymbol> kvp in walker.Parameters)
             {
-                var parameter = (ParameterSyntax)kvp.Value.GetSyntax(cancellationToken);
-
-                context.ReportDiagnostic(DiagnosticDescriptors.MarkParameterWithInModifier, parameter.Identifier);
+                if (kvp.Value.GetSyntaxOrDefault(cancellationToken) is ParameterSyntax parameter)
+                    context.ReportDiagnostic(DiagnosticDescriptors.MarkParameterWithInModifier, parameter.Identifier);
             }
 
             SyntaxWalker.Free(walker);
@@ -160,8 +159,8 @@ namespace Roslynator.CSharp.Analysis
             private static SyntaxWalker _cachedInstance;
 
             private bool _isInAssignedExpression;
-            private int _localFunctionNesting;
-            private int _anonymousFunctionNesting;
+            private int _localFunctionDepth;
+            private int _anonymousFunctionDepth;
 
             public Dictionary<string, IParameterSymbol> Parameters { get; } = new Dictionary<string, IParameterSymbol>();
 
@@ -172,8 +171,8 @@ namespace Roslynator.CSharp.Analysis
             public void Reset()
             {
                 _isInAssignedExpression = false;
-                _localFunctionNesting = 0;
-                _anonymousFunctionNesting = 0;
+                _localFunctionDepth = 0;
+                _anonymousFunctionDepth = 0;
 
                 SemanticModel = null;
                 CancellationToken = default;
@@ -195,8 +194,8 @@ namespace Roslynator.CSharp.Analysis
                     && SemanticModel.GetSymbol(node, CancellationToken).Equals(parameterSymbol))
                 {
                     if (_isInAssignedExpression
-                        || _localFunctionNesting > 0
-                        || _anonymousFunctionNesting > 0)
+                        || _localFunctionDepth > 0
+                        || _anonymousFunctionDepth > 0)
                     {
                         Parameters.Remove(name);
                     }
@@ -216,7 +215,7 @@ namespace Roslynator.CSharp.Analysis
 
             public override void VisitYieldStatement(YieldStatementSyntax node)
             {
-                if (_localFunctionNesting == 0)
+                if (_localFunctionDepth == 0)
                 {
                     Parameters.Clear();
                 }
@@ -228,30 +227,30 @@ namespace Roslynator.CSharp.Analysis
 
             public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
             {
-                _anonymousFunctionNesting++;
+                _anonymousFunctionDepth++;
                 base.VisitAnonymousMethodExpression(node);
-                _anonymousFunctionNesting--;
+                _anonymousFunctionDepth--;
             }
 
             public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
             {
-                _anonymousFunctionNesting++;
+                _anonymousFunctionDepth++;
                 base.VisitSimpleLambdaExpression(node);
-                _anonymousFunctionNesting--;
+                _anonymousFunctionDepth--;
             }
 
             public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
             {
-                _anonymousFunctionNesting++;
+                _anonymousFunctionDepth++;
                 base.VisitParenthesizedLambdaExpression(node);
-                _anonymousFunctionNesting--;
+                _anonymousFunctionDepth--;
             }
 
             public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
             {
-                _localFunctionNesting++;
+                _localFunctionDepth++;
                 base.VisitLocalFunctionStatement(node);
-                _localFunctionNesting--;
+                _localFunctionDepth--;
             }
 
             public static SyntaxWalker GetInstance()
