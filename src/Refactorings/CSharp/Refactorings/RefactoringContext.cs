@@ -304,8 +304,11 @@ namespace Roslynator.CSharp.Refactorings
                     }
                 case SyntaxKind.AsyncKeyword:
                     {
-                        if (IsRefactoringEnabled(RefactoringIdentifiers.RemoveAsyncAwait))
+                        if (IsRefactoringEnabled(RefactoringIdentifiers.RemoveAsyncAwait)
+                            && Span.IsEmptyAndContainedInSpan(token))
+                        {
                             await RemoveAsyncAwaitRefactoring.ComputeRefactoringsAsync(this, token).ConfigureAwait(false);
+                        }
 
                         break;
                     }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,25 +8,18 @@ using Roslynator.CSharp.SyntaxWalkers;
 
 namespace Roslynator.CSharp.Analysis.RemoveAsyncAwait
 {
-    internal class RemoveRedundantAsyncAwaitWalker : CSharpSyntaxNodeWalker
+    internal class RemoveAsyncAwaitWalker : CSharpSyntaxNodeWalker
     {
         public HashSet<AwaitExpressionSyntax> AwaitExpressions { get; } = new HashSet<AwaitExpressionSyntax>();
 
         public bool StopOnFirstAwaitExpression { get; set; }
 
-        public void Reset()
-        {
-            ShouldStop = false;
-            StopOnFirstAwaitExpression = false;
-            AwaitExpressions.Clear();
-        }
+        public bool ShouldStop { get; private set; }
 
         protected override bool ShouldVisit
         {
             get { return !ShouldStop; }
         }
-
-        public bool ShouldStop { get; private set; }
 
         public override void VisitAwaitExpression(AwaitExpressionSyntax node)
         {
@@ -75,6 +69,33 @@ namespace Roslynator.CSharp.Analysis.RemoveAsyncAwait
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
+        }
+
+        [ThreadStatic]
+        private static RemoveAsyncAwaitWalker _cachedInstance;
+
+        public static RemoveAsyncAwaitWalker GetInstance()
+        {
+            RemoveAsyncAwaitWalker walker = _cachedInstance;
+
+            if (walker != null)
+            {
+                _cachedInstance = null;
+                return walker;
+            }
+            else
+            {
+                return new RemoveAsyncAwaitWalker();
+            }
+        }
+
+        public static void Free(RemoveAsyncAwaitWalker walker)
+        {
+            walker.ShouldStop = false;
+            walker.StopOnFirstAwaitExpression = false;
+            walker.AwaitExpressions.Clear();
+
+            _cachedInstance = walker;
         }
     }
 }
