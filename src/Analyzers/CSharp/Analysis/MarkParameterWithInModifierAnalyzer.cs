@@ -111,6 +111,7 @@ namespace Roslynator.CSharp.Analysis
                 {
                     ITypeSymbol type = parameter.Type;
 
+                    //TODO: https://github.com/dotnet/roslyn/issues/23792, ITypeSymbol.IsReadOnly
                     if (type.TypeKind == TypeKind.Struct
                         && type
                             .ToDisplayParts(_symbolDisplayFormat)
