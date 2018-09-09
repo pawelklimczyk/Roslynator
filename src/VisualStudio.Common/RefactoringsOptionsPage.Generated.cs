@@ -234,6 +234,7 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceForEachWithEnumerator, "Replace foreach with enumerator", IsEnabled(RefactoringIdentifiers.ReplaceForEachWithEnumerator)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SortCaseLabels, "Sort case labels", IsEnabled(RefactoringIdentifiers.SortCaseLabels)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.AddTagToDocumentationComment, "Add tag to documentation comment", IsEnabled(RefactoringIdentifiers.AddTagToDocumentationComment)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.RemoveAsyncAwait, "Remove async/await", IsEnabled(RefactoringIdentifiers.RemoveAsyncAwait)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.WrapInElement, "Wrap in element", IsEnabled(RefactoringIdentifiers.WrapInElement)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ExpandLinqMethodOperation, "Expand LINQ method operation", IsEnabled(RefactoringIdentifiers.ExpandLinqMethodOperation)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceWhileWithIfAndDo, "Replace while statement with if statement and do statement", IsEnabled(RefactoringIdentifiers.ReplaceWhileWithIfAndDo)));

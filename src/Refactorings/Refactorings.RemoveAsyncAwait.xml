@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactorings>
+  <Refactoring Id="RRX001" Identifier="RemoveAsyncAwait" Title="Remove async/await">
+    <Syntaxes>
+      <Syntax>method declaration</Syntax>
+      <Syntax>local function</Syntax>
+      <Syntax>lambda</Syntax>
+      <Syntax>anonymous method</Syntax>
+    </Syntaxes>
+    <Span>async keyword</Span>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
+  </Refactoring>
+</Refactorings>

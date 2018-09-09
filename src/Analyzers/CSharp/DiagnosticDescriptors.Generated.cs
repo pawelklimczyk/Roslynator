@@ -1870,7 +1870,7 @@ namespace Roslynator.CSharp
             messageFormat:      "Remove redundant async/await.", 
             category:           DiagnosticCategories.Redundancy, 
             defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
+            isEnabledByDefault: false, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RemoveRedundantAsyncAwait}", 
             customTags:         Array.Empty<string>());
