@@ -939,6 +939,26 @@ namespace Roslynator
 
             return parent;
         }
+
+        internal static SyntaxNode WalkUp(this SyntaxNode node, Func<SyntaxNode, bool> predicate)
+        {
+            while (true)
+            {
+                SyntaxNode parent = node.Parent;
+
+                if (parent != null
+                    && predicate(parent))
+                {
+                    node = parent;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return node;
+        }
         #endregion SyntaxNode
 
         #region SyntaxNodeOrToken
