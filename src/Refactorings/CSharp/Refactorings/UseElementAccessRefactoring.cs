@@ -17,7 +17,7 @@ namespace Roslynator.CSharp.Refactorings
         {
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
 
-            if (invocationÊxpression.IsParentKind(SyntaxKind.ExpressionStatement))
+            if (invocationExpression.IsParentKind(SyntaxKind.ExpressionStatement))
                 return;
 
             switch (invocationInfo.NameText)
