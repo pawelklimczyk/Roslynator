@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CSharp.Analysis;
 using Roslynator.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Roslynator.CSharp.Refactorings
 {
@@ -15,6 +16,9 @@ namespace Roslynator.CSharp.Refactorings
             SemanticModel semanticModel)
         {
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
+
+            if (invocationÊxpression.IsParentKind(SyntaxKind.ExpressionStatement))
+                return;
 
             switch (invocationInfo.NameText)
             {

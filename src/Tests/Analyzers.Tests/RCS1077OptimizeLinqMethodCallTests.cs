@@ -958,5 +958,45 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_UseElementAccess_ExpressionStatement()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        object x = null;
+
+        ((List<object>)x).First();
+        ((List<object>)x).ElementAt(1);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_CallFindInsteadOfFirstOrDefault_Array_ConditionalAccess()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var x = new C();
+
+        object item = x?.Items.FirstOrDefault(f => f != null);
+    }
+
+    object[] Items { get; }
+}
+");
+        }
     }
 }
