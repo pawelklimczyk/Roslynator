@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RRX001RemoveAsyncAwaitTests : AbstractCSharpCodeRefactoringVerifier
+    public class RR0209RemoveAsyncAwaitTests : AbstractCSharpCodeRefactoringVerifier
     {
         public override string RefactoringId { get; } = RefactoringIdentifiers.RemoveAsyncAwait;
 
