@@ -39,7 +39,18 @@ namespace Roslynator.CSharp.Analysis
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (!startContext.IsAnyDiagnosticEnabled(
+                    DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf,
+                    DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement,
+                    DiagnosticDescriptors.ReplaceIfStatementWithAssignment))
+                {
+                    return;
+                }
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+            });
         }
 
         private static void AnalyzeIfStatement(SyntaxNodeAnalysisContext context)

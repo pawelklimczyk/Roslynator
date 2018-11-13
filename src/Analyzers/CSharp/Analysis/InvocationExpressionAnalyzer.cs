@@ -196,7 +196,9 @@ namespace Roslynator.CSharp.Analysis
                                 }
                             case "Where":
                                 {
-                                    CombineEnumerableWhereMethodChainAnalysis.Analyze(context, invocationInfo);
+                                    if (context.IsDiagnosticEnabled(DiagnosticDescriptors.CombineEnumerableWhereMethodChain))
+                                        CombineEnumerableWhereMethodChainAnalysis.Analyze(context, invocationInfo);
+
                                     break;
                                 }
                             case "HasFlag":
