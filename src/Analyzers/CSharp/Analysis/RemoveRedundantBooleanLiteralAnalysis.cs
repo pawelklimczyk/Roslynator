@@ -16,6 +16,9 @@ namespace Roslynator.CSharp.Analysis
             ExpressionSyntax left,
             ExpressionSyntax right)
         {
+            if (!context.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantBooleanLiteral))
+                return;
+
             if (binaryExpression.SpanContainsDirectives())
                 return;
 

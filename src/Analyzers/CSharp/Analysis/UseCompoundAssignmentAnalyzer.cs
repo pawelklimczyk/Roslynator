@@ -30,7 +30,13 @@ namespace Roslynator.CSharp.Analysis
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSimpleAssignment, SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.UseCompoundAssignment))
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeSimpleAssignment, SyntaxKind.SimpleAssignmentExpression);
+            });
         }
 
         private static void AnalyzeSimpleAssignment(SyntaxNodeAnalysisContext context)
