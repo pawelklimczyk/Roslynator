@@ -76,20 +76,26 @@ namespace Roslynator.CSharp.Analysis
                     case IfAnalysisKind.IfElseToYieldReturnWithCoalesceExpression:
                     case IfAnalysisKind.IfReturnToReturnWithCoalesceExpression:
                         {
-                            context.ReportDiagnostic(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf, ifStatement);
+                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf))
+                                context.ReportDiagnostic(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf, ifStatement);
+
                             break;
                         }
                     case IfAnalysisKind.IfElseToReturnWithExpression:
                     case IfAnalysisKind.IfElseToYieldReturnWithExpression:
                     case IfAnalysisKind.IfReturnToReturnWithExpression:
                         {
-                            context.ReportDiagnostic(DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement, ifStatement);
+                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement))
+                                context.ReportDiagnostic(DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement, ifStatement);
+
                             break;
                         }
                     case IfAnalysisKind.IfElseToAssignmentWithExpression:
                     case IfAnalysisKind.IfElseToAssignmentWithCondition:
                         {
-                            context.ReportDiagnostic(DiagnosticDescriptors.ReplaceIfStatementWithAssignment, ifStatement);
+                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.ReplaceIfStatementWithAssignment))
+                                context.ReportDiagnostic(DiagnosticDescriptors.ReplaceIfStatementWithAssignment, ifStatement);
+
                             break;
                         }
                 }
