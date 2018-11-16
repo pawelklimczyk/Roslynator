@@ -74,7 +74,7 @@ namespace Roslynator.CSharp.Analysis.ReplaceEnumeratorWithForEach
             if (!ReplaceEnumeratorWithForEachWalkerCache.GetIsFixableAndFree(walker))
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.ReplaceEnumeratorWithForEach, usingStatement.UsingKeyword);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.ReplaceEnumeratorWithForEach, usingStatement.UsingKeyword);
         }
     }
 }

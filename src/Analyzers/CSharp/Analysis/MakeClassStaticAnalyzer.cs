@@ -75,7 +75,7 @@ namespace Roslynator.CSharp.Analysis
             if (!canBeMadeStatic)
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.MakeClassStatic, classDeclaration.Identifier);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.MakeClassStatic, classDeclaration.Identifier);
         }
 
         public static bool AnalyzeMembers(INamedTypeSymbol symbol)

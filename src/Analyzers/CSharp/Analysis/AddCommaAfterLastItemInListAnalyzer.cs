@@ -56,7 +56,7 @@ namespace Roslynator.CSharp.Analysis
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.AddCommaAfterLastItemInList, Location.Create(initializer.SyntaxTree, new TextSpan(expressions.Last().Span.End, 0)));
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AddCommaAfterLastItemInList, Location.Create(initializer.SyntaxTree, new TextSpan(expressions.Last().Span.End, 0)));
         }
 
         public static void AnalyzeEnumDeclaration(SyntaxNodeAnalysisContext context)
@@ -83,7 +83,7 @@ namespace Roslynator.CSharp.Analysis
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.AddCommaAfterLastItemInList, Location.Create(enumDeclaration.SyntaxTree, new TextSpan(members.Last().Span.End, 0)));
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AddCommaAfterLastItemInList, Location.Create(enumDeclaration.SyntaxTree, new TextSpan(members.Last().Span.End, 0)));
         }
     }
 }

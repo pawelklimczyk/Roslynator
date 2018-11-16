@@ -148,7 +148,7 @@ namespace Roslynator.CSharp.Analysis
             foreach (KeyValuePair<string, IParameterSymbol> kvp in walker.Parameters)
             {
                 if (kvp.Value.GetSyntaxOrDefault(cancellationToken) is ParameterSyntax parameter)
-                    context.ReportDiagnostic(DiagnosticDescriptors.MarkParameterWithInModifier, parameter.Identifier);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.MarkParameterWithInModifier, parameter.Identifier);
             }
 
             SyntaxWalker.Free(walker);

@@ -51,6 +51,7 @@ namespace Roslynator.VisualStudio
             var generalOptionsPage = (GeneralOptionsPage)GetDialogPage(typeof(GeneralOptionsPage));
             var refactoringsOptionsPage = (RefactoringsOptionsPage)GetDialogPage(typeof(RefactoringsOptionsPage));
             var codeFixesOptionsPage = (CodeFixesOptionsPage)GetDialogPage(typeof(CodeFixesOptionsPage));
+            var analyzersOptionsPage = (AnalyzersOptionsPage)GetDialogPage(typeof(AnalyzersOptionsPage));
 
             Version currentVersion = typeof(GeneralOptionsPage).Assembly.GetName().Version;
 
@@ -63,10 +64,12 @@ namespace Roslynator.VisualStudio
 
             codeFixesOptionsPage.CheckNewItemsDisabledByDefault();
             refactoringsOptionsPage.CheckNewItemsDisabledByDefault();
+            analyzersOptionsPage.CheckNewItemsDisabledByDefault();
 
             SettingsManager.Instance.UpdateVisualStudioSettings(generalOptionsPage);
             SettingsManager.Instance.UpdateVisualStudioSettings(refactoringsOptionsPage);
             SettingsManager.Instance.UpdateVisualStudioSettings(codeFixesOptionsPage);
+            SettingsManager.Instance.UpdateVisualStudioSettings(analyzersOptionsPage);
         }
 
         private void AfterOpenSolution(object sender = null, OpenSolutionEventArgs e = null)
@@ -103,6 +106,7 @@ namespace Roslynator.VisualStudio
             SettingsManager.Instance.ConfigFileSettings = LoadConfigFileSettings();
             SettingsManager.Instance.ApplyTo(RefactoringSettings.Current);
             SettingsManager.Instance.ApplyTo(CodeFixSettings.Current);
+            SettingsManager.Instance.ApplyTo(AnalyzerSettings.Current);
 
             ConfigFileSettings LoadConfigFileSettings()
             {
