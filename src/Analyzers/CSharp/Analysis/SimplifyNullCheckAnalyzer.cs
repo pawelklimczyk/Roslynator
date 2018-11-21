@@ -60,7 +60,7 @@ namespace Roslynator.CSharp.Analysis
 
             if (CSharpFactory.AreEquivalent(nullCheck.Expression, whenNotNull))
             {
-                if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression)
+                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression)
                     && semanticModel
                         .GetTypeSymbol(nullCheck.Expression, cancellationToken)?
                         .IsReferenceTypeOrNullableType() == true)
@@ -105,7 +105,7 @@ namespace Roslynator.CSharp.Analysis
                         {
                             if (memberAccessExpression == whenNotNull)
                             {
-                                if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression))
+                                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression))
                                 {
                                     DiagnosticHelpers.ReportDiagnostic(
                                         context,
@@ -121,7 +121,7 @@ namespace Roslynator.CSharp.Analysis
                     }
                 }
             }
-            else if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression)
+            else if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression)
                 && whenNotNull.IsKind(SyntaxKind.CastExpression)
                 && whenNull.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
             {
@@ -160,7 +160,7 @@ namespace Roslynator.CSharp.Analysis
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression))
+            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression))
             {
                 ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(whenNotNull, cancellationToken);
 

@@ -34,7 +34,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantDelegateCreation))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantDelegateCreation))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeAssignmentExpression, SyntaxKind.AddAssignmentExpression);

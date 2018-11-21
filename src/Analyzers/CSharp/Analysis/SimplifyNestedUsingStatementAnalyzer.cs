@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.SimplifyNestedUsingStatement))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.SimplifyNestedUsingStatement))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);

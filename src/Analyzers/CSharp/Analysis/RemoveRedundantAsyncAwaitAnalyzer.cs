@@ -34,7 +34,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantAsyncAwait))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantAsyncAwait))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);

@@ -34,7 +34,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.UsePostfixUnaryOperatorInsteadOfAssignment))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UsePostfixUnaryOperatorInsteadOfAssignment))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeSimpleAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);

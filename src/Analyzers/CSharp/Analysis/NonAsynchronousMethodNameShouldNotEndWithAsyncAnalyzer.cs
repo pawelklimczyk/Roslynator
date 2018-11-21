@@ -34,7 +34,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync))
                     return;
 
                 INamedTypeSymbol taskType = startContext.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");

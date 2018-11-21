@@ -44,6 +44,9 @@ namespace Roslynator.CSharp.Analysis
                 return;
             }
 
+            if (!classDeclaration.Members.Any())
+                return;
+
             INamedTypeSymbol symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration, context.CancellationToken);
 
             if (symbol.BaseType?.IsObject() != true)
@@ -52,7 +55,12 @@ namespace Roslynator.CSharp.Analysis
             if (!symbol.Interfaces.IsDefaultOrEmpty)
                 return;
 
-            if (!AnalyzeMembers(symbol))
+            ImmutableArray<ISymbol> members = symbol.GetMembers();
+
+            if (!members.Any())
+                return;
+
+            if (!AnalyzeMembers(members))
                 return;
 
             MakeClassStaticWalker walker = MakeClassStaticWalker.GetInstance();
@@ -72,19 +80,12 @@ namespace Roslynator.CSharp.Analysis
 
             MakeClassStaticWalker.Free(walker);
 
-            if (!canBeMadeStatic)
-                return;
-
-            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.MakeClassStatic, classDeclaration.Identifier);
+            if (canBeMadeStatic)
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.MakeClassStatic, classDeclaration.Identifier);
         }
 
-        public static bool AnalyzeMembers(INamedTypeSymbol symbol)
+        public static bool AnalyzeMembers(ImmutableArray<ISymbol> members)
         {
-            ImmutableArray<ISymbol> members = symbol.GetMembers();
-
-            if (!members.Any())
-                return false;
-
             bool areAllImplicitlyDeclared = true;
 
             foreach (ISymbol memberSymbol in members)

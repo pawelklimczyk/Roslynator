@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeAnonymousMethod, SyntaxKind.AnonymousMethodExpression);

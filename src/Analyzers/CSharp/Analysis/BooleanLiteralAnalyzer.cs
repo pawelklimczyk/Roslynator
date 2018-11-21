@@ -35,7 +35,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (startContext.IsAnyDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantBooleanLiteral, DiagnosticDescriptors.SimplifyBooleanComparison))
+                if (!startContext.AreAnalyzersSuppressed(DiagnosticDescriptors.RemoveRedundantBooleanLiteral, DiagnosticDescriptors.SimplifyBooleanComparison))
                 {
                     startContext.RegisterSyntaxNodeAction(AnalyzeEqualsExpression, SyntaxKind.EqualsExpression);
                     startContext.RegisterSyntaxNodeAction(AnalyzeNotEqualsExpression, SyntaxKind.NotEqualsExpression);
@@ -43,7 +43,7 @@ namespace Roslynator.CSharp.Analysis
                     startContext.RegisterSyntaxNodeAction(AnalyzeLogicalOrExpression, SyntaxKind.LogicalOrExpression);
                 }
 
-                if (startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantBooleanLiteral))
+                if (!startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantBooleanLiteral))
                     startContext.RegisterSyntaxNodeAction(AnalyzeForStatement, SyntaxKind.ForStatement);
             });
         }

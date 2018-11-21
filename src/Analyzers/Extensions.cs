@@ -10,17 +10,17 @@ namespace Roslynator
 {
     internal static class Extensions
     {
-        public static bool IsDiagnosticEnabled(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor)
+        public static bool IsAnalyzerSuppressed(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor)
         {
-            return IsDiagnosticEnabled(context.Compilation, descriptor);
+            return IsAnalyzerSuppressed(context.Compilation, descriptor);
         }
 
-        public static bool IsDiagnosticEnabled(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor)
+        public static bool IsAnalyzerSuppressed(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor)
         {
-            return IsDiagnosticEnabled(context.Compilation, descriptor);
+            return IsAnalyzerSuppressed(context.Compilation, descriptor);
         }
 
-        public static bool IsDiagnosticEnabled(this Compilation compilation, DiagnosticDescriptor descriptor)
+        public static bool IsAnalyzerSuppressed(this Compilation compilation, DiagnosticDescriptor descriptor)
         {
             ReportDiagnostic reportDiagnostic = compilation
                 .Options
@@ -30,25 +30,25 @@ namespace Roslynator
             switch (reportDiagnostic)
             {
                 case ReportDiagnostic.Default:
-                    return descriptor.IsEnabledByDefault;
+                    return !descriptor.IsEnabledByDefault;
                 case ReportDiagnostic.Suppress:
-                    return false;
-                default:
                     return true;
+                default:
+                    return false;
             }
         }
 
-        public static bool IsAnyDiagnosticEnabled(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
+        public static bool AreAnalyzersSuppressed(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
         {
-            return IsDiagnosticEnabled(context, descriptor1)
-                || IsDiagnosticEnabled(context, descriptor2);
+            return IsAnalyzerSuppressed(context, descriptor1)
+                && IsAnalyzerSuppressed(context, descriptor2);
         }
 
-        public static bool IsAnyDiagnosticEnabled(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2, DiagnosticDescriptor descriptor3)
+        public static bool AreAnalyzersSuppressed(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2, DiagnosticDescriptor descriptor3)
         {
-            return IsDiagnosticEnabled(context, descriptor1)
-                || IsDiagnosticEnabled(context, descriptor2)
-                || IsDiagnosticEnabled(context, descriptor3);
+            return IsAnalyzerSuppressed(context, descriptor1)
+                && IsAnalyzerSuppressed(context, descriptor2)
+                && IsAnalyzerSuppressed(context, descriptor3);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsAnyDiagnosticEnabled(
+                if (startContext.AreAnalyzersSuppressed(
                     DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf,
                     DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement,
                     DiagnosticDescriptors.ReplaceIfStatementWithAssignment))
@@ -76,7 +76,7 @@ namespace Roslynator.CSharp.Analysis
                     case IfAnalysisKind.IfElseToYieldReturnWithCoalesceExpression:
                     case IfAnalysisKind.IfReturnToReturnWithCoalesceExpression:
                         {
-                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf))
+                            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf))
                                 DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseCoalesceExpressionInsteadOfIf, ifStatement);
 
                             break;
@@ -85,7 +85,7 @@ namespace Roslynator.CSharp.Analysis
                     case IfAnalysisKind.IfElseToYieldReturnWithExpression:
                     case IfAnalysisKind.IfReturnToReturnWithExpression:
                         {
-                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement))
+                            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement))
                                 DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.ReplaceIfStatementWithReturnStatement, ifStatement);
 
                             break;
@@ -93,7 +93,7 @@ namespace Roslynator.CSharp.Analysis
                     case IfAnalysisKind.IfElseToAssignmentWithExpression:
                     case IfAnalysisKind.IfElseToAssignmentWithCondition:
                         {
-                            if (context.IsDiagnosticEnabled(DiagnosticDescriptors.ReplaceIfStatementWithAssignment))
+                            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.ReplaceIfStatementWithAssignment))
                                 DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.ReplaceIfStatementWithAssignment, ifStatement);
 
                             break;

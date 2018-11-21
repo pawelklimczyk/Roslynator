@@ -33,7 +33,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveBraces))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveBraces))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);

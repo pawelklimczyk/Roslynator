@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveEmptyRegion))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveEmptyRegion))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeRegionDirective, SyntaxKind.RegionDirectiveTrivia);

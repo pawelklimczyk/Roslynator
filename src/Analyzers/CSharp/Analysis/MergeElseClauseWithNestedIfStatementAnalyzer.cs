@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.MergeElseClauseWithNestedIfStatement))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.MergeElseClauseWithNestedIfStatement))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeElseClause, SyntaxKind.ElseClause);

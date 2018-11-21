@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.RemoveRedundantParentheses))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantParentheses))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeParenthesizedExpression, SyntaxKind.ParenthesizedExpression);

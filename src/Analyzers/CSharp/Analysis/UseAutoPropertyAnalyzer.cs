@@ -36,7 +36,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.UseAutoProperty))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseAutoProperty))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);

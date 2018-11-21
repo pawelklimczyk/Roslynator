@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.ReplaceInterpolatedStringWithConcatenation))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.ReplaceInterpolatedStringWithConcatenation))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeInterpolatedStringExpression, SyntaxKind.InterpolatedStringExpression);

@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (!startContext.IsDiagnosticEnabled(DiagnosticDescriptors.SimplifyLambdaExpression))
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.SimplifyLambdaExpression))
                     return;
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeLambdaExpression, SyntaxKind.SimpleLambdaExpression);
