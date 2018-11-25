@@ -4,11 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.CodeFixes.Tests
 {
-    public class CS1003SyntaxErrorCharExpectedTests : AbstractCSharpCompilerCodeFixVerifier
+    public class CS1003SyntaxErrorCharExpectedTests : AbstractCSharpCompilerDiagnosticFixVerifier
     {
         public override string DiagnosticId { get; } = CompilerDiagnosticIdentifiers.SyntaxErrorCharExpected;
 

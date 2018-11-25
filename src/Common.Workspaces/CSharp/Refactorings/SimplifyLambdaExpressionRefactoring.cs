@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Roslynator.CSharp.Refactorings
 {
@@ -17,14 +18,37 @@ namespace Roslynator.CSharp.Refactorings
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var block = (BlockSyntax)lambda.Body;
-            StatementSyntax statement = block.Statements[0];
-            ExpressionSyntax expression = GetNewExpression(statement).WithoutTrivia();
+
+            ExpressionSyntax expression = GetExpression(block.Statements[0]).WithoutTrivia();
 
             LambdaExpressionSyntax newLambda = GetNewLambda()
                 .WithTriviaFrom(lambda)
                 .WithFormatterAnnotation();
 
             return document.ReplaceNodeAsync(lambda, newLambda, cancellationToken);
+
+            ExpressionSyntax GetExpression(StatementSyntax statement)
+            {
+                switch (statement.Kind())
+                {
+                    case SyntaxKind.ReturnStatement:
+                        {
+                            return ((ReturnStatementSyntax)statement).Expression;
+                        }
+                    case SyntaxKind.ExpressionStatement:
+                        {
+                            return ((ExpressionStatementSyntax)statement).Expression;
+                        }
+                    case SyntaxKind.ThrowStatement:
+                        {
+                            return ThrowExpression(
+                               Token(SyntaxTriviaList.Empty, SyntaxKind.ThrowKeyword, TriviaList(Space)),
+                               ((ThrowStatementSyntax)statement).Expression);
+                        }
+                }
+
+                return null;
+            }
 
             LambdaExpressionSyntax GetNewLambda()
             {
@@ -33,13 +57,13 @@ namespace Roslynator.CSharp.Refactorings
                     case SyntaxKind.SimpleLambdaExpression:
                         {
                             return ((SimpleLambdaExpressionSyntax)lambda)
-                                .WithArrowToken(lambda.ArrowToken.WithoutTrailingTrivia())
+                                .WithArrowToken(lambda.ArrowToken.WithTrailingTrivia(TriviaList(Space)))
                                 .WithBody(expression);
                         }
                     case SyntaxKind.ParenthesizedLambdaExpression:
                         {
                             return ((ParenthesizedLambdaExpressionSyntax)lambda)
-                                .WithArrowToken(lambda.ArrowToken.WithoutTrailingTrivia())
+                                .WithArrowToken(lambda.ArrowToken.WithTrailingTrivia(TriviaList(Space)))
                                 .WithBody(expression);
                         }
                     default:
@@ -48,21 +72,6 @@ namespace Roslynator.CSharp.Refactorings
                         }
                 }
             }
-        }
-
-        private static ExpressionSyntax GetNewExpression(StatementSyntax statement)
-        {
-            switch (statement.Kind())
-            {
-                case SyntaxKind.ReturnStatement:
-                    return ((ReturnStatementSyntax)statement).Expression;
-                case SyntaxKind.ExpressionStatement:
-                    return ((ExpressionStatementSyntax)statement).Expression;
-                case SyntaxKind.ThrowStatement:
-                    return SyntaxFactory.ThrowExpression(((ThrowStatementSyntax)statement).Expression);
-            }
-
-            return null;
         }
     }
 }

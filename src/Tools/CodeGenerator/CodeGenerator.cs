@@ -56,8 +56,16 @@ namespace Roslynator.CodeGeneration
                 CodeFixesOptionsPageGenerator.Generate(CodeFixes, Comparer));
 
             WriteCompilationUnit(
-                @"CSharp\CSharp\CompilerDiagnosticIdentifiers.cs",
+                @"CSharp\CSharp\CompilerDiagnosticIdentifiers.Generated.cs",
                 CompilerDiagnosticIdentifiersGenerator.Generate(CompilerDiagnostics, Comparer));
+
+            WriteCompilationUnit(
+                @"Tools\CodeGeneration\CSharp\Symbols.Generated.cs",
+                SymbolsGetKindsGenerator.Generate());
+
+            WriteCompilationUnit(
+                @"CSharp\CSharp\SyntaxWalkers\CSharpSyntaxNodeWalker.cs",
+                CSharpSyntaxNodeWalkerGenerator.Generate());
         }
 
         private void WriteCompilationUnit(

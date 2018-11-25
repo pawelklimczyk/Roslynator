@@ -57,7 +57,7 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                ExpressionSyntax newCondition = Negator.LogicallyNegate(condition, semanticModel, cancellationToken);
+                ExpressionSyntax newCondition = Inverter.LogicallyNegate(condition, semanticModel, cancellationToken);
 
                 StatementSyntax statement = elseClause.Statement;
 
@@ -123,7 +123,7 @@ namespace Roslynator.CSharp.CodeFixes
 
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                ExpressionSyntax newCondition = Negator.LogicallyNegate(condition, semanticModel, cancellationToken);
+                ExpressionSyntax newCondition = Inverter.LogicallyNegate(condition, semanticModel, cancellationToken);
 
                 SyntaxNode newNode = block.Parent;
 
@@ -147,7 +147,7 @@ namespace Roslynator.CSharp.CodeFixes
                                 newNode = DoStatement(
                                     Token(whileStatement.WhileKeyword.LeadingTrivia, SyntaxKind.DoKeyword, whileStatement.CloseParenToken.TrailingTrivia),
                                     newBlock.WithoutTrailingTrivia(),
-                                    WhileKeyword(),
+                                    Token(SyntaxKind.WhileKeyword),
                                     OpenParenToken(),
                                     newCondition,
                                     CloseParenToken(),

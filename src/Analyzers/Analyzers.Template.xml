@@ -16,5 +16,12 @@
         <After><![CDATA[]]></After>
       </Sample>
     </Samples>
+    <Remarks></Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
   </Analyzer>
 </Analyzers>

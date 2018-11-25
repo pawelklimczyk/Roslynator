@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1207UseMethodGroupInsteadOfAnonymousFunctionTests : AbstractCSharpCodeFixVerifier
@@ -274,6 +272,73 @@ class C
         M(f => f.First());
         M((f) => f.First());
         M(delegate (IEnumerable<string> p) { return p.First(); });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseMethodGroupInsteadOfAnonymousFunction)]
+        public async Task TestNoDiagnostic_ConditionalAccess()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+    }
+
+    private static void M<TSource, TResult>(IEnumerable<TSource> items, Func<TSource, TResult> selector)
+    {
+        IEnumerable<TResult> x = null;
+
+        x = items?.Select(e => selector(e));
+        x = items?.Where(f => f != null).Select(e => selector(e));
+        x = items?.Where(f => f != null).Select(e => selector(e)).Distinct();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseMethodGroupInsteadOfAnonymousFunction)]
+        public async Task TestNoDiagnostic_DelegateInvoke()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    delegate bool D(string s);
+
+    void M(Func<string, bool> func)
+    {
+        D d = null;
+
+        M(f => d(f));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseMethodGroupInsteadOfAnonymousFunction)]
+        public async Task TestNoDiagnostic_InParameter()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    void M(Func<string, string> func)
+    {
+        M(f => M2(f));
+    }
+
+    string M2(in string p)
+    {
+        return p;
     }
 }
 ");

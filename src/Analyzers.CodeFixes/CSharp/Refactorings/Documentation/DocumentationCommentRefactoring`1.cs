@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -17,33 +16,24 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
 {
     internal abstract class DocumentationCommentRefactoring<TNode> where TNode : SyntaxNode
     {
-        public abstract SeparatedSyntaxList<TNode> GetContainingList(TNode node);
+        public abstract XmlElementKind ElementKind { get; }
+
+        public abstract bool ShouldBeBefore(XmlElementKind elementKind);
 
         public abstract string GetName(TNode node);
 
         public abstract ElementInfo<TNode> CreateInfo(TNode node, int insertIndex, NewLinePosition newLinePosition);
 
-        public virtual MemberDeclarationSyntax GetMemberDeclaration(TNode node)
-        {
-            return node.FirstAncestor<MemberDeclarationSyntax>();
-        }
-
-        public abstract ImmutableArray<string> ElementNames { get; }
-
-        public abstract string ElementName { get; }
-
-        public abstract string ElementNameUppercase { get; }
-
         public async Task<Document> RefactorAsync(
             Document document,
-            TNode node,
-            CancellationToken cancellationToken)
+            DocumentationCommentTriviaSyntax comment,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            MemberDeclarationSyntax memberDeclaration = GetMemberDeclaration(node);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            DocumentationCommentTriviaSyntax comment = memberDeclaration.GetSingleLineDocumentationComment();
+            MemberDeclarationSyntax memberDeclaration = comment.FirstAncestor<MemberDeclarationSyntax>();
 
-            SeparatedSyntaxList<TNode> typeParameters = GetContainingList(node);
+            SeparatedSyntaxList<TNode> typeParameters = GetSyntaxList(memberDeclaration);
 
             List<ElementInfo<TNode>> infos = GetElementInfos(comment, typeParameters);
 
@@ -69,7 +59,9 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
             return document;
         }
 
-        public string GetNewTrivia(
+        protected abstract SeparatedSyntaxList<TNode> GetSyntaxList(SyntaxNode node);
+
+        private string GetNewTrivia(
             DocumentationCommentTriviaSyntax comment,
             List<ElementInfo<TNode>> elementInfos)
         {
@@ -77,6 +69,8 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
             string text = comment.ToFullString();
             int start = comment.FullSpan.Start;
             int startIndex = 0;
+
+            string elementName = XmlElementNameKindMapper.GetName(ElementKind);
 
             foreach (IGrouping<int, ElementInfo<TNode>> grouping in elementInfos
                 .OrderBy(f => f.InsertIndex)
@@ -92,11 +86,11 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
                         sb.AppendLine();
 
                     sb.Append("/// <")
-                        .Append(ElementName)
+                        .Append(elementName)
                         .Append(" name=\"")
                         .Append(elementInfo.Name)
                         .Append("\"></")
-                        .Append(ElementName)
+                        .Append(elementName)
                         .Append(">");
 
                     if (elementInfo.NewLinePosition == NewLinePosition.End)
@@ -194,7 +188,7 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
         {
             var dic = new Dictionary<string, XmlElementSyntax>();
 
-            foreach (XmlElementSyntax element in comment.Elements(ElementName, ElementNameUppercase))
+            foreach (XmlElementSyntax element in comment.Elements(ElementKind))
             {
                 string name = DocumentationCommentAnalysis.GetAttributeValue(element, "name");
 
@@ -209,29 +203,23 @@ namespace Roslynator.CSharp.Refactorings.DocumentationComment
         {
             SyntaxList<XmlNodeSyntax> content = comment.Content;
 
-            foreach (string elementName in ElementNames)
-            {
-                int spanStart = FindLastElement(content, elementName);
-
-                if (spanStart != -1)
-                    return spanStart;
-            }
-
-            return comment.FullSpan.Start;
-        }
-
-        private static int FindLastElement(SyntaxList<XmlNodeSyntax> content, string localName)
-        {
             for (int i = content.Count - 1; i >= 0; i--)
             {
-                if (content[i].IsKind(SyntaxKind.XmlElement)
-                    && ((XmlElementSyntax)content[i]).StartTag?.Name?.LocalName.ValueText == localName)
+                if (content[i].IsKind(SyntaxKind.XmlElement))
                 {
-                    return content[i].FullSpan.End;
+                    var xmlElement = (XmlElementSyntax)content[i];
+
+                    XmlElementKind elementKind = xmlElement.GetElementKind();
+
+                    if (elementKind == ElementKind
+                        || ShouldBeBefore(elementKind))
+                    {
+                        return content[i].FullSpan.End;
+                    }
                 }
             }
 
-            return -1;
+            return comment.FullSpan.Start;
         }
     }
 }

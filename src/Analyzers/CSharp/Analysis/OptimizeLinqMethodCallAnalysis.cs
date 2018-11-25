@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -51,7 +52,7 @@ namespace Roslynator.CSharp.Analysis
 
             TextSpan span = TextSpan.FromBounds(invocationInfo2.Name.SpanStart, invocation.Span.End);
 
-            Report(context, invocation, span, checkDirectives: true);
+            Report(context, invocation, span, checkDirectives: true, property: new KeyValuePair<string, string>("Name", "SimplifyLinqMethodChain"));
         }
 
         public static void AnalyzeFirstOrDefault(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
@@ -90,8 +91,17 @@ namespace Roslynator.CSharp.Analysis
 
                         if (typeSymbol != null)
                         {
-                            if ((typeSymbol.Kind == SymbolKind.ArrayType && ((IArrayTypeSymbol)typeSymbol).Rank == 1)
-                                || typeSymbol.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_List_T))
+                            if (typeSymbol.Kind == SymbolKind.ArrayType)
+                            {
+                                if (((IArrayTypeSymbol)typeSymbol).Rank == 1
+                                    && !invocationInfo.Expression.IsKind(SyntaxKind.MemberBindingExpression)
+                                    && context.SemanticModel.Compilation.GetTypeByMetadataName("System.Array").GetMembers("Find").Any())
+                                {
+                                    Report(context, invocationInfo.Name);
+                                    return;
+                                }
+                            }
+                            else if (typeSymbol.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_List_T))
                             {
                                 Report(context, invocationInfo.Name);
                                 return;
@@ -383,7 +393,12 @@ namespace Roslynator.CSharp.Analysis
 
             if (propertyName != null)
             {
-                ReportNameWithArgumentList(context, invocationInfo, property: new KeyValuePair<string, string>("PropertyName", propertyName), messageArgs: propertyName);
+                if (CanBeReplacedWithMemberAccessExpression(invocationExpression)
+                    && CheckInfiniteRecursion(typeSymbol, propertyName, invocationExpression.SpanStart, semanticModel, cancellationToken))
+                {
+                    ReportNameWithArgumentList(context, invocationInfo, property: new KeyValuePair<string, string>("PropertyName", propertyName), messageArgs: propertyName);
+                }
+
                 return;
             }
 
@@ -443,6 +458,62 @@ namespace Roslynator.CSharp.Analysis
                         break;
                     }
             }
+
+            bool CanBeReplacedWithMemberAccessExpression(ExpressionSyntax e)
+            {
+                SyntaxNode p = CSharpUtility.GetTopmostExpressionInCallChain(e).WalkUpParentheses().Parent;
+
+                switch (p.Kind())
+                {
+                    case SyntaxKind.ExpressionStatement:
+                        {
+                            return false;
+                        }
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        {
+                            return semanticModel.GetMethodSymbol((LambdaExpressionSyntax)p, cancellationToken)?.ReturnType.IsVoid() == false;
+                        }
+                }
+
+                return true;
+            }
+        }
+
+        private static bool CheckInfiniteRecursion(
+            ITypeSymbol typeSymbol,
+            string propertyName,
+            int position,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            ISymbol symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+
+            if (symbol != null)
+            {
+                IPropertySymbol propertySymbol = null;
+
+                if (symbol.Kind == SymbolKind.Property)
+                {
+                    propertySymbol = (IPropertySymbol)symbol;
+                }
+                else if (symbol.Kind == SymbolKind.Method)
+                {
+                    var methodSymbol = (IMethodSymbol)symbol;
+
+                    if (methodSymbol.MethodKind.Is(MethodKind.PropertyGet, MethodKind.PropertySet))
+                        propertySymbol = methodSymbol.AssociatedSymbol as IPropertySymbol;
+                }
+
+                if (propertySymbol?.IsIndexer == false
+                    && propertySymbol.Name == propertyName
+                    && propertySymbol.ContainingType == typeSymbol)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void ReportNameWithArgumentList(

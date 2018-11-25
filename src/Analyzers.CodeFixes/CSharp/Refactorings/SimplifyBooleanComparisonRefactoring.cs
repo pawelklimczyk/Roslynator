@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -33,20 +31,16 @@ namespace Roslynator.CSharp.Refactorings
             ExpressionSyntax left = binaryExpression.Left;
             ExpressionSyntax right = binaryExpression.Right;
 
-            TextSpan span = TextSpan.FromBounds(left.Span.End, right.SpanStart);
-
-            IEnumerable<SyntaxTrivia> trivia = binaryExpression.DescendantTrivia(span);
-
-            bool isWhiteSpaceOrEndOfLine = trivia.All(f => f.IsWhitespaceOrEndOfLineTrivia());
+            SyntaxTriviaList trivia = binaryExpression
+                .DescendantTrivia(TextSpan.FromBounds(left.Span.End, right.SpanStart))
+                .ToSyntaxTriviaList()
+                .EmptyIfWhitespace();
 
             SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (CSharpFacts.IsBooleanLiteralExpression(left.Kind()))
             {
-                SyntaxTriviaList leadingTrivia = binaryExpression.GetLeadingTrivia();
-
-                if (!isWhiteSpaceOrEndOfLine)
-                    leadingTrivia = leadingTrivia.AddRange(trivia);
+                SyntaxTriviaList leadingTrivia = binaryExpression.GetLeadingTrivia().AddRange(trivia);
 
                 if (right.IsKind(SyntaxKind.LogicalNotExpression))
                 {
@@ -57,20 +51,17 @@ namespace Roslynator.CSharp.Refactorings
                     if (semanticModel.GetTypeInfo(operand, cancellationToken).ConvertedType.IsNullableOf(SpecialType.System_Boolean))
                     {
                         return binaryExpression
-                            .WithLeft(Negator.LogicallyNegate(left, semanticModel, cancellationToken))
+                            .WithLeft(Inverter.LogicallyNegate(left, semanticModel, cancellationToken))
                             .WithRight(operand.WithTriviaFrom(right));
                     }
                 }
 
-                return Negator.LogicallyNegate(right, semanticModel, cancellationToken)
+                return Inverter.LogicallyNegate(right, semanticModel, cancellationToken)
                     .WithLeadingTrivia(leadingTrivia);
             }
             else if (CSharpFacts.IsBooleanLiteralExpression(right.Kind()))
             {
-                SyntaxTriviaList trailingTrivia = binaryExpression.GetTrailingTrivia();
-
-                if (!isWhiteSpaceOrEndOfLine)
-                    trailingTrivia = trailingTrivia.InsertRange(0, trivia);
+                SyntaxTriviaList trailingTrivia = trivia.AddRange(binaryExpression.GetTrailingTrivia());
 
                 if (left.IsKind(SyntaxKind.LogicalNotExpression))
                 {
@@ -82,17 +73,15 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         return binaryExpression
                             .WithLeft(operand.WithTriviaFrom(left))
-                            .WithRight(Negator.LogicallyNegate(right, semanticModel, cancellationToken));
+                            .WithRight(Inverter.LogicallyNegate(right, semanticModel, cancellationToken));
                     }
                 }
 
-                return Negator.LogicallyNegate(left, semanticModel, cancellationToken)
+                return Inverter.LogicallyNegate(left, semanticModel, cancellationToken)
                     .WithTrailingTrivia(trailingTrivia);
             }
 
-            Debug.Fail(binaryExpression.ToString());
-
-            return binaryExpression;
+            throw new InvalidOperationException();
         }
     }
 }

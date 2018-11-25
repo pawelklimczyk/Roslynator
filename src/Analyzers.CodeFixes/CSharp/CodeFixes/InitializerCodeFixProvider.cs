@@ -2,13 +2,14 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CodeFixes;
-using Roslynator.CSharp.Refactorings;
 
 namespace Roslynator.CSharp.CodeFixes
 {
@@ -41,7 +42,14 @@ namespace Roslynator.CSharp.CodeFixes
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Remove redundant comma",
-                                cancellationToken => RemoveRedundantCommaInInitializerRefactoring.RefactorAsync(context.Document, initializer, cancellationToken),
+                                ct =>
+                                {
+                                    ct.ThrowIfCancellationRequested();
+
+                                    InitializerExpressionSyntax newInitializer = RemoveTrailingComma(initializer);
+
+                                    return context.Document.ReplaceNodeAsync(initializer, newInitializer, ct);
+                                },
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -51,7 +59,7 @@ namespace Roslynator.CSharp.CodeFixes
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Format initializer on a single line",
-                                cancellationToken => FormatInitializerWithSingleExpressionOnSingleLineRefactoring.RefactorAsync(context.Document, initializer, cancellationToken),
+                                ct => FormatInitializerOnSingleLineAsync(context.Document, initializer, ct),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -59,6 +67,40 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                 }
             }
+        }
+
+        private static Task<Document> FormatInitializerOnSingleLineAsync(
+            Document document,
+            InitializerExpressionSyntax initializer,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return SyntaxFormatter.ToSingleLineAsync(document, initializer, removeTrailingComma: true, cancellationToken);
+        }
+
+        private static InitializerExpressionSyntax RemoveTrailingComma(InitializerExpressionSyntax initializer)
+        {
+            SeparatedSyntaxList<ExpressionSyntax> expressions = initializer.Expressions;
+
+            SyntaxToken trailingComma = expressions.GetTrailingSeparator();
+
+            SeparatedSyntaxList<ExpressionSyntax> newExpressions = expressions.ReplaceSeparator(
+                trailingComma,
+                SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+
+            int lastIndex = expressions.Count - 1;
+
+            SyntaxTriviaList newTrailingTrivia = expressions[lastIndex]
+                .GetTrailingTrivia()
+                .AddRange(trailingComma.LeadingTrivia)
+                .AddRange(trailingComma.TrailingTrivia);
+
+            ExpressionSyntax newExpression = newExpressions[lastIndex].WithTrailingTrivia(newTrailingTrivia);
+
+            newExpressions = newExpressions.ReplaceAt(lastIndex, newExpression);
+
+            return initializer.WithExpressions(newExpressions);
         }
     }
 }

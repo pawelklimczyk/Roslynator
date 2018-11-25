@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using DotMarkdown;
 using DotMarkdown.Linq;
@@ -18,41 +17,6 @@ namespace Roslynator.CodeGeneration.Markdown
         private static void AddFootnote(this MDocument document)
         {
             document.Add(NewLine, Italic("(Generated with ", Link("DotMarkdown", "http://github.com/JosefPihrt/DotMarkdown"), ")"));
-        }
-
-        public static string GenerateAssemblyReadme(string assemblyName)
-        {
-            Assembly assembly = Assembly.Load(new AssemblyName(assemblyName));
-
-            var doc = new MDocument(Heading1(assemblyName + " API"));
-
-            foreach (IGrouping<string, TypeInfo> grouping in assembly
-                .DefinedTypes
-                .Where(f => f.IsPublic)
-                .GroupBy(f => f.Namespace)
-                .OrderBy(f => f.Key))
-            {
-                doc.Add(Heading2("Namespace " + grouping.Key));
-
-                AddHeadingWithTypes(doc, "Static Classes", grouping.Where(f => f.IsClass && f.IsStatic()));
-                AddHeadingWithTypes(doc, "Classes", grouping.Where(f => f.IsClass && !f.IsStatic()));
-                AddHeadingWithTypes(doc, "Structs", grouping.Where(f => f.IsValueType));
-                AddHeadingWithTypes(doc, "Interfaces", grouping.Where(f => f.IsInterface));
-            }
-
-            doc.AddFootnote();
-
-            return doc.ToString();
-
-            void AddHeadingWithTypes(MContainer parent, string name, IEnumerable<TypeInfo> types)
-            {
-                if (types.Any())
-                {
-                    parent.Add(Heading3(name), types
-                        .OrderBy(f => f.Name)
-                        .Select(f => BulletItem(f.Name)));
-                }
-            }
         }
 
         public static string CreateReadMe(IEnumerable<AnalyzerDescriptor> analyzers, IEnumerable<RefactoringDescriptor> refactorings, IComparer<string> comparer)
@@ -158,28 +122,19 @@ namespace Roslynator.CodeGeneration.Markdown
             }
         }
 
-        private static IEnumerable<MElement> GetLinks(IEnumerable<LinkDescriptor> links)
+        private static MElement CreateLink(in LinkDescriptor link)
         {
-            if (links.Any())
+            if (string.IsNullOrEmpty(link.Text))
             {
-                yield return Heading2("Related Links");
-                yield return BulletList(links.Select(f => GetContent(f)));
+                return new MAutolink(link.Url);
             }
-
-            MElement GetContent(in LinkDescriptor link)
+            else
             {
-                if (string.IsNullOrEmpty(link.Text))
-                {
-                    return new MAutolink(link.Url);
-                }
-                else
-                {
-                    return Link(link.Text, link.Url, link.Title);
-                }
+                return Link(link.Text, link.Url, link.Title);
             }
         }
 
-        public static string CreateRefactoringMarkdown(RefactoringDescriptor refactoring)
+        public static string CreateRefactoringMarkdown(RefactoringDescriptor refactoring, IEnumerable<string> filePaths)
         {
             var format = new MarkdownFormat(tableOptions: MarkdownFormat.Default.TableOptions | TableOptions.FormatContent);
 
@@ -191,19 +146,19 @@ namespace Roslynator.CodeGeneration.Markdown
                     TableRow("Syntax", string.Join(", ", refactoring.Syntaxes.Select(f => f.Name))),
                     (!string.IsNullOrEmpty(refactoring.Span)) ? TableRow("Span", refactoring.Span) : null,
                     TableRow("Enabled by Default", CheckboxOrHyphen(refactoring.IsEnabledByDefault))),
-                (!string.IsNullOrEmpty(refactoring.Summary)) ? Raw(refactoring.Summary) : null,
+                CreateSummary(refactoring.Summary),
                 Heading3("Usage"),
                 GetRefactoringSamples(refactoring),
-                GetLinks(refactoring.Links),
-                Link("full list of refactorings", "Refactorings.md"),
-                NewLine);
+                CreateRemarks(refactoring.Remarks),
+                CreateSourceFiles(filePaths),
+                CreateSeeAlso(refactoring.Links.Select(f => CreateLink(f)), Link("Full list of refactorings", "Refactorings.md")));
 
             document.AddFootnote();
 
             return document.ToString(format);
         }
 
-        public static string CreateAnalyzerMarkdown(AnalyzerDescriptor analyzer)
+        public static string CreateAnalyzerMarkdown(AnalyzerDescriptor analyzer, IEnumerable<string> filePaths)
         {
             var format = new MarkdownFormat(tableOptions: MarkdownFormat.Default.TableOptions | TableOptions.FormatContent);
 
@@ -213,20 +168,14 @@ namespace Roslynator.CodeGeneration.Markdown
                     TableRow("Property", "Value"),
                     TableRow("Id", analyzer.Id),
                     TableRow("Category", analyzer.Category),
-                    TableRow("Default Severity", analyzer.DefaultSeverity),
-                    TableRow("Enabled by Default", CheckboxOrHyphen(analyzer.IsEnabledByDefault)),
-                    TableRow("Supports Fade-Out", CheckboxOrHyphen(analyzer.SupportsFadeOut)),
-                    TableRow("Supports Fade-Out Analyzer", CheckboxOrHyphen(analyzer.SupportsFadeOutAnalyzer))),
-                (!string.IsNullOrEmpty(analyzer.Summary)) ? Raw(analyzer.Summary) : null,
+                    TableRow("Severity", (analyzer.IsEnabledByDefault) ? analyzer.DefaultSeverity : "None")),
+                CreateSummary(analyzer.Summary),
                 Samples(),
-                GetLinks(analyzer.Links),
-                Heading2("How to Suppress"),
-                Heading3("SuppressMessageAttribute"),
-                FencedCodeBlock($"[assembly: SuppressMessage(\"{analyzer.Category}\", \"{analyzer.Id}:{analyzer.Title}\", Justification = \"<Pending>\")]", LanguageIdentifiers.CSharp),
-                Heading3("#pragma"),
-                FencedCodeBlock($"#pragma warning disable {analyzer.Id} // {analyzer.Title}\r\n#pragma warning restore {analyzer.Id} // {analyzer.Title}", LanguageIdentifiers.CSharp),
-                Heading3("Ruleset"),
-                BulletItem(Link("How to configure rule set", "../HowToConfigureAnalyzers.md")));
+                CreateRemarks(analyzer.Remarks),
+                CreateSourceFiles(filePaths),
+                CreateSeeAlso(
+                    analyzer.Links.Select(f => CreateLink(f)),
+                    Link("How to Suppress a Diagnostic", "../HowToConfigureAnalyzers.md#how-to-suppress-a-diagnostic")));
 
             document.AddFootnote();
 
@@ -246,7 +195,34 @@ namespace Roslynator.CodeGeneration.Markdown
             }
         }
 
-        public static string CreateCompilerDiagnosticMarkdown(CompilerDiagnosticDescriptor diagnostic, IEnumerable<CodeFixDescriptor> codeFixes, IComparer<string> comparer)
+        private static IEnumerable<MElement> CreateSeeAlso(params object[] content)
+        {
+            yield return Heading2("See Also");
+            yield return BulletList(content);
+        }
+
+        private static IEnumerable<object> CreateSourceFiles(IEnumerable<string> filePaths)
+        {
+            using (IEnumerator<string> en = filePaths.GetEnumerator())
+            {
+                if (en.MoveNext())
+                {
+                    yield return Heading2("Related Source Files");
+
+                    do
+                    {
+                        string title = Path.GetFileName(en.Current);
+
+                        string url = "../../src" + en.Current.Replace(@"\", "/");
+
+                        yield return BulletItem(Link(title, url));
+                    }
+                    while (en.MoveNext());
+                }
+            }
+        }
+
+        public static string CreateCompilerDiagnosticMarkdown(CompilerDiagnosticDescriptor diagnostic, IEnumerable<CodeFixDescriptor> codeFixes, IComparer<string> comparer, IEnumerable<string> filePaths)
         {
             MDocument document = Document(
                 Heading1(diagnostic.Id),
@@ -260,7 +236,8 @@ namespace Roslynator.CodeGeneration.Markdown
                 BulletList(codeFixes
                     .Where(f => f.FixableDiagnosticIds.Any(diagnosticId => diagnosticId == diagnostic.Id))
                     .Select(f => f.Title)
-                    .OrderBy(f => f, comparer)));
+                    .OrderBy(f => f, comparer)),
+                CreateSourceFiles(filePaths));
 
             document.AddFootnote();
 
@@ -273,14 +250,14 @@ namespace Roslynator.CodeGeneration.Markdown
                 Heading2("Roslynator Analyzers"),
                 Link("Search Analyzers", "http://pihrt.net/Roslynator/Analyzers"),
                 Table(
-                    TableRow("Id", "Title", "Category", TableColumn(HorizontalAlignment.Center, "Enabled by Default")),
+                    TableRow("Id", "Title", "Category", "Severity"),
                     analyzers.OrderBy(f => f.Id, comparer).Select(f =>
                     {
                         return TableRow(
                             f.Id,
                             Link(f.Title.TrimEnd('.'), $"../../docs/analyzers/{f.Id}.md"),
                             f.Category,
-                            CheckboxOrHyphen(f.IsEnabledByDefault));
+                            (f.IsEnabledByDefault) ? f.DefaultSeverity : "None");
                     })));
 
             document.AddFootnote();
@@ -337,7 +314,7 @@ namespace Roslynator.CodeGeneration.Markdown
             MDocument document = Document(
                 Heading2("Roslynator Analyzers by Category"),
                 Table(
-                    TableRow("Category", "Title", "Id", TableColumn(HorizontalAlignment.Center, "Enabled by Default")),
+                    TableRow("Category", "Title", "Id", "Severity"),
                     GetRows()));
 
             document.AddFootnote();
@@ -356,9 +333,27 @@ namespace Roslynator.CodeGeneration.Markdown
                             grouping.Key,
                             Link(analyzer.Title.TrimEnd('.'), $"../../docs/analyzers/{analyzer.Id}.md"),
                             analyzer.Id,
-                            CheckboxOrHyphen(analyzer.IsEnabledByDefault));
+                            (analyzer.IsEnabledByDefault) ? analyzer.DefaultSeverity : "None");
                     }
                 }
+            }
+        }
+
+        private static IEnumerable<MElement> CreateSummary(string summary)
+        {
+            if (!string.IsNullOrEmpty(summary))
+            {
+                yield return Heading2("Summary");
+                yield return Raw(summary);
+            }
+        }
+
+        private static IEnumerable<MElement> CreateRemarks(string remarks)
+        {
+            if (!string.IsNullOrEmpty(remarks))
+            {
+                yield return Heading2("Remarks");
+                yield return Raw(remarks);
             }
         }
 

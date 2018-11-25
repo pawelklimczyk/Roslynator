@@ -49,6 +49,12 @@ namespace Roslynator.CSharp.Refactorings
                     }
                 }
             }
+
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ReplaceForEachWithEnumerator)
+                && context.Span.IsEmptyAndContainedInSpan(forEachStatement.ForEachKeyword))
+            {
+                ReplaceForEachWithEnumeratorRefactoring.ComputeRefactoring(context, forEachStatement);
+            }
         }
 
         internal static async Task ChangeTypeAsync(
@@ -62,7 +68,7 @@ namespace Roslynator.CSharp.Refactorings
 
             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
-            TypeAnalysis analysis = TypeAnalysis.AnalyzeType(forEachStatement, semanticModel);
+            TypeAnalysis analysis = CSharpTypeAnalysis.AnalyzeType(forEachStatement, semanticModel);
 
             if (analysis.IsExplicit)
             {

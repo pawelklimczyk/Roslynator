@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1096UseBitwiseOperationInsteadOfCallingHasFlagTests : AbstractCSharpCodeFixVerifier
@@ -164,6 +162,47 @@ class C
         var options = StringSplitOptions.None;
 
         if ( /*lt*/ ((options & StringSplitOptions.RemoveEmptyEntries /*tt*/ ) != 0).Equals(true)) { }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitwiseOperationInsteadOfCallingHasFlag)]
+        public async Task TestNoDiagnostic_TypeIsSystemEnum()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var @enum = default(Enum);
+        var options = StringSplitOptions.None;
+
+        if (options.HasFlag(@enum)) { }
+
+        if (@enum.HasFlag(options)) { }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitwiseOperationInsteadOfCallingHasFlag)]
+        public async Task TestNoDiagnostic_ConditionalAccess()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    StringSplitOptions P { get; }
+
+    void M()
+    {
+        C c = null;
+
+        if (c?.P.HasFlag(StringSplitOptions.RemoveEmptyEntries) == true) { }
     }
 }
 ");

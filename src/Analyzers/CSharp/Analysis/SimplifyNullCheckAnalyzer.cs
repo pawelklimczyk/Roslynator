@@ -60,9 +60,10 @@ namespace Roslynator.CSharp.Analysis
 
             if (CSharpFactory.AreEquivalent(nullCheck.Expression, whenNotNull))
             {
-                if (semanticModel
-                    .GetTypeSymbol(nullCheck.Expression, cancellationToken)?
-                    .IsReferenceTypeOrNullableType() == true)
+                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression)
+                    && semanticModel
+                        .GetTypeSymbol(nullCheck.Expression, cancellationToken)?
+                        .IsReferenceTypeOrNullableType() == true)
                 {
                     context.ReportDiagnostic(
                         DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression,
@@ -75,7 +76,11 @@ namespace Roslynator.CSharp.Analysis
                 SyntaxKind.ConditionalAccessExpression,
                 SyntaxKind.InvocationExpression))
             {
-                ExpressionSyntax expression = UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, whenNotNull);
+                ExpressionSyntax expression = UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(
+                    nullCheck.Expression,
+                    whenNotNull,
+                    semanticModel,
+                    cancellationToken);
 
                 if (expression == null)
                     return;
@@ -100,14 +105,46 @@ namespace Roslynator.CSharp.Analysis
                         {
                             if (memberAccessExpression == whenNotNull)
                             {
-                                context.ReportDiagnostic(
-                                    DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression,
-                                    conditionalExpression);
+                                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression))
+                                {
+                                    context.ReportDiagnostic(
+                                        DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression,
+                                        conditionalExpression);
+                                }
                             }
                             else
                             {
                                 Analyze(context, conditionalExpressionInfo, whenNull, whenNotNull, semanticModel, cancellationToken);
                             }
+                        }
+                    }
+                }
+            }
+            else if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression)
+                && whenNotNull.IsKind(SyntaxKind.CastExpression)
+                && whenNull.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+            {
+                var castExpression = (CastExpressionSyntax)whenNotNull;
+
+                if (castExpression.Type.IsKind(SyntaxKind.NullableType)
+                    && castExpression.Expression.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.ElementAccessExpression))
+                {
+                    ExpressionSyntax expression = UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(
+                        nullCheck.Expression,
+                        castExpression.Expression,
+                        isNullable: true,
+                        semanticModel,
+                        cancellationToken);
+
+                    if (expression != null)
+                    {
+                        ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(nullCheck.Expression, cancellationToken);
+
+                        if (typeSymbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                        {
+                            context.ReportDiagnostic(
+                                DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression,
+                                conditionalExpression);
                         }
                     }
                 }
@@ -122,17 +159,20 @@ namespace Roslynator.CSharp.Analysis
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(whenNotNull, cancellationToken);
-
-            if (typeSymbol?.IsErrorType() == false
-                && (typeSymbol.IsReferenceType || typeSymbol.IsValueType)
-                && semanticModel.IsDefaultValue(typeSymbol, whenNull, cancellationToken)
-                && !RefactoringUtility.ContainsOutArgumentWithLocal(whenNotNull, semanticModel, cancellationToken)
-                && !conditionalExpressionInfo.ConditionalExpression.IsInExpressionTree(semanticModel, cancellationToken))
+            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression))
             {
-                context.ReportDiagnostic(
-                    DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression,
-                    conditionalExpressionInfo.ConditionalExpression);
+                ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(whenNotNull, cancellationToken);
+
+                if (typeSymbol?.IsErrorType() == false
+                    && (typeSymbol.IsReferenceType || typeSymbol.IsValueType)
+                    && semanticModel.IsDefaultValue(typeSymbol, whenNull, cancellationToken)
+                    && !RefactoringUtility.ContainsOutArgumentWithLocal(whenNotNull, semanticModel, cancellationToken)
+                    && !conditionalExpressionInfo.ConditionalExpression.IsInExpressionTree(semanticModel, cancellationToken))
+                {
+                    context.ReportDiagnostic(
+                        DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression,
+                        conditionalExpressionInfo.ConditionalExpression);
+                }
             }
         }
     }

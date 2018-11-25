@@ -6,7 +6,6 @@ namespace Roslynator.CSharp
 {
     public static partial class CodeFixIdentifiers
     {
-        public const string RemoveUnusedVariable = Prefix + "0001";
         public const string AddBreakStatementToSwitchSection = Prefix + "0002";
         public const string CreateSingletonArray = Prefix + "0003";
         public const string AddOutModifierToArgument = Prefix + "0004";
@@ -113,5 +112,7 @@ namespace Roslynator.CSharp
         public const string AddMissingComma = Prefix + "0107";
         public const string RemoveParentheses = Prefix + "0108";
         public const string RemoveParameter = Prefix + "0109";
+        public const string RenameTupleElement = Prefix + "0110";
+        public const string ChangeParameterType = Prefix + "0111";
     }
 }

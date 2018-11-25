@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -345,7 +346,7 @@ namespace Roslynator.CSharp
             }
 
             return semanticModel.GetTypeInfo(expression, cancellationToken)
-                .ConvertedType?
+                .Type?
                 .SpecialType == SpecialType.System_String;
         }
 
@@ -564,6 +565,77 @@ namespace Roslynator.CSharp
 
                 return true;
             }
+        }
+
+        public static ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.OperatorDeclaration:
+                    return ((OperatorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.ConstructorDeclaration:
+                    return ((ConstructorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.DestructorDeclaration:
+                    return ((DestructorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return ((AccessorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)node).ExpressionBody;
+            }
+
+            Debug.Assert(!CSharpFacts.CanHaveExpressionBody(node.Kind()), node.Kind().ToString());
+
+            return null;
+        }
+
+        public static bool IsConditionallyAccessed(SyntaxNode node)
+        {
+            SyntaxNode prev = node;
+
+            for (SyntaxNode parent = node.Parent; parent != null; parent = parent.Parent)
+            {
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                    case SyntaxKind.ElementAccessExpression:
+                    case SyntaxKind.InvocationExpression:
+                        {
+                            prev = parent;
+                            continue;
+                        }
+                    case SyntaxKind.ConditionalAccessExpression:
+                        {
+                            return ((ConditionalAccessExpressionSyntax)parent).WhenNotNull == prev;
+                        }
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+
+            return false;
+        }
+
+        public static ExpressionSyntax GetTopmostExpressionInCallChain(ExpressionSyntax expression)
+        {
+            return (ExpressionSyntax)expression.WalkUp(f => f.IsKind(
+                SyntaxKind.ConditionalAccessExpression,
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxKind.ElementAccessExpression,
+                SyntaxKind.MemberBindingExpression,
+                SyntaxKind.InvocationExpression));
         }
 
         internal static IFieldSymbol FindEnumDefaultField(INamedTypeSymbol enumSymbol)

@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1128UseCoalesceExpressionTests : AbstractCSharpCodeFixVerifier
@@ -17,7 +15,7 @@ namespace Roslynator.CSharp.Analysis.Tests
 
         public override DiagnosticAnalyzer Analyzer { get; } = new UseCoalesceExpressionAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; } = new StatementCodeFixProvider();
+        public override CodeFixProvider FixProvider { get; } = new UseCoalesceExpressionCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseCoalesceExpression)]
         public async Task Test_LocalDeclarationStatement()
@@ -344,7 +342,8 @@ class C
         if (x != null)
             x = """";
     }
-}");
+}
+");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseCoalesceExpression)]
@@ -360,7 +359,8 @@ class C
         if (!(x is null))
             x = """";
     }
-}");
+}
+");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseCoalesceExpression)]
@@ -376,7 +376,32 @@ class C
         if (x.HasValue)
             x = 0;
     }
-}");
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseCoalesceExpression)]
+        public async Task TestNoDiagnostic_RefType()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        ref object x = ref GetRef();
+
+        if (x == null)
+            x = new object();
+    }
+
+    private ref object GetRef()
+    {
+        throw new NotImplementedException();
+    }
+}
+");
         }
     }
 }

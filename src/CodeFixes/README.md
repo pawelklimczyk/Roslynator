@@ -21,6 +21,7 @@
 | [CS0112](../../docs/cs/CS0112.md) | A static member 'function' cannot be marked as override, virtual or abstract\. |
 | [CS0114](../../docs/cs/CS0114.md) | 'function1' hides inherited member 'function2'\. To make the current method override that implementation, add the override keyword\. Otherwise add the new keyword\. |
 | [CS0115](../../docs/cs/CS0115.md) | 'function': no suitable method found to override\. |
+| [CS0119](../../docs/cs/CS0119.md) | 'identifier' is a 'construct', which is not valid in the given context\. |
 | [CS0120](../../docs/cs/CS0120.md) | An object reference is required for the nonstatic field, method, or property 'member'\. |
 | [CS0123](../../docs/cs/CS0123.md) | No overload for 'method' matches delegate 'delegate'\. |
 | [CS0126](../../docs/cs/CS0126.md) | An object of a type convertible to 'type' is required\. |
@@ -145,8 +146,10 @@
 | [CS1988](../../docs/cs/CS1988.md) | Async methods cannot have ref or out parameters\. |
 | [CS1994](../../docs/cs/CS1994.md) | The 'async' modifier can only be used in methods that have a body\. |
 | [CS1997](../../docs/cs/CS1997.md) | Since 'RemoveReturnKeywordOrReturnExpression\.FooAsync\(\)' is an async method that returns 'Task', a return keyword must not be followed by an object expression\. Did you intend to return 'Task\<T>>'? |
+| [CS8050](../../docs/cs/CS8050.md) | Only auto\-implemented properties can have initializers\. |
 | [CS8070](../../docs/cs/CS8070.md) | Control cannot fall out of switch from final case label \('default'\)\. |
 | [CS8112](../../docs/cs/CS8112.md) | 'function' is a local function and must therefore always have a body\. |
+| [CS8139](../../docs/cs/CS8139.md) | Cannot change tuple element names when overriding inherited member\. |
 | [CS8340](../../docs/cs/CS8340.md) | Instance fields of read\-only structs must be read\-only\. |
 
 

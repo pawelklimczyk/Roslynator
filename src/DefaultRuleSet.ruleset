@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Default RuleSet" ToolsVersion="15.0">
   <Rules AnalyzerId="Roslynator.CSharp.Analyzers" RuleNamespace="Roslynator.CSharp.Analyzers">
     <Rule Id="RCS1001" Action="Info" /> <!-- Add braces (when expression spans over multiple lines). -->
@@ -32,10 +32,10 @@
     <Rule Id="RCS1022FadeOut" Action="None" />
     <Rule Id="RCS1023" Action="None" /> <!-- Format empty block. -->
     <Rule Id="RCS1024" Action="None" /> <!-- Format accessor list. -->
-    <Rule Id="RCS1025" Action="None" /> <!-- Format each enum member on a separate line. -->
-    <Rule Id="RCS1026" Action="None" /> <!-- Format each statement on a separate line. -->
-    <Rule Id="RCS1027" Action="None" /> <!-- Format embedded statement on a separate line. -->
-    <Rule Id="RCS1028" Action="None" /> <!-- Format switch section's statement on a separate line. -->
+    <Rule Id="RCS1025" Action="None" /> <!-- Add new line before enum member. -->
+    <Rule Id="RCS1026" Action="None" /> <!-- Add new line before statement. -->
+    <Rule Id="RCS1027" Action="None" /> <!-- Add new line before embedded statement. -->
+    <Rule Id="RCS1028" Action="None" /> <!-- Add new line after switch label. -->
     <Rule Id="RCS1029" Action="Info" /> <!-- Format binary operator on next line. -->
     <Rule Id="RCS1030" Action="None" /> <!-- Add empty line after embedded statement. -->
     <Rule Id="RCS1031" Action="Info" /> <!-- Remove redundant braces. -->
@@ -94,7 +94,7 @@
     <Rule Id="RCS1074" Action="Hidden" /> <!-- Remove redundant constructor. -->
     <Rule Id="RCS1075" Action="Warning" /> <!-- Avoid empty catch clause that catches System.Exception. -->
     <Rule Id="RCS1076" Action="Hidden" /> <!-- Format declaration braces. -->
-    <Rule Id="RCS1077" Action="Info" /> <!-- Simplify LINQ method chain. -->
+    <Rule Id="RCS1077" Action="Info" /> <!-- Optimize LINQ method call. -->
     <Rule Id="RCS1078" Action="None" /> <!-- Use "" instead of string.Empty. -->
     <Rule Id="RCS1079" Action="Info" /> <!-- Throwing of new NotImplementedException. -->
     <Rule Id="RCS1080" Action="Info" /> <!-- Use 'Count/Length' property instead of 'Any' method. -->
@@ -112,7 +112,7 @@
     <Rule Id="RCS1090" Action="Info" /> <!-- Call 'ConfigureAwait(false)'. -->
     <Rule Id="RCS1091" Action="Hidden" /> <!-- Remove empty region. -->
     <Rule Id="RCS1091FadeOut" Action="Hidden" />
-    <Rule Id="RCS1092" Action="None" /> <!-- Add empty line after last statement in do statement. -->
+    <Rule Id="RCS1092" Action="None" /> <!-- Add empty line before 'while' keyword in 'do' statement. -->
     <Rule Id="RCS1093" Action="Info" /> <!-- Remove file with no code. -->
     <Rule Id="RCS1094" Action="None" /> <!-- Declare using directive on top level. -->
     <Rule Id="RCS1095" Action="Info" /> <!-- Use C# 6.0 dictionary initializer. -->
@@ -165,8 +165,8 @@
     <Rule Id="RCS1138" Action="Warning" /> <!-- Add summary to documentation comment. -->
     <Rule Id="RCS1139" Action="Warning" /> <!-- Add summary element to documentation comment. -->
     <Rule Id="RCS1140" Action="Hidden" /> <!-- Add exception to documentation comment. -->
-    <Rule Id="RCS1141" Action="Info" /> <!-- Add parameter to documentation comment. -->
-    <Rule Id="RCS1142" Action="Info" /> <!-- Add type parameter to documentation comment. -->
+    <Rule Id="RCS1141" Action="Hidden" /> <!-- Add 'param' element to documentation comment. -->
+    <Rule Id="RCS1142" Action="Hidden" /> <!-- Add 'typeparam' element to documentation comment. -->
     <Rule Id="RCS1143" Action="Hidden" /> <!-- Simplify coalesce expression. -->
     <Rule Id="RCS1144" Action="Hidden" /> <!-- Mark containing class as abstract. -->
     <Rule Id="RCS1145" Action="Hidden" /> <!-- Remove redundant 'as' operator. -->
@@ -189,7 +189,7 @@
     <Rule Id="RCS1162" Action="None" /> <!-- Avoid chain of assignments. -->
     <Rule Id="RCS1163" Action="Info" /> <!-- Unused parameter. -->
     <Rule Id="RCS1164" Action="Info" /> <!-- Unused type parameter. -->
-    <Rule Id="RCS1165" Action="Warning" /> <!-- Unconstrained type parameter checked for null. -->
+    <Rule Id="RCS1165" Action="Hidden" /> <!-- Unconstrained type parameter checked for null. -->
     <Rule Id="RCS1166" Action="Info" /> <!-- Value type object is never equal to null. -->
     <Rule Id="RCS1167" Action="Hidden" /> <!-- Overriding member cannot change access modifiers. -->
     <Rule Id="RCS1168" Action="Warning" /> <!-- Parameter name differs from base name. -->
@@ -198,8 +198,8 @@
     <Rule Id="RCS1171" Action="Info" /> <!-- Simplify lazy initialization. -->
     <Rule Id="RCS1172" Action="Warning" /> <!-- Use 'is' operator instead of 'as' operator. -->
     <Rule Id="RCS1173" Action="Info" /> <!-- Use coalesce expression instead of if. -->
-    <Rule Id="RCS1174" Action="Info" /> <!-- Remove redundant async/await. -->
-    <Rule Id="RCS1174FadeOut" Action="Info" />
+    <Rule Id="RCS1174" Action="None" /> <!-- Remove redundant async/await. -->
+    <Rule Id="RCS1174FadeOut" Action="None" />
     <Rule Id="RCS1175" Action="Info" /> <!-- Unused this parameter. -->
     <Rule Id="RCS1176" Action="None" /> <!-- Use 'var' instead of explicit type (when the type is not obvious). -->
     <Rule Id="RCS1177" Action="None" /> <!-- Use 'var' instead of explicit type (in foreach). -->
@@ -210,7 +210,7 @@
     <Rule Id="RCS1182" Action="Hidden" /> <!-- Remove redundant base interface. -->
     <Rule Id="RCS1183" Action="Hidden" /> <!-- Format initializer with single expression on single line. -->
     <Rule Id="RCS1184" Action="None" /> <!-- Format conditional expression (format ? and : on next line). -->
-    <Rule Id="RCS1185" Action="None" /> <!-- Avoid single-line block. -->
+    <Rule Id="RCS1185" Action="None" /> <!-- Format single-line block. -->
     <Rule Id="RCS1186" Action="Hidden" /> <!-- Use Regex instance instead of static method. -->
     <Rule Id="RCS1187" Action="Info" /> <!-- Use constant instead of field. -->
     <Rule Id="RCS1188" Action="Hidden" /> <!-- Remove redundant auto-property initialization. -->
@@ -255,5 +255,8 @@
     <Rule Id="RCS1224" Action="Info" /> <!-- Make method an extension method. -->
     <Rule Id="RCS1225" Action="Info" /> <!-- Make class sealed. -->
     <Rule Id="RCS1226" Action="Info" /> <!-- Add paragraph to documentation comment. -->
+    <Rule Id="RCS1227" Action="Info" /> <!-- Validate arguments correctly. -->
+    <Rule Id="RCS1228" Action="Hidden" /> <!-- Unused element in documentation comment. -->
+    <Rule Id="RCS1229" Action="Info" /> <!-- Use async/await when necessary. -->
   </Rules>
 </RuleSet>

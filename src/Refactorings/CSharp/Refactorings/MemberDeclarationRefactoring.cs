@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslynator.CSharp.Analysis;
 
 namespace Roslynator.CSharp.Refactorings
 {
@@ -87,26 +86,40 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         var namespaceDeclaration = (NamespaceDeclarationSyntax)member;
                         NamespaceDeclarationRefactoring.ComputeRefactorings(context, namespaceDeclaration);
-                        SelectedMemberDeclarationsRefactoring.ComputeRefactoring(context, namespaceDeclaration);
+
+                        if (MemberDeclarationListSelection.TryCreate(namespaceDeclaration, context.Span, out MemberDeclarationListSelection selectedMembers))
+                            await SelectedMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, selectedMembers).ConfigureAwait(false);
+
                         break;
                     }
                 case SyntaxKind.ClassDeclaration:
                     {
                         var classDeclaration = (ClassDeclarationSyntax)member;
                         await ClassDeclarationRefactoring.ComputeRefactoringsAsync(context, classDeclaration).ConfigureAwait(false);
-                        SelectedMemberDeclarationsRefactoring.ComputeRefactoring(context, classDeclaration);
+
+                        if (MemberDeclarationListSelection.TryCreate(classDeclaration, context.Span, out MemberDeclarationListSelection selectedMembers))
+                            await SelectedMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, selectedMembers).ConfigureAwait(false);
+
                         break;
                     }
                 case SyntaxKind.StructDeclaration:
                     {
                         var structDeclaration = (StructDeclarationSyntax)member;
                         await StructDeclarationRefactoring.ComputeRefactoringsAsync(context, structDeclaration).ConfigureAwait(false);
-                        SelectedMemberDeclarationsRefactoring.ComputeRefactoring(context, structDeclaration);
+
+                        if (MemberDeclarationListSelection.TryCreate(structDeclaration, context.Span, out MemberDeclarationListSelection selectedMembers))
+                            await SelectedMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, selectedMembers).ConfigureAwait(false);
+
                         break;
                     }
                 case SyntaxKind.InterfaceDeclaration:
                     {
-                        InterfaceDeclarationRefactoring.ComputeRefactorings(context, (InterfaceDeclarationSyntax)member);
+                        var interfaceDeclaration = (InterfaceDeclarationSyntax)member;
+                        InterfaceDeclarationRefactoring.ComputeRefactorings(context, interfaceDeclaration);
+
+                        if (MemberDeclarationListSelection.TryCreate(interfaceDeclaration, context.Span, out MemberDeclarationListSelection selectedMembers))
+                            await SelectedMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, selectedMembers).ConfigureAwait(false);
+
                         break;
                     }
                 case SyntaxKind.EnumDeclaration:
@@ -184,9 +197,7 @@ namespace Roslynator.CSharp.Refactorings
         {
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.UseExpressionBodiedMember)
                 && context.SupportsCSharp6
-                && operatorDeclaration.Body != null
-                && context.Span.IsEmptyAndContainedInSpanOrBetweenSpans(operatorDeclaration.Body)
-                && UseExpressionBodiedMemberAnalysis.GetReturnExpression(operatorDeclaration.Body) != null)
+                && UseExpressionBodiedMemberRefactoring.CanRefactor(operatorDeclaration, context.Span))
             {
                 context.RegisterRefactoring(
                     UseExpressionBodiedMemberRefactoring.Title,
@@ -199,9 +210,7 @@ namespace Roslynator.CSharp.Refactorings
         {
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.UseExpressionBodiedMember)
                 && context.SupportsCSharp6
-                && operatorDeclaration.Body != null
-                && context.Span.IsEmptyAndContainedInSpanOrBetweenSpans(operatorDeclaration.Body)
-                && UseExpressionBodiedMemberAnalysis.GetReturnExpression(operatorDeclaration.Body) != null)
+                && UseExpressionBodiedMemberRefactoring.CanRefactor(operatorDeclaration, context.Span))
             {
                 context.RegisterRefactoring(
                     UseExpressionBodiedMemberRefactoring.Title,

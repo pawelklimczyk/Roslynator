@@ -3,22 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Roslynator.CSharp.Syntax
 {
     /// <summary>
-    /// Provides information about a <see cref="XmlNodeSyntax"/>.
+    /// Provides information about a <see cref="XmlElementSyntax"/> or <see cref="XmlEmptyElementSyntax"/>.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public readonly struct XmlElementInfo : IEquatable<XmlElementInfo>
     {
-        private XmlElementInfo(XmlNodeSyntax element, string localName, XmlElementKind elementKind)
+        private XmlElementInfo(XmlNodeSyntax element, string localName)
         {
             Element = element;
             LocalName = localName;
-            ElementKind = elementKind;
         }
 
         /// <summary>
@@ -30,8 +30,6 @@ namespace Roslynator.CSharp.Syntax
         /// Local name of the element.
         /// </summary>
         public string LocalName { get; }
-
-        internal XmlElementKind ElementKind { get; }
 
         /// <summary>
         /// Element kind.
@@ -49,6 +47,54 @@ namespace Roslynator.CSharp.Syntax
             get { return Kind == SyntaxKind.XmlEmptyElement; }
         }
 
+        internal bool IsContentEmptyOrWhitespace
+        {
+            get
+            {
+                if (!Success)
+                    return false;
+
+                if (IsEmptyElement)
+                    return true;
+
+                var element = (XmlElementSyntax)Element;
+
+                SyntaxList<XmlNodeSyntax> content = element.Content;
+
+                int count = content.Count;
+
+                if (count == 0)
+                    return true;
+
+                if (count == 1)
+                {
+                    XmlNodeSyntax node = content[0];
+
+                    if (node.IsKind(SyntaxKind.XmlText))
+                    {
+                        var xmlText = (XmlTextSyntax)node;
+
+                        return xmlText.TextTokens.All(IsWhitespaceOrNewLine);
+                    }
+                }
+
+                return false;
+
+                bool IsWhitespaceOrNewLine(SyntaxToken token)
+                {
+                    switch (token.Kind())
+                    {
+                        case SyntaxKind.XmlTextLiteralNewLineToken:
+                            return true;
+                        case SyntaxKind.XmlTextLiteralToken:
+                            return string.IsNullOrWhiteSpace(token.ValueText);
+                        default:
+                            return false;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Determines whether this struct was initialized with an actual syntax.
         /// </summary>
@@ -63,6 +109,11 @@ namespace Roslynator.CSharp.Syntax
             get { return SyntaxInfoHelpers.ToDebugString(Success, this, Element); }
         }
 
+        internal XmlElementKind GetElementKind()
+        {
+            return XmlElementNameKindMapper.GetKindOrDefault(LocalName);
+        }
+
         internal static XmlElementInfo Create(XmlNodeSyntax node)
         {
             switch (node)
@@ -74,7 +125,7 @@ namespace Roslynator.CSharp.Syntax
                         if (localName == null)
                             return default;
 
-                        return new XmlElementInfo(element, localName, GetXmlElementKind(localName));
+                        return new XmlElementInfo(element, localName);
                     }
                 case XmlEmptyElementSyntax element:
                     {
@@ -83,35 +134,11 @@ namespace Roslynator.CSharp.Syntax
                         if (localName == null)
                             return default;
 
-                        return new XmlElementInfo(element, localName, GetXmlElementKind(localName));
+                        return new XmlElementInfo(element, localName);
                     }
             }
 
             return default;
-        }
-
-        private static XmlElementKind GetXmlElementKind(string localName)
-        {
-            switch (localName)
-            {
-                case "include":
-                case "INCLUDE":
-                    return XmlElementKind.Include;
-                case "exclude":
-                case "EXCLUDE":
-                    return XmlElementKind.Exclude;
-                case "inheritdoc":
-                case "INHERITDOC":
-                    return XmlElementKind.InheritDoc;
-                case "summary":
-                case "SUMMARY":
-                    return XmlElementKind.Summary;
-                case "exception":
-                case "EXCEPTION":
-                    return XmlElementKind.Exception;
-                default:
-                    return XmlElementKind.None;
-            }
         }
 
         internal bool IsLocalName(string localName, StringComparison comparison = StringComparison.Ordinal)

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp.Documentation;
 using Roslynator.CSharp.Syntax;
+using Roslynator.Documentation;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Roslynator.CSharp
@@ -376,6 +377,17 @@ namespace Roslynator.CSharp
             SourceText newSourceText = sourceText.WithChanges(textChange);
 
             return document.WithText(newSourceText);
+        }
+
+        internal static Task<Document> RemoveSingleLineDocumentationComment(
+            this Document document,
+            DocumentationCommentTriviaSyntax documentationComment,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            SyntaxNode node = documentationComment.ParentTrivia.Token.Parent;
+            SyntaxNode newNode = SyntaxRemover.RemoveSingleLineDocumentationComment(node, documentationComment);
+
+            return document.ReplaceNodeAsync(node, newNode, cancellationToken);
         }
 
         internal static Task<Document> ReplaceStatementsAsync(

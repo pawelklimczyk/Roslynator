@@ -8,8 +8,6 @@ using Roslynator.CSharp.Analysis.UsePatternMatching;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1220UsePatternMatchingInsteadOfIsAndCastTests : AbstractCSharpCodeFixVerifier
@@ -250,6 +248,27 @@ class C
         string s = null;
 
         M(() => x is string && ((string)x) == s);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePatternMatchingInsteadOfIsAndCast)]
+        public async Task TestNoDiagnostic_NullableType()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M(int? p)
+    {
+        object x = null;
+
+        if (x is int?)
+        {
+            M((int?)x);
+        }
+
+        if (x is int? && ((int?)x) == 0) { }
     }
 }
 ");

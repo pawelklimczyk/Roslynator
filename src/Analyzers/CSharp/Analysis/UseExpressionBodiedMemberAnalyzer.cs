@@ -32,19 +32,25 @@ namespace Roslynator.CSharp.Analysis
             base.Initialize(context);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeOperatorDeclaration, SyntaxKind.OperatorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeConversionOperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeDestructorDeclaration, SyntaxKind.DestructorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.GetAccessorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.SetAccessorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.AddAccessorDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseExpressionBodiedMember))
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeOperatorDeclaration, SyntaxKind.OperatorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeConversionOperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeDestructorDeclaration, SyntaxKind.DestructorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
+                startContext.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.GetAccessorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.SetAccessorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.AddAccessorDeclaration);
+                startContext.RegisterSyntaxNodeAction(AnalyzeAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration);
+            });
         }
 
-        private static void  AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             var method = (MethodDeclarationSyntax)context.Node;
 
@@ -61,7 +67,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeOperatorDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeOperatorDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declaration = (OperatorDeclarationSyntax)context.Node;
 
@@ -78,7 +84,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeConversionOperatorDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeConversionOperatorDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declaration = (ConversionOperatorDeclarationSyntax)context.Node;
 
@@ -95,7 +101,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeConstructorDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeConstructorDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declaration = (ConstructorDeclarationSyntax)context.Node;
 
@@ -112,7 +118,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeDestructorDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeDestructorDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declaration = (DestructorDeclarationSyntax)context.Node;
 
@@ -129,7 +135,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeLocalFunctionStatement(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeLocalFunctionStatement(SyntaxNodeAnalysisContext context)
         {
             var localFunction = (LocalFunctionStatementSyntax)context.Node;
 
@@ -146,7 +152,7 @@ namespace Roslynator.CSharp.Analysis
             AnalyzeExpression(context, body, expression);
         }
 
-        private static void  AnalyzeAccessorDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeAccessorDeclaration(SyntaxNodeAnalysisContext context)
         {
             var accessor = (AccessorDeclarationSyntax)context.Node;
 

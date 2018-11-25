@@ -14,6 +14,7 @@ using Roslynator.CSharp.Documentation;
 using Roslynator.CSharp.Syntax;
 using Roslynator.CSharp.SyntaxRewriters;
 using Roslynator.CSharp.SyntaxWalkers;
+using Roslynator.Documentation;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
 
@@ -113,47 +114,9 @@ namespace Roslynator.CSharp
             }
         }
 
-        internal static bool ContainsYieldReturn(this BlockSyntax block, TextSpan? span = null)
+        internal static bool ContainsYield(this BlockSyntax block, bool yieldReturn = true, bool yieldBreak = true)
         {
-            return ContainsYieldWalker.ContainsYieldReturn(block, span);
-        }
-
-        internal static bool ContainsYieldBreak(this BlockSyntax block, TextSpan? span = null)
-        {
-            return ContainsYieldWalker.ContainsYieldBreak(block, span);
-        }
-
-        internal static bool ContainsYield(this BlockSyntax block, TextSpan? span = null, bool yieldReturn = true, bool yieldBreak = true)
-        {
-            return ContainsYieldWalker.ContainsYield(block, span, yieldReturn, yieldBreak);
-        }
-
-        internal static StatementSyntax LastStatementOrDefault(this BlockSyntax block, bool skipLocalFunction = false)
-        {
-            if (block == null)
-                throw new ArgumentNullException(nameof(block));
-
-            SyntaxList<StatementSyntax> statements = block.Statements;
-
-            if (!statements.Any())
-                return null;
-
-            if (!skipLocalFunction)
-                return statements.Last();
-
-            int i = statements.Count - 1;
-
-            while (i >= 0)
-            {
-                StatementSyntax statement = statements[i];
-
-                if (statement.Kind() != SyntaxKind.LocalFunctionStatement)
-                    return statement;
-
-                i--;
-            }
-
-            return null;
+            return ContainsYieldWalker.ContainsYield(block, yieldReturn, yieldBreak);
         }
         #endregion BlockSyntax
 
@@ -173,6 +136,13 @@ namespace Roslynator.CSharp
             return null;
         }
         #endregion BaseArgumentListSyntax
+
+        #region BinaryExpressionSyntax
+        public static ExpressionChain AsChain(this BinaryExpressionSyntax binaryExpression, TextSpan? span = null)
+        {
+            return new ExpressionChain(binaryExpression, span);
+        }
+        #endregion BinaryExpressionSyntax
 
         #region CastExpressionSyntax
         /// <summary>
@@ -457,6 +427,112 @@ namespace Roslynator.CSharp
         }
         #endregion DestructorDeclarationSyntax
 
+        #region DirectiveTriviaSyntax
+        //TODO: make public
+        internal static DirectiveTriviaSyntax GetNextRelatedDirective(this DirectiveTriviaSyntax directiveTrivia)
+        {
+            DirectiveTriviaSyntax d = directiveTrivia;
+
+            switch (d.Kind())
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                    {
+                        while (true)
+                        {
+                            d = d.GetNextPossiblyRelatedDirective();
+
+                            if (d == null)
+                                break;
+
+                            if (d.IsKind(
+                                SyntaxKind.ElifDirectiveTrivia,
+                                SyntaxKind.ElseDirectiveTrivia,
+                                SyntaxKind.EndIfDirectiveTrivia))
+                            {
+                                return d;
+                            }
+                        }
+
+                        break;
+                    }
+                case SyntaxKind.ElseDirectiveTrivia:
+                    {
+                        while (true)
+                        {
+                            d = d.GetNextPossiblyRelatedDirective();
+
+                            if (d == null)
+                                break;
+
+                            if (d.Kind() == SyntaxKind.EndIfDirectiveTrivia)
+                                return d;
+                        }
+
+                        break;
+                    }
+                case SyntaxKind.RegionDirectiveTrivia:
+                    {
+                        while (true)
+                        {
+                            d = d.GetNextPossiblyRelatedDirective();
+
+                            if (d == null)
+                                break;
+
+                            if (d.Kind() == SyntaxKind.EndRegionDirectiveTrivia)
+                                return d;
+                        }
+
+                        break;
+                    }
+            }
+
+            return null;
+        }
+
+        private static DirectiveTriviaSyntax GetNextPossiblyRelatedDirective(this DirectiveTriviaSyntax directiveTrivia)
+        {
+            DirectiveTriviaSyntax d = directiveTrivia;
+
+            while (d != null)
+            {
+                d = d.GetNextDirective();
+
+                if (d != null)
+                {
+                    switch (d.Kind())
+                    {
+                        case SyntaxKind.IfDirectiveTrivia:
+                            {
+                                do
+                                {
+                                    d = d.GetNextRelatedDirective();
+                                }
+                                while (d != null && d.Kind() != SyntaxKind.EndIfDirectiveTrivia);
+
+                                continue;
+                            }
+                        case SyntaxKind.RegionDirectiveTrivia:
+                            {
+                                do
+                                {
+                                    d = d.GetNextRelatedDirective();
+                                }
+                                while (d != null && d.Kind() != SyntaxKind.EndRegionDirectiveTrivia);
+
+                                continue;
+                            }
+                    }
+                }
+
+                return d;
+            }
+
+            return null;
+        }
+        #endregion DirectiveTriviaSyntax
+
         #region DocumentationCommentTriviaSyntax
         internal static XmlElementSyntax SummaryElement(this DocumentationCommentTriviaSyntax documentationComment)
         {
@@ -505,7 +581,7 @@ namespace Roslynator.CSharp
             }
         }
 
-        internal static IEnumerable<XmlElementSyntax> Elements(this DocumentationCommentTriviaSyntax documentationComment, string localName1, string localName2)
+        internal static IEnumerable<XmlElementSyntax> Elements(this DocumentationCommentTriviaSyntax documentationComment, XmlElementKind elementKind)
         {
             foreach (XmlNodeSyntax node in documentationComment.Content)
             {
@@ -513,7 +589,7 @@ namespace Roslynator.CSharp
                 {
                     var xmlElement = (XmlElementSyntax)node;
 
-                    if (xmlElement.IsLocalName(localName1, localName2))
+                    if (xmlElement.IsElementKind(elementKind))
                         yield return xmlElement;
                 }
             }
@@ -523,11 +599,8 @@ namespace Roslynator.CSharp
         {
             SyntaxNode node = documentationComment.ParentTrivia.Token.Parent;
 
-            if (node is MemberDeclarationSyntax)
-                return true;
-
-            return node.IsKind(SyntaxKind.AttributeList)
-                && node.Parent is MemberDeclarationSyntax;
+            return node is MemberDeclarationSyntax
+                || node.Parent is MemberDeclarationSyntax;
         }
         #endregion DocumentationCommentTriviaSyntax
 
@@ -836,6 +909,14 @@ namespace Roslynator.CSharp
                 throw new ArgumentNullException(nameof(ifStatement));
 
             return new IfStatementCascade(ifStatement);
+        }
+
+        internal static IfStatementCascadeInfo GetCascadeInfo(this IfStatementSyntax ifStatement)
+        {
+            if (ifStatement == null)
+                throw new ArgumentNullException(nameof(ifStatement));
+
+            return new IfStatementCascadeInfo(ifStatement);
         }
         #endregion IfStatementSyntax
 
@@ -1264,7 +1345,7 @@ namespace Roslynator.CSharp
 
                 if (data.Success)
                 {
-                    SyntaxTrivia comment = data.GetDocumentationCommentTrivia(semanticModel, member.SpanStart);
+                    SyntaxTrivia comment = DocumentationCommentTriviaFactory.Parse(data.RawXml, semanticModel, member.SpanStart);
 
                     return member.WithDocumentationComment(comment, indent: true);
                 }
@@ -1689,6 +1770,48 @@ namespace Roslynator.CSharp
         {
             return ReplaceRange(list, index, count, Empty.ReadOnlyList<TNode>());
         }
+
+        //TODO: make public
+        internal static SeparatedSyntaxList<TNode> TrimTrivia<TNode>(this SeparatedSyntaxList<TNode> list) where TNode : SyntaxNode
+        {
+            int count = list.Count;
+
+            if (count == 0)
+                return list;
+
+            int separatorCount = list.SeparatorCount;
+
+            if (count == 1)
+            {
+                if (separatorCount == 0)
+                {
+                    return list.ReplaceAt(0, list[0].TrimTrivia());
+                }
+                else
+                {
+                    list = list.ReplaceAt(0, list[0].TrimLeadingTrivia());
+
+                    SyntaxToken separator = list.GetSeparator(0);
+
+                    return list.ReplaceSeparator(separator, separator.TrimTrailingTrivia());
+                }
+            }
+            else
+            {
+                list = list.ReplaceAt(0, list[0].TrimLeadingTrivia());
+
+                if (separatorCount == count - 1)
+                {
+                    return list.ReplaceAt(count - 1, list[count - 1].TrimTrailingTrivia());
+                }
+                else
+                {
+                    SyntaxToken separator = list.GetSeparator(separatorCount - 1);
+
+                    return list.ReplaceSeparator(separator, separator.TrimTrailingTrivia());
+                }
+            }
+        }
         #endregion SeparatedSyntaxList<T>
 
         #region StatementSyntax
@@ -1752,6 +1875,15 @@ namespace Roslynator.CSharp
             statements = SyntaxInfo.StatementListInfo(statement).Statements;
 
             return statements.Any();
+        }
+
+        //TODO: make public GetContainingList(StatementSyntax)
+        internal static SyntaxList<StatementSyntax> GetContainingList(this StatementSyntax statement)
+        {
+            if (!TryGetContainingList(statement, out SyntaxList<StatementSyntax> list))
+                throw new ArgumentException("Statement is not contained in a list.", nameof(statement));
+
+            return list;
         }
 
         internal static StatementSyntax SingleNonBlockStatementOrDefault(this StatementSyntax statement, bool recursive = false)
@@ -1884,6 +2016,18 @@ namespace Roslynator.CSharp
         public static bool ContainsDefaultLabel(this SwitchSectionSyntax switchSection)
         {
             return switchSection?.Labels.Any(f => f.IsKind(SyntaxKind.DefaultSwitchLabel)) == true;
+        }
+
+        internal static SyntaxList<StatementSyntax> GetStatements(this SwitchSectionSyntax switchSection)
+        {
+            SyntaxList<StatementSyntax> statements = switchSection.Statements;
+
+            if (statements.SingleOrDefault(shouldThrow: false) is BlockSyntax block)
+            {
+                return block.Statements;
+            }
+
+            return statements;
         }
         #endregion SwitchSectionSyntax
 
@@ -2145,6 +2289,42 @@ namespace Roslynator.CSharp
             int count) where TNode : SyntaxNode
         {
             return ReplaceRange(list, index, count, Empty.ReadOnlyList<TNode>());
+        }
+
+        internal static StatementSyntax LastOrDefault(this SyntaxList<StatementSyntax> statements, bool ignoreLocalFunction)
+        {
+            if (!ignoreLocalFunction)
+                return statements.LastOrDefault();
+
+            int i = statements.Count - 1;
+
+            while (i >= 0)
+            {
+                StatementSyntax statement = statements[i];
+
+                if (statement.Kind() != SyntaxKind.LocalFunctionStatement)
+                    return statement;
+
+                i--;
+            }
+
+            return null;
+        }
+
+        //TODO: make public
+        internal static SyntaxList<TNode> TrimTrivia<TNode>(this SyntaxList<TNode> list) where TNode : SyntaxNode
+        {
+            int count = list.Count;
+
+            if (count == 0)
+                return list;
+
+            if (count == 1)
+                return list.ReplaceAt(0, list[0].TrimTrivia());
+
+            return list
+                .ReplaceAt(0, list[0].TrimLeadingTrivia())
+                .ReplaceAt(count - 1, list[count - 1].TrimTrailingTrivia());
         }
         #endregion SyntaxList<T>
 
@@ -2656,7 +2836,7 @@ namespace Roslynator.CSharp
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            SyntaxNode parent = GetParent(node, ascendOutOfTrivia);
+            SyntaxNode parent = node.GetParent(ascendOutOfTrivia);
 
             if (parent != null)
             {
@@ -2739,24 +2919,10 @@ namespace Roslynator.CSharp
                 if (predicate(node))
                     return node;
 
-                node = GetParent(node, ascendOutOfTrivia);
+                node = node.GetParent(ascendOutOfTrivia);
             }
 
             return null;
-        }
-
-        internal static SyntaxNode GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
-        {
-            SyntaxNode parent = node.Parent;
-
-            if (parent == null
-                && ascendOutOfTrivia
-                && (node is IStructuredTriviaSyntax structuredTrivia))
-            {
-                parent = structuredTrivia.ParentTrivia.Token.Parent;
-            }
-
-            return parent;
         }
 
         internal static TRoot RemoveNode<TRoot>(this TRoot root, SyntaxNode node) where TRoot : SyntaxNode
@@ -2881,39 +3047,35 @@ namespace Roslynator.CSharp
         {
             for (SyntaxNode current = node; current != null; current = current.Parent)
             {
-                if (CSharpFacts.IsLambdaExpression(current.Kind())
-                    && semanticModel
-                        .GetTypeInfo(current, cancellationToken)
-                        .ConvertedType?
-                        .OriginalDefinition
-                        .HasMetadataName(MetadataNames.System_Linq_Expressions_Expression_T) == true)
+                switch (current.Kind())
                 {
-                    return true;
-                }
-            }
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        {
+                            if (semanticModel
+                                .GetTypeInfo(current, cancellationToken)
+                                .ConvertedType?
+                                .OriginalDefinition
+                                .HasMetadataName(MetadataNames.System_Linq_Expressions_Expression_T) == true)
+                            {
+                                return true;
+                            }
 
-            return false;
-        }
+                            break;
+                        }
+                    case SyntaxKind.QueryExpression:
+                        {
+                            if (semanticModel
+                                .GetTypeInfo(current, cancellationToken)
+                                .ConvertedType?
+                                .OriginalDefinition
+                                .HasMetadataName(MetadataNames.System_Linq_IQueryable_T) == true)
+                            {
+                                return true;
+                            }
 
-        internal static bool IsInExpressionTree(
-            this SyntaxNode node,
-            INamedTypeSymbol expressionType,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (expressionType == null)
-                return false;
-
-            for (SyntaxNode current = node; current != null; current = current.Parent)
-            {
-                if (CSharpFacts.IsLambdaExpression(current.Kind())
-                    && semanticModel
-                        .GetTypeInfo(current, cancellationToken)
-                        .ConvertedType?
-                        .OriginalDefinition
-                        .Equals(expressionType) == true)
-                {
-                    return true;
+                            break;
+                        }
                 }
             }
 
@@ -2931,7 +3093,7 @@ namespace Roslynator.CSharp
                 int lineStartIndex = span.Start - tree.GetLineSpan(span, cancellationToken).StartLinePosition.Character;
 
                 while (!node.FullSpan.Contains(lineStartIndex))
-                    node = GetParent(node, ascendOutOfTrivia: true);
+                    node = node.GetParent(ascendOutOfTrivia: true);
 
                 if (node.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
                 {
@@ -2972,12 +3134,51 @@ namespace Roslynator.CSharp
             return IncreaseIndentation(trivia);
         }
 
-        internal static SyntaxNode WalkUp(this SyntaxNode node, SyntaxKind kind)
+        //TODO: make public
+        internal static bool ContainsUnbalancedIfElseDirectives(this SyntaxNode node)
         {
-            while (node.Parent?.Kind() == kind)
-                node = node.Parent;
+            if (node.ContainsDirectives)
+            {
+                DirectiveTriviaSyntax first = node.GetFirstDirective(f => f.IsKind(
+                    SyntaxKind.IfDirectiveTrivia,
+                    SyntaxKind.ElseDirectiveTrivia,
+                    SyntaxKind.ElifDirectiveTrivia,
+                    SyntaxKind.EndIfDirectiveTrivia));
 
-            return node;
+                if (first != null)
+                {
+                    if (!first.IsKind(SyntaxKind.IfDirectiveTrivia))
+                        return true;
+
+                    DirectiveTriviaSyntax last = node.GetLastDirective(f => f.IsKind(
+                        SyntaxKind.IfDirectiveTrivia,
+                        SyntaxKind.ElseDirectiveTrivia,
+                        SyntaxKind.ElifDirectiveTrivia,
+                        SyntaxKind.EndIfDirectiveTrivia));
+
+                    if (last == first)
+                        return true;
+
+                    if (!last.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                        return true;
+
+                    DirectiveTriviaSyntax d = first;
+
+                    do
+                    {
+                        d = d.GetNextRelatedDirective();
+
+                        if (d == null)
+                            return true;
+
+                        if (!d.FullSpan.OverlapsWith(node.FullSpan))
+                            return true;
+                    }
+                    while (d != last);
+                }
+            }
+
+            return false;
         }
         #endregion SyntaxNode
 
@@ -3946,43 +4147,43 @@ namespace Roslynator.CSharp
         #endregion WhileStatementSyntax
 
         #region XmlElementSyntax
+        internal static bool IsElementKind(this XmlElementSyntax xmlElement, XmlElementKind elementKind)
+        {
+            return GetElementKind(xmlElement) == elementKind;
+        }
+
+        internal static XmlElementKind GetElementKind(this XmlElementSyntax xmlElement)
+        {
+            return XmlElementNameKindMapper.GetKindOrDefault(xmlElement.StartTag?.Name?.LocalName.ValueText);
+        }
+
         internal static bool IsLocalName(this XmlElementSyntax xmlElement, string localName, StringComparison comparison = StringComparison.Ordinal)
         {
             return xmlElement.StartTag?.Name?.IsLocalName(localName, comparison) == true;
         }
-
-        internal static bool IsLocalName(this XmlElementSyntax xmlElement, string localName1, string localName2, StringComparison comparison = StringComparison.Ordinal)
-        {
-            return xmlElement.StartTag?.Name?.IsLocalName(localName1, localName2, comparison) == true;
-        }
         #endregion XmlElementSyntax
 
         #region XmlEmptyElementSyntax
+        internal static bool IsElementKind(this XmlEmptyElementSyntax xmlElement, XmlElementKind elementKind)
+        {
+            return GetElementKind(xmlElement) == elementKind;
+        }
+
+        internal static XmlElementKind GetElementKind(this XmlEmptyElementSyntax xmlElement)
+        {
+            return XmlElementNameKindMapper.GetKindOrDefault(xmlElement.Name?.LocalName.ValueText);
+        }
+
         internal static bool IsLocalName(this XmlEmptyElementSyntax xmlEmptyElement, string localName, StringComparison comparison = StringComparison.Ordinal)
         {
             return xmlEmptyElement.Name?.IsLocalName(localName, comparison) == true;
-        }
-
-        internal static bool IsLocalName(this XmlEmptyElementSyntax xmlEmptyElement, string localName1, string localName2, StringComparison comparison = StringComparison.Ordinal)
-        {
-            return xmlEmptyElement.Name?.IsLocalName(localName1, localName2, comparison) == true;
         }
         #endregion XmlEmptyElementSyntax
 
         #region XmlNameSyntax
         internal static bool IsLocalName(this XmlNameSyntax xmlName, string localName, StringComparison comparison = StringComparison.Ordinal)
         {
-            string name = xmlName.LocalName.ValueText;
-
-            return string.Equals(name, localName, comparison);
-        }
-
-        internal static bool IsLocalName(this XmlNameSyntax xmlName, string localName1, string localName2, StringComparison comparison = StringComparison.Ordinal)
-        {
-            string name = xmlName.LocalName.ValueText;
-
-            return string.Equals(name, localName1, comparison)
-                || string.Equals(name, localName2, comparison);
+            return string.Equals(xmlName.LocalName.ValueText, localName, comparison);
         }
         #endregion XmlNameSyntax
 

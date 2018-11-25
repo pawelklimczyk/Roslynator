@@ -5,11 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
-using Roslynator.CSharp.Analysis.RemoveRedundantAsyncAwait;
+using Roslynator.CSharp.Analysis.RemoveAsyncAwait;
 using Xunit;
-using Roslynator.Tests;
-
-#pragma warning disable RCS1090
 
 namespace Roslynator.CSharp.Analysis.Tests
 {

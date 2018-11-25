@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1225MakeClassSealedTests : AbstractCSharpCodeFixVerifier
@@ -132,6 +130,66 @@ class C
             await VerifyNoDiagnosticAsync(@"
 class C
 {
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.MakeClassSealed)]
+        public async Task TestNoDiagnostic_VirtualMember()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    private C()
+    {
+    }
+
+    protected virtual void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.MakeClassSealed)]
+        public async Task TestNoDiagnostic_ContainsDerivedClass()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class B
+{
+    private B()
+    {
+    }
+
+    class C : B
+    {
+        C() : base()
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.MakeClassSealed)]
+        public async Task TestNoDiagnostic_ContainsDerivedClass2()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class B
+{
+    private B()
+    {
+    }
+
+    class C
+    {
+        class D : B
+        {
+            D() : base()
+            {
+            }
+        }
+    }
 }
 ");
         }

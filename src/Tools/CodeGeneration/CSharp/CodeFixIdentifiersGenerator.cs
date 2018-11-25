@@ -19,14 +19,15 @@ namespace Roslynator.CodeGeneration.CSharp
                 NamespaceDeclaration(
                     "Roslynator.CSharp",
                     ClassDeclaration(
-                        Modifiers.PublicStaticPartial(),
+                        Modifiers.Public_Static_Partial(),
                         "CodeFixIdentifiers",
                         codeFixes
+                            .Where(f => !f.IsObsolete)
                             .OrderBy(f => f.Id, comparer)
                             .Select(f =>
                             {
                                 return FieldDeclaration(
-                                   Modifiers.PublicConst(),
+                                   Modifiers.Public_Const(),
                                    PredefinedStringType(),
                                    f.Identifier,
                                    AddExpression(IdentifierName("Prefix"), StringLiteralExpression(f.Id.Substring(CodeFixIdentifiers.Prefix.Length))));

@@ -36,7 +36,7 @@ namespace Roslynator.CSharp.Refactorings
 
             ExpressionSyntax newNode = ExclusiveOrExpression(
                 newLeft.WithTriviaFrom(left).Parenthesize(),
-                CaretToken().WithTriviaFrom(logicalOr.OperatorToken),
+                SyntaxFactory.Token(SyntaxKind.CaretToken).WithTriviaFrom(logicalOr.OperatorToken),
                 newRight.WithTriviaFrom(right).Parenthesize());
 
             newNode = newNode
@@ -49,19 +49,19 @@ namespace Roslynator.CSharp.Refactorings
 
         private readonly struct ExpressionPair
         {
-            public ExpressionPair(ExpressionSyntax expression, ExpressionSyntax negatedExpression)
+            public ExpressionPair(ExpressionSyntax expression, ExpressionSyntax invertedExpression)
             {
                 Expression = expression;
-                NegatedExpression = negatedExpression;
+                InvertedExpression = invertedExpression;
             }
 
             public bool IsValid
             {
-                get { return Expression != null && NegatedExpression != null; }
+                get { return Expression != null && InvertedExpression != null; }
             }
 
             public ExpressionSyntax Expression { get; }
-            public ExpressionSyntax NegatedExpression { get; }
+            public ExpressionSyntax InvertedExpression { get; }
         }
     }
 }

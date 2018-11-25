@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1077OptimizeLinqMethodCallTests : AbstractCSharpCodeFixVerifier
@@ -105,6 +103,34 @@ class C
     }
 }
 ", fromData, toData);
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_WhereAndCount()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<C> items, int count)
+    {
+        if (items.[|Where(_ => true).Count()|] != count) { }
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<C> items, int count)
+    {
+        if (items.Count(_ => true) != count) { }
+    }
+}
+");
         }
 
         [Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
@@ -837,6 +863,81 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_OptimizeCountCall_ExpressionCannotBeMemberAccessExpression()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(Action action)
+    {
+        var items = new List<object>();
+
+        items.Count();
+
+        M(() => items.Count());
+
+        M(_ => items.Count());
+    }
+
+    void M(Action<object> action)
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_OptimizeCountCall_InfiniteRecursion()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C : IReadOnlyCollection<int>
+{
+    public int Count => this.Count();
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_OptimizeCountCall_InfiniteRecursion2()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C : IReadOnlyCollection<int>
+{
+    public int Count
+    {
+        get { return this.Count(); }
+    }
+
+        public IEnumerator<int> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
         public async Task TestNoDiagnostic_CallAnyInsteadOfCount()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -929,6 +1030,68 @@ class C
         x = ((ImmutableArray<object>)x).ToImmutableArray().First();
         x = ((string)x).ToString().First();
     }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_UseElementAccess_ExpressionStatement()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        object x = null;
+
+        ((List<object>)x).First();
+        ((List<object>)x).ElementAt(1);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_UseElementAccessInsteadOfElementAt_InfiniteRecursion()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C : IReadOnlyList<int>
+{
+    public int this[int index] => this.ElementAt(index);
+
+    public int Count => throw new NotImplementedException();
+
+    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_CallFindInsteadOfFirstOrDefault_Array_ConditionalAccess()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var x = new C();
+
+        object item = x?.Items.FirstOrDefault(f => f != null);
+    }
+
+    object[] Items { get; }
 }
 ");
         }

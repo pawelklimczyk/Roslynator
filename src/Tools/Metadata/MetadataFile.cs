@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -12,6 +12,13 @@ namespace Roslynator.Metadata
 {
     public static class MetadataFile
     {
+        private static readonly Regex _lfWithoutCr = new Regex(@"(?<!\r)\n");
+
+        private static string NormalizeNewLine(this string value)
+        {
+            return (value != null) ? _lfWithoutCr.Replace(value, "\r\n") : null;
+        }
+
         public static ImmutableArray<AnalyzerDescriptor> ReadAllAnalyzers(string filePath)
         {
             return ImmutableArray.CreateRange(ReadAnalyzers(filePath));
@@ -23,8 +30,10 @@ namespace Roslynator.Metadata
 
             foreach (XElement element in doc.Root.Elements())
             {
+                string id = element.Element("Id").Value;
+
                 yield return new AnalyzerDescriptor(
-                    element.Element("Id").Value,
+                    id,
                     element.Attribute("Identifier").Value,
                     element.Element("Title").Value,
                     element.Element("MessageFormat").Value,
@@ -34,8 +43,9 @@ namespace Roslynator.Metadata
                     element.AttributeValueAsBooleanOrDefault("IsObsolete"),
                     bool.Parse(element.Element("SupportsFadeOut").Value),
                     bool.Parse(element.Element("SupportsFadeOutAnalyzer").Value),
-                    element.Element("Summary")?.Value,
-                    LoadSamples(element),
+                    element.Element("Summary")?.Value.NormalizeNewLine(),
+                    element.Element("Remarks")?.Value.NormalizeNewLine(),
+                    LoadSamples(element)?.Select(f => new SampleDescriptor(f.Before.Replace("[|Id|]", id), f.After)),
                     LoadLinks(element));
             }
         }
@@ -58,7 +68,8 @@ namespace Roslynator.Metadata
                     element.AttributeValueAsBooleanOrDefault("IsEnabledByDefault", true),
                     element.AttributeValueAsBooleanOrDefault("IsObsolete", false),
                     element.Element("Span")?.Value,
-                    element.Element("Summary")?.Value,
+                    element.Element("Summary")?.Value.NormalizeNewLine(),
+                    element.Element("Remarks")?.Value.NormalizeNewLine(),
                     element.Element("Syntaxes")
                         .Elements("Syntax")
                         .Select(f => new SyntaxDescriptor(f.Value)),
@@ -81,7 +92,7 @@ namespace Roslynator.Metadata
             return element
                 .Element("Samples")?
                 .Elements("Sample")
-                .Select(f => new SampleDescriptor(f.Element("Before").Value, f.Element("After")?.Value));
+                .Select(f => new SampleDescriptor(f.Element("Before").Value.NormalizeNewLine(), f.Element("After")?.Value.NormalizeNewLine()));
         }
 
         private static IEnumerable<LinkDescriptor> LoadLinks(XElement element)
@@ -108,6 +119,7 @@ namespace Roslynator.Metadata
                     element.Attribute("Identifier").Value,
                     element.Attribute("Title").Value,
                     element.AttributeValueAsBooleanOrDefault("IsEnabledByDefault", true),
+                    element.AttributeValueAsBooleanOrDefault("IsObsolete", false),
                     element.Element("FixableDiagnosticIds")
                         .Elements("Id")
                         .Select(f => f.Value));
@@ -141,8 +153,6 @@ namespace Roslynator.Metadata
                 new XElement("Diagnostics",
                     diagnostics.Select(f =>
                     {
-                        Debug.WriteLine(f.Id);
-
                         return new XElement(
                             "Diagnostic",
                             new XAttribute("Id", f.Id),
@@ -156,6 +166,41 @@ namespace Roslynator.Metadata
 
             using (var fs = new FileStream(path, FileMode.Create))
             using (XmlWriter xw = XmlWriter.Create(fs, new XmlWriterSettings() { Indent = true, NewLineOnAttributes = true }))
+                doc.Save(xw);
+        }
+
+        public static IEnumerable<SourceFile> ReadSourceFiles(string filePath)
+        {
+            XDocument doc = XDocument.Load(filePath);
+
+            foreach (XElement element in doc.Root.Elements())
+            {
+                string id = element.Attribute("Id").Value;
+
+                yield return new SourceFile(
+                    id,
+                    element
+                        .Element("Paths")
+                        .Elements("Path")
+                        .Select(f => f.Value));
+            }
+        }
+
+        public static void SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string path)
+        {
+            var doc = new XDocument(
+                new XElement("SourceFiles",
+                    sourceFiles.Select(sourceFile =>
+                    {
+                        return new XElement(
+                            "SourceFile",
+                            new XAttribute("Id", sourceFile.Id),
+                            new XElement("Paths", sourceFile.Paths.Select(p => new XElement("Path", p.Replace("\\", "/"))))
+                        );
+                    })));
+
+            using (var fs = new FileStream(path, FileMode.Create))
+            using (XmlWriter xw = XmlWriter.Create(fs, new XmlWriterSettings() { Indent = true }))
                 doc.Save(xw);
         }
     }

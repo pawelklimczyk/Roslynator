@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1206UseConditionalAccessInsteadOfConditionalExpressionTests : AbstractCSharpCodeFixVerifier
@@ -130,6 +128,88 @@ class C
     }
 }
 ", fromData, toData);
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression)]
+        public async Task Test_NullableTypeToNullableType_HasValue()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+struct C
+{
+    void M(C? x)
+    {
+        int? i = [|(x.HasValue) ? (int?)x.Value.M2() : null|];
+    }
+
+    int M2() => 0;
+}
+", @"
+struct C
+{
+    void M(C? x)
+    {
+        int? i = x?.M2();
+    }
+
+    int M2() => 0;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression)]
+        public async Task Test_NullableTypeToNullableType_NotHasValue()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+struct C
+{
+    void M(C? x)
+    {
+        int? i = [|(!x.HasValue) ? default : (int?)x.Value.M2()|];
+    }
+
+    int M2() => 0;
+}
+", @"
+struct C
+{
+    void M(C? x)
+    {
+        int? i = x?.M2();
+    }
+
+    int M2() => 0;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression)]
+        public async Task Test_NullableTypeToNullableType_WithCastExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    TimeSpan? P { get; }
+
+    void M()
+    {
+        int? x = [|(P == null) ? null : (int?)P.Value.TotalSeconds|];
+    }
+}
+", @"
+using System;
+
+class C
+{
+    TimeSpan? P { get; }
+
+    void M()
+    {
+        int? x = (int?)P?.TotalSeconds;
+    }
+}
+");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression)]

@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1226AddParagraphToDocumentationCommentTests : AbstractCSharpCodeFixVerifier
@@ -381,6 +379,22 @@ class C
 /// <summary>
 /// a
 /// b
+/// </summary>
+class C
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AddParagraphToDocumentationComment)]
+        public async Task TestNoDiagnostic_MissingEndTag()
+        {
+            await VerifyNoDiagnosticAsync(@"
+/// <summary>
+/// x
+///
+/// <a>x
+///
 /// </summary>
 class C
 {

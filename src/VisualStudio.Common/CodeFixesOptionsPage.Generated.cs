@@ -20,11 +20,10 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = CodeFixIdentifiers.RemoveParameter;
+        = CodeFixIdentifiers.ChangeParameterType;
         protected override void Fill(ICollection<BaseModel> codeFixes)
         {
             codeFixes.Clear();
-            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveUnusedVariable, "Remove unused variable (fixes CS0168, CS0219)", IsEnabled(CodeFixIdentifiers.RemoveUnusedVariable)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddBreakStatementToSwitchSection, "Add break statement to switch section (fixes CS0163, CS8070)", IsEnabled(CodeFixIdentifiers.AddBreakStatementToSwitchSection)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.CreateSingletonArray, "Create singleton array (fixes CS0266)", IsEnabled(CodeFixIdentifiers.CreateSingletonArray)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddOutModifierToArgument, "Add 'out' modifier to argument (fixes CS1620)", IsEnabled(CodeFixIdentifiers.AddOutModifierToArgument)));
@@ -46,7 +45,7 @@ namespace Roslynator.VisualStudio
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.UseYieldReturnInsteadOfReturn, "Use yield return instead of return (fixes CS0029, CS1622)", IsEnabled(CodeFixIdentifiers.UseYieldReturnInsteadOfReturn)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.ReplaceStringLiteralWithCharacterLiteral, "Replace string literal with character literal (fixes CS0029)", IsEnabled(CodeFixIdentifiers.ReplaceStringLiteralWithCharacterLiteral)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddComparisonWithBooleanLiteral, "Add comparison with boolean literal (fixes CS0019, CS0266)", IsEnabled(CodeFixIdentifiers.AddComparisonWithBooleanLiteral)));
-            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemovePropertyOrFieldInitializer, "Remove property or field initializer (fixes CS0573)", IsEnabled(CodeFixIdentifiers.RemovePropertyOrFieldInitializer)));
+            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemovePropertyOrFieldInitializer, "Remove property or field initializer (fixes CS0573, CS8050)", IsEnabled(CodeFixIdentifiers.RemovePropertyOrFieldInitializer)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddPartialModifier, "Add 'partial' modifier (fixes CS0101, CS0102, CS0260, CS0751)", IsEnabled(CodeFixIdentifiers.AddPartialModifier)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddBody, "Add body (fixes CS0501, CS0756, CS8112)", IsEnabled(CodeFixIdentifiers.AddBody)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveRefModifier, "Remove 'ref' modifier (fixes CS0192, CS1615, CS1988, CS1623)", IsEnabled(CodeFixIdentifiers.RemoveRefModifier)));
@@ -60,7 +59,7 @@ namespace Roslynator.VisualStudio
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.SynchronizeAccessibility, "SynchronizeAccessibility (fixes CS0262)", IsEnabled(CodeFixIdentifiers.SynchronizeAccessibility)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveArgumentList, "Remove argument list (fixes CS1955)", IsEnabled(CodeFixIdentifiers.RemoveArgumentList)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.FixMemberAccessName, "Fix member access name (fixes CS1061)", IsEnabled(CodeFixIdentifiers.FixMemberAccessName)));
-            codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddArgumentList, "Add argument list (fixes CS0023, CS0428, CS0201, CS1526)", IsEnabled(CodeFixIdentifiers.AddArgumentList)));
+            codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddArgumentList, "Add argument list (fixes CS0023, CS0119, CS0428, CS0201, CS1526)", IsEnabled(CodeFixIdentifiers.AddArgumentList)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.InitializeLocalVariableWithDefaultValue, "Initialize local variable with default value (fixes CS0165)", IsEnabled(CodeFixIdentifiers.InitializeLocalVariableWithDefaultValue)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.ChangeTypeOfLocalVariable, "Change type of local variable (fixes CS0123, CS0407, CS0815)", IsEnabled(CodeFixIdentifiers.ChangeTypeOfLocalVariable)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.MakeMemberNonStatic, "Make member non-static (fixes CS0120)", IsEnabled(CodeFixIdentifiers.MakeMemberNonStatic)));
@@ -131,6 +130,8 @@ namespace Roslynator.VisualStudio
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddMissingComma, "Add missing comma (fixes CS1003)", IsEnabled(CodeFixIdentifiers.AddMissingComma)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveParentheses, "Remove parentheses (fixes CS0210)", IsEnabled(CodeFixIdentifiers.RemoveParentheses)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveParameter, "Remove parameter (fixes CS0136)", IsEnabled(CodeFixIdentifiers.RemoveParameter)));
+            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RenameTupleElement, "Rename tuple element to match overridden member (fixes CS8139)", IsEnabled(CodeFixIdentifiers.RenameTupleElement)));
+            codeFixes.Add(new BaseModel(CodeFixIdentifiers.ChangeParameterType, "Change parameter type (fixes CS1750)", IsEnabled(CodeFixIdentifiers.ChangeParameterType)));
         }
     }
 }

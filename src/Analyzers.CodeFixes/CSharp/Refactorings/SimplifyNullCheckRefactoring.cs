@@ -29,7 +29,11 @@ namespace Roslynator.CSharp.Refactorings
 
             ExpressionSyntax whenNull = (nullCheck.IsCheckingNotNull) ? conditionalExpressionInfo.WhenFalse : conditionalExpressionInfo.WhenTrue;
 
-            ExpressionSyntax expression = UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, whenNotNull);
+            var castExpression = whenNotNull as CastExpressionSyntax;
+
+            ExpressionSyntax expression = (castExpression != null)
+                ? UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, castExpression.Expression, semanticModel, cancellationToken)
+                : UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, whenNotNull, semanticModel, cancellationToken);
 
             bool coalesce = false;
 
@@ -61,6 +65,13 @@ namespace Roslynator.CSharp.Refactorings
                         else
                         {
                             newNode = ParseExpression($"{expression}?{whenNotNull.ToString().Substring(memberAccessExpression.Span.End - whenNotNull.SpanStart)}");
+
+                            if (castExpression != null)
+                            {
+                                newNode = castExpression
+                                   .WithExpression(newNode.Parenthesize())
+                                   .WithSimplifierAnnotation();
+                            }
                         }
                     }
                 }

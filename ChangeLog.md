@@ -1,3 +1,66 @@
+### 2.0.0 (2018-10-14)
+
+#### New Features
+
+* Add nuget package [Roslynator.CommandLine](https://nuget.org/packages/Roslynator.CommandLine)
+  * [Fix all diagnostics in a solution](http://github.com/JosefPihrt/Roslynator/blob/master/docs/HowToFixAllDiagnostics.md)
+  * [Generate API documentation](http://github.com/JosefPihrt/Roslynator/blob/master/docs/HowToGenerateDocumentation.md)
+
+#### Analyzers
+
+* Change default severity of [RCS1141](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1141.md), [RCS1142](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1142.md) and [RCS1165](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1165.md) to 'Hidden'
+* Disable [RCS1174](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1174.md) by default
+* Improve analyzer [RCS1128](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1128.md) - `x.GetValueOrDefault(y)` can be replaced with `x ?? y`
+* Change code fix for [RCS1194](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1194.md) - do not generate "serialization" constructor
+
+#### Refactorings
+
+* Add refactoring [RemoveAsyncAwait](http://github.com/JosefPihrt/Roslynator/blob/master/docs/refactorings/RR0209.md)  (RR0209)
+
+#### Code Fixes
+
+* Add code fix for CS0119.
+
+### 1.9.2 (2018-08-10)
+
+#### Analyzers
+
+* Add analyzer [UnusedElementInDocumentationComment](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1228.md) (RCS1228)
+* Add analyzer [UseAsyncAwait](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1229.md) (RCS1229)
+* Add code fix for analyzer [UnusedParameter](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1163.md) (RCS1163)
+
+#### Refactorings
+
+* Add refactoring [AddTagToDocumentationComment](http://github.com/JosefPihrt/Roslynator/blob/master/docs/refactorings/RR0208.md)  (RR0208)
+
+#### Code Fixes
+
+* Add code fixes for CS8050 and CS8139.
+
+### 1.9.1 (2018-07-06)
+
+#### Analyzers
+
+* Add analyzer [ValidateArgumentsCorrectly](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1227.md) (RCS1227)
+
+#### Refactorings
+
+* Add refactoring [ReplaceForEachWithEnumerator](http://github.com/JosefPihrt/Roslynator/blob/master/docs/refactorings/RR0206.md)  (RR0206)
+* Add refactoring [SortCaseLabels](http://github.com/JosefPihrt/Roslynator/blob/master/docs/refactorings/RR0207.md)  (RR0207)
+
+* Enable refactorings UseExpressionBodiedMember and ExpandExpressionBody for multiple members (RR0037, RR0169).
+* Extend refactoring ReduceIfNesting and rename it to InvertIf (RR0189).
+
+### 1.9.0 (2018-06-13)
+
+#### Analyzers
+
+* Incorporate RCS1082, RCS1083, RCS1109, RCS1119, RCS1120 and RCS1121 into [RCS1077](http://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/RCS1077.md)
+
+#### Refactorings
+
+* Disable RR0010 and RR0012 by default
+
 ### 1.8.3 (2018-05-17)
 
 #### Analyzers

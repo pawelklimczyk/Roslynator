@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1104SimplifyConditionalExpressionTests : AbstractCSharpCodeFixVerifier
@@ -51,6 +49,7 @@ class C
 
         [Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.SimplifyConditionalExpression)]
         [InlineData("f ? g : false", "f && g")]
+        [InlineData("f ? g || g : false", "f && (g || g)")]
         [InlineData(@"[|f
             ? g
             : false|] /**/", @"f
@@ -107,6 +106,22 @@ class C
                 ? false
                 : true) { }
 #endif
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.SimplifyConditionalExpression)]
+        public async Task TestNoDiagnostic_NullableBool()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M()
+    {
+        bool x = false;
+
+        bool? y = (x) ? default(bool?) : false;
     }
 }
 ");

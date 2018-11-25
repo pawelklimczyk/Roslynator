@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Roslynator>
   <Settings>
     <General>
@@ -13,9 +13,9 @@
       <Refactoring Id="RR0007" IsEnabled="true" /> <!-- AddDefaultValueToParameter -->
       <Refactoring Id="RR0008" IsEnabled="true" /> <!-- AddDefaultValueToReturnStatement -->
       <Refactoring Id="RR0009" IsEnabled="true" /> <!-- AddExceptionToDocumentationComment -->
-      <Refactoring Id="RR0010" IsEnabled="true" /> <!-- AddIdentifierToVariableDeclaration -->
+      <Refactoring Id="RR0010" IsEnabled="false" /> <!-- AddIdentifierToVariableDeclaration -->
       <Refactoring Id="RR0011" IsEnabled="true" /> <!-- AddParameterNameToArgument -->
-      <Refactoring Id="RR0012" IsEnabled="true" /> <!-- AddParameterNameToParameter -->
+      <Refactoring Id="RR0012" IsEnabled="false" /> <!-- AddIdentifierToParameter -->
       <Refactoring Id="RR0013" IsEnabled="true" /> <!-- AddUsingDirective -->
       <Refactoring Id="RR0014" IsEnabled="true" /> <!-- AddUsingStaticDirective -->
       <Refactoring Id="RR0015" IsEnabled="true" /> <!-- CallConfigureAwait -->
@@ -79,10 +79,10 @@
       <Refactoring Id="RR0076" IsEnabled="true" /> <!-- MergeInterpolationIntoInterpolatedString -->
       <Refactoring Id="RR0077" IsEnabled="true" /> <!-- MergeLocalDeclarations -->
       <Refactoring Id="RR0078" IsEnabled="true" /> <!-- JoinStringExpressions -->
-      <Refactoring Id="RR0079" IsEnabled="true" /> <!-- NegateBinaryExpression -->
-      <Refactoring Id="RR0080" IsEnabled="true" /> <!-- NegateBooleanLiteral -->
-      <Refactoring Id="RR0081" IsEnabled="true" /> <!-- NegateIsExpression -->
-      <Refactoring Id="RR0082" IsEnabled="true" /> <!-- NegateOperator -->
+      <Refactoring Id="RR0079" IsEnabled="true" /> <!-- InvertBinaryExpression -->
+      <Refactoring Id="RR0080" IsEnabled="true" /> <!-- InvertBooleanLiteral -->
+      <Refactoring Id="RR0081" IsEnabled="true" /> <!-- InvertIsExpression -->
+      <Refactoring Id="RR0082" IsEnabled="true" /> <!-- InvertOperator -->
       <Refactoring Id="RR0083" IsEnabled="true" /> <!-- NotifyPropertyChanged -->
       <Refactoring Id="RR0084" IsEnabled="true" /> <!-- ParenthesizeExpression -->
       <Refactoring Id="RR0085" IsEnabled="true" /> <!-- PromoteLocalToParameter -->
@@ -158,9 +158,9 @@
       <Refactoring Id="RR0157" IsEnabled="true" /> <!-- SplitSwitchLabels -->
       <Refactoring Id="RR0158" IsEnabled="true" /> <!-- SplitVariableDeclaration -->
       <Refactoring Id="RR0159" IsEnabled="true" /> <!-- SwapBinaryOperands -->
-      <Refactoring Id="RR0160" IsEnabled="true" /> <!-- SwapExpressionsInConditionalExpression -->
+      <Refactoring Id="RR0160" IsEnabled="true" /> <!-- InvertConditionalExpression -->
       <Refactoring Id="RR0161" IsEnabled="true" /> <!-- SwapMemberDeclarations -->
-      <Refactoring Id="RR0162" IsEnabled="true" /> <!-- SwapIfElse -->
+      <Refactoring Id="RR0162" IsEnabled="true" /> <!-- InvertIfElse -->
       <Refactoring Id="RR0163" IsEnabled="true" /> <!-- UncommentSingleLineComment -->
       <Refactoring Id="RR0164" IsEnabled="true" /> <!-- UseBitwiseOperationInsteadOfCallingHasFlag -->
       <Refactoring Id="RR0165" IsEnabled="true" /> <!-- UseCoalesceExpressionInsteadOfIf -->
@@ -187,7 +187,7 @@
       <Refactoring Id="RR0186" IsEnabled="true" /> <!-- ChangeAccessibility -->
       <Refactoring Id="RR0187" IsEnabled="true" /> <!-- FormatConstraintClauses -->
       <Refactoring Id="RR0188" IsEnabled="false" /> <!-- ReplaceForEachWithForAndReverseLoop -->
-      <Refactoring Id="RR0189" IsEnabled="true" /> <!-- ReduceIfNesting -->
+      <Refactoring Id="RR0189" IsEnabled="true" /> <!-- InvertIf -->
       <Refactoring Id="RR0190" IsEnabled="true" /> <!-- SplitIfElse -->
       <Refactoring Id="RR0191" IsEnabled="true" /> <!-- UseCSharp6DictionaryInitializer -->
       <Refactoring Id="RR0192" IsEnabled="true" /> <!-- ReplaceCommentWithDocumentationComment -->
@@ -204,6 +204,10 @@
       <Refactoring Id="RR0203" IsEnabled="true" /> <!-- ExtractEventHandlerMethod -->
       <Refactoring Id="RR0204" IsEnabled="true" /> <!-- GeneratePropertyForDebuggerDisplayAttribute -->
       <Refactoring Id="RR0205" IsEnabled="true" /> <!-- AddEmptyLineBetweenDeclarations -->
+      <Refactoring Id="RR0206" IsEnabled="true" /> <!-- ReplaceForEachWithEnumerator -->
+      <Refactoring Id="RR0207" IsEnabled="true" /> <!-- SortCaseLabels -->
+      <Refactoring Id="RR0208" IsEnabled="true" /> <!-- AddTagToDocumentationComment -->
+      <Refactoring Id="RR0209" IsEnabled="true" /> <!-- RemoveAsyncAwait -->
     </Refactorings>
     <CodeFixes>
       <CodeFix Id="RCF0001" IsEnabled="true" /> <!-- RemoveUnusedVariable (fixes CS0168, CS0219) -->
@@ -228,7 +232,7 @@
       <CodeFix Id="RCF0021" IsEnabled="true" /> <!-- UseYieldReturnInsteadOfReturn (fixes CS0029, CS1622) -->
       <CodeFix Id="RCF0022" IsEnabled="true" /> <!-- ReplaceStringLiteralWithCharacterLiteral (fixes CS0029) -->
       <CodeFix Id="RCF0023" IsEnabled="true" /> <!-- AddComparisonWithBooleanLiteral (fixes CS0019, CS0266) -->
-      <CodeFix Id="RCF0024" IsEnabled="true" /> <!-- RemovePropertyOrFieldInitializer (fixes CS0573) -->
+      <CodeFix Id="RCF0024" IsEnabled="true" /> <!-- RemovePropertyOrFieldInitializer (fixes CS0573, CS8050) -->
       <CodeFix Id="RCF0025" IsEnabled="true" /> <!-- AddPartialModifier (fixes CS0101, CS0102, CS0260, CS0751) -->
       <CodeFix Id="RCF0026" IsEnabled="true" /> <!-- AddBody (fixes CS0501, CS0756, CS8112) -->
       <CodeFix Id="RCF0027" IsEnabled="true" /> <!-- RemoveRefModifier (fixes CS0192, CS1615, CS1988, CS1623) -->
@@ -242,7 +246,7 @@
       <CodeFix Id="RCF0036" IsEnabled="true" /> <!-- SynchronizeAccessibility (fixes CS0262) -->
       <CodeFix Id="RCF0037" IsEnabled="true" /> <!-- RemoveArgumentList (fixes CS1955) -->
       <CodeFix Id="RCF0038" IsEnabled="true" /> <!-- FixMemberAccessName (fixes CS1061) -->
-      <CodeFix Id="RCF0039" IsEnabled="true" /> <!-- AddArgumentList (fixes CS0023, CS0428, CS0201, CS1526) -->
+      <CodeFix Id="RCF0039" IsEnabled="true" /> <!-- AddArgumentList (fixes CS0023, CS0119, CS0428, CS0201, CS1526) -->
       <CodeFix Id="RCF0040" IsEnabled="true" /> <!-- InitializeLocalVariableWithDefaultValue (fixes CS0165) -->
       <CodeFix Id="RCF0041" IsEnabled="true" /> <!-- ChangeTypeOfLocalVariable (fixes CS0123, CS0407, CS0815) -->
       <CodeFix Id="RCF0042" IsEnabled="true" /> <!-- MakeMemberNonStatic (fixes CS0120) -->
@@ -313,6 +317,8 @@
       <CodeFix Id="RCF0107" IsEnabled="true" /> <!-- AddMissingComma (fixes CS1003) -->
       <CodeFix Id="RCF0108" IsEnabled="true" /> <!-- RemoveParentheses (fixes CS0210) -->
       <CodeFix Id="RCF0109" IsEnabled="true" /> <!-- RemoveParameter (fixes CS0136) -->
+      <CodeFix Id="RCF0110" IsEnabled="true" /> <!-- RenameTupleElement (fixes CS8139) -->
+      <CodeFix Id="RCF0111" IsEnabled="true" /> <!-- ChangeParameterType (fixes CS1750) -->
     </CodeFixes>
   </Settings>
 </Roslynator>

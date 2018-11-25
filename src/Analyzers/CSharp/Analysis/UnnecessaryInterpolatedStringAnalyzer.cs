@@ -29,7 +29,13 @@ namespace Roslynator.CSharp.Analysis
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeInterpolatedStringExpression, SyntaxKind.InterpolatedStringExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UnnecessaryInterpolatedString))
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeInterpolatedStringExpression, SyntaxKind.InterpolatedStringExpression);
+            });
         }
 
         public static void AnalyzeInterpolatedStringExpression(SyntaxNodeAnalysisContext context)
@@ -44,15 +50,7 @@ namespace Roslynator.CSharp.Analysis
 
             SyntaxList<InterpolatedStringContentSyntax> contents = interpolatedString.Contents;
 
-            if (!contents.Any())
-                return;
-
             if (!(contents.SingleOrDefault(shouldThrow: false) is InterpolationSyntax interpolation))
-                return;
-
-            ExpressionSyntax expression = interpolation.Expression;
-
-            if (expression == null)
                 return;
 
             if (interpolation.AlignmentClause != null)
@@ -61,9 +59,30 @@ namespace Roslynator.CSharp.Analysis
             if (interpolation.FormatClause != null)
                 return;
 
-            ITypeSymbol typeSymbol = context.SemanticModel.GetTypeSymbol(expression, context.CancellationToken);
+            ExpressionSyntax expression = interpolation.Expression?.WalkDownParentheses();
 
-            if (typeSymbol?.SpecialType != SpecialType.System_String)
+            if (expression == null)
+                return;
+
+            bool isNonNullStringExpression = false;
+
+            if (expression.IsKind(SyntaxKind.StringLiteralExpression, SyntaxKind.InterpolatedStringExpression))
+            {
+                isNonNullStringExpression = true;
+            }
+            else
+            {
+                Optional<object> constantValue = context.SemanticModel.GetConstantValue(expression, context.CancellationToken);
+
+                if (constantValue.HasValue
+                    && constantValue.Value is string s
+                    && s != null)
+                {
+                    isNonNullStringExpression = true;
+                }
+            }
+
+            if (!isNonNullStringExpression)
                 return;
 
             context.ReportDiagnostic(DiagnosticDescriptors.UnnecessaryInterpolatedString, interpolatedString);

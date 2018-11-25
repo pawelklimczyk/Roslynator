@@ -8,8 +8,6 @@ using Roslynator.CSharp.CodeFixes;
 using Xunit;
 using Roslynator.CSharp.Analysis.UnusedMember;
 
-#pragma warning disable RCS1090
-
 namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS1213RemoveUnusedMemberDeclarationTests : AbstractCSharpCodeFixVerifier
@@ -42,6 +40,24 @@ class C
 class C
 {
     private string [|P|] { get; }
+}
+", @"
+class C
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.RemoveUnusedMemberDeclaration)]
+        public async Task Test_Method_Recursive()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void [|M|]()
+    {
+        M();
+    }
 }
 ", @"
 class C
@@ -118,6 +134,43 @@ class C
     string M { get; }
 
     string this[int index, string s = nameof(M)] => s;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.RemoveUnusedMemberDeclaration)]
+        public async Task TestNoDiagnostic_ExtensionMethod()
+        {
+            await VerifyNoDiagnosticAsync(@"
+static class C
+{
+    public static bool M(this string s)
+    {
+        return s.M2();
+    }
+
+    private static bool M2(this string s)
+    {
+        return s == null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.RemoveUnusedMemberDeclaration)]
+        public async Task TestNoDiagnostic_DelegateAsReturnType()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    private delegate void D(object p);
+
+    private D M()
+    {
+        return default;
+    }
+
+    public void M2() => M();
 }
 ");
         }

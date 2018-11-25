@@ -21,7 +21,6 @@ namespace Roslynator.CSharp.Refactorings
         {
             ConditionalExpressionInfo info = SyntaxInfo.ConditionalExpressionInfo(conditionalExpression);
 
-            ExpressionSyntax condition = info.Condition;
             ExpressionSyntax whenTrue = info.WhenTrue;
             ExpressionSyntax whenFalse = info.WhenFalse;
 
@@ -34,7 +33,7 @@ namespace Roslynator.CSharp.Refactorings
             {
                 if (falseKind == SyntaxKind.FalseLiteralExpression)
                 {
-                    newNode = CreateNewNode(conditionalExpression, condition);
+                    newNode = CreateNewNode(conditionalExpression, info.Condition);
                 }
                 else
                 {
@@ -46,9 +45,9 @@ namespace Roslynator.CSharp.Refactorings
                         .EmptyIfWhitespace();
 
                     newNode = LogicalOrExpression(
-                        condition.Parenthesize().AppendToTrailingTrivia(trailingTrivia),
+                        conditionalExpression.Condition.Parenthesize().AppendToTrailingTrivia(trailingTrivia),
                         Token(info.ColonToken.LeadingTrivia, SyntaxKind.BarBarToken, info.ColonToken.TrailingTrivia),
-                        whenFalse);
+                        whenFalse.Parenthesize());
                 }
             }
             else if (falseKind == SyntaxKind.FalseLiteralExpression)
@@ -62,17 +61,19 @@ namespace Roslynator.CSharp.Refactorings
                     .AddRange(whenFalse.GetTrailingTrivia());
 
                 newNode = LogicalAndExpression(
-                    condition.Parenthesize(),
+                    conditionalExpression.Condition.Parenthesize(),
                     Token(info.QuestionToken.LeadingTrivia, SyntaxKind.AmpersandAmpersandToken, info.QuestionToken.TrailingTrivia),
-                    whenTrue.WithTrailingTrivia(trailingTrivia));
+                    whenTrue.WithTrailingTrivia(trailingTrivia).Parenthesize());
             }
             else if (trueKind == SyntaxKind.FalseLiteralExpression
                 && falseKind == SyntaxKind.TrueLiteralExpression)
             {
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                newNode = CreateNewNode(conditionalExpression, Negator.LogicallyNegate(condition, semanticModel, cancellationToken));
+                newNode = CreateNewNode(conditionalExpression, Inverter.LogicallyNegate(info.Condition, semanticModel, cancellationToken));
             }
+
+            newNode = newNode.Parenthesize();
 
             return await document.ReplaceNodeAsync(conditionalExpression, newNode, cancellationToken).ConfigureAwait(false);
         }
@@ -88,9 +89,9 @@ namespace Roslynator.CSharp.Refactorings
                 .AddRange(conditionalExpression.GetTrailingTrivia());
 
             return newNode
-                .WithSimplifierAnnotation()
                 .WithLeadingTrivia(conditionalExpression.GetLeadingTrivia())
-                .WithTrailingTrivia(trailingTrivia);
+                .WithTrailingTrivia(trailingTrivia)
+                .WithSimplifierAnnotation();
         }
     }
 }

@@ -32,9 +32,15 @@ namespace Roslynator.CSharp.Analysis
             base.Initialize(context);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeSimpleLambdaExpression, SyntaxKind.SimpleLambdaExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeParenthesizedLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeAnonyousMethodExpression, SyntaxKind.AnonymousMethodExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseMethodGroupInsteadOfAnonymousFunction))
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeSimpleLambdaExpression, SyntaxKind.SimpleLambdaExpression);
+                startContext.RegisterSyntaxNodeAction(AnalyzeParenthesizedLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
+                startContext.RegisterSyntaxNodeAction(AnalyzeAnonyousMethodExpression, SyntaxKind.AnonymousMethodExpression);
+            });
         }
 
         public static void AnalyzeSimpleLambdaExpression(SyntaxNodeAnalysisContext context)
@@ -58,6 +64,9 @@ namespace Roslynator.CSharp.Analysis
             CancellationToken cancellationToken = context.CancellationToken;
 
             if (!(semanticModel.GetSymbol(invocationExpression, cancellationToken) is IMethodSymbol methodSymbol))
+                return;
+
+            if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                 return;
 
             bool isReduced = methodSymbol.MethodKind == MethodKind.ReducedExtension;
@@ -141,6 +150,9 @@ namespace Roslynator.CSharp.Analysis
             CancellationToken cancellationToken = context.CancellationToken;
 
             if (!(semanticModel.GetSymbol(invocationExpression, cancellationToken) is IMethodSymbol methodSymbol))
+                return;
+
+            if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                 return;
 
             if (!methodSymbol.IsStatic
@@ -239,6 +251,9 @@ namespace Roslynator.CSharp.Analysis
             CancellationToken cancellationToken = context.CancellationToken;
 
             if (!(semanticModel.GetSymbol(invocationExpression, cancellationToken) is IMethodSymbol methodSymbol))
+                return;
+
+            if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                 return;
 
             if (!methodSymbol.IsStatic
@@ -395,7 +410,7 @@ namespace Roslynator.CSharp.Analysis
             ExpressionSyntax expression,
             IParameterSymbol parameterSymbol)
         {
-            return !parameterSymbol.IsRefOrOut()
+            return parameterSymbol.RefKind == RefKind.None
                 && !parameterSymbol.IsParams
                 && string.Equals(
                     parameter.Identifier.ValueText,
@@ -417,6 +432,10 @@ namespace Roslynator.CSharp.Analysis
                 if (argument.Parent is BaseArgumentListSyntax)
                 {
                     SyntaxNode node = argument.Parent.Parent;
+
+                    // related to https://github.com/dotnet/roslyn/issues/25262
+                    if (CSharpUtility.IsConditionallyAccessed(node))
+                        return false;
 
                     SyntaxNode newNode = node.ReplaceNode(argument.Expression, expression);
 

@@ -22,7 +22,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = RefactoringIdentifiers.AddEmptyLineBetweenDeclarations;
+        = RefactoringIdentifiers.RemoveAsyncAwait;
         internal static void SetRefactoringsDisabledByDefault(RefactoringSettings settings)
         {
             settings.DisableRefactoring(RefactoringIdentifiers.AddIdentifierToParameter);
@@ -106,10 +106,10 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.MergeIfStatements, "Merge if statements", IsEnabled(RefactoringIdentifiers.MergeIfStatements)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.MergeLocalDeclarations, "Merge local declarations", IsEnabled(RefactoringIdentifiers.MergeLocalDeclarations)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.JoinStringExpressions, "Join string expressions", IsEnabled(RefactoringIdentifiers.JoinStringExpressions)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.NegateBinaryExpression, "Negate binary expression", IsEnabled(RefactoringIdentifiers.NegateBinaryExpression)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.NegateBooleanLiteral, "Negate boolean literal", IsEnabled(RefactoringIdentifiers.NegateBooleanLiteral)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.NegateIsExpression, "Negate is expression", IsEnabled(RefactoringIdentifiers.NegateIsExpression)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.NegateOperator, "Negate operator", IsEnabled(RefactoringIdentifiers.NegateOperator)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertBinaryExpression, "Invert binary expression", IsEnabled(RefactoringIdentifiers.InvertBinaryExpression)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertBooleanLiteral, "Invert boolean literal", IsEnabled(RefactoringIdentifiers.InvertBooleanLiteral)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertIsExpression, "Invert is expression", IsEnabled(RefactoringIdentifiers.InvertIsExpression)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertOperator, "Invert operator", IsEnabled(RefactoringIdentifiers.InvertOperator)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.NotifyPropertyChanged, "Notify property changed", IsEnabled(RefactoringIdentifiers.NotifyPropertyChanged)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ParenthesizeExpression, "Parenthesize expression", IsEnabled(RefactoringIdentifiers.ParenthesizeExpression)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.PromoteLocalToParameter, "Promote local to parameter", IsEnabled(RefactoringIdentifiers.PromoteLocalToParameter)));
@@ -185,9 +185,9 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SplitSwitchLabels, "Split switch labels", IsEnabled(RefactoringIdentifiers.SplitSwitchLabels)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SplitVariableDeclaration, "Split variable declaration", IsEnabled(RefactoringIdentifiers.SplitVariableDeclaration)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SwapBinaryOperands, "Swap binary operands", IsEnabled(RefactoringIdentifiers.SwapBinaryOperands)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.SwapExpressionsInConditionalExpression, "Swap expressions in conditional expression", IsEnabled(RefactoringIdentifiers.SwapExpressionsInConditionalExpression)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertConditionalExpression, "Invert conditional expression", IsEnabled(RefactoringIdentifiers.InvertConditionalExpression)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SwapMemberDeclarations, "Swap member declarations", IsEnabled(RefactoringIdentifiers.SwapMemberDeclarations)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.SwapIfElse, "Swap if-else", IsEnabled(RefactoringIdentifiers.SwapIfElse)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertIfElse, "Invert if-else", IsEnabled(RefactoringIdentifiers.InvertIfElse)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.UncommentSingleLineComment, "UncommentSingleLineComment", IsEnabled(RefactoringIdentifiers.UncommentSingleLineComment)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.UseBitwiseOperationInsteadOfCallingHasFlag, "Use bitwise operation instead of calling 'HasFlag'", IsEnabled(RefactoringIdentifiers.UseBitwiseOperationInsteadOfCallingHasFlag)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.UseCoalesceExpressionInsteadOfIf, "Use coalesce expression instead of if", IsEnabled(RefactoringIdentifiers.UseCoalesceExpressionInsteadOfIf)));
@@ -214,7 +214,7 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ChangeAccessibility, "Change accessibility", IsEnabled(RefactoringIdentifiers.ChangeAccessibility)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.FormatConstraintClauses, "Format constraint clauses", IsEnabled(RefactoringIdentifiers.FormatConstraintClauses)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceForEachWithForAndReverseLoop, "Replace foreach with for and reverse loop", IsEnabled(RefactoringIdentifiers.ReplaceForEachWithForAndReverseLoop)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.ReduceIfNesting, "Reduce if nesting", IsEnabled(RefactoringIdentifiers.ReduceIfNesting)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.InvertIf, "Invert if", IsEnabled(RefactoringIdentifiers.InvertIf)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.SplitIfElse, "Split if-else", IsEnabled(RefactoringIdentifiers.SplitIfElse)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.UseCSharp6DictionaryInitializer, "Use C# 6.0 dictionary initializer", IsEnabled(RefactoringIdentifiers.UseCSharp6DictionaryInitializer)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceCommentWithDocumentationComment, "Replace comment with documentation comment", IsEnabled(RefactoringIdentifiers.ReplaceCommentWithDocumentationComment)));
@@ -231,6 +231,10 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ExtractEventHandlerMethod, "Extract event handler method", IsEnabled(RefactoringIdentifiers.ExtractEventHandlerMethod)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GeneratePropertyForDebuggerDisplayAttribute, "Generate property for DebuggerDisplay attribute", IsEnabled(RefactoringIdentifiers.GeneratePropertyForDebuggerDisplayAttribute)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.AddEmptyLineBetweenDeclarations, "Add empty line between declarations", IsEnabled(RefactoringIdentifiers.AddEmptyLineBetweenDeclarations)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceForEachWithEnumerator, "Replace foreach with enumerator", IsEnabled(RefactoringIdentifiers.ReplaceForEachWithEnumerator)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.SortCaseLabels, "Sort case labels", IsEnabled(RefactoringIdentifiers.SortCaseLabels)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.AddTagToDocumentationComment, "Add tag to documentation comment", IsEnabled(RefactoringIdentifiers.AddTagToDocumentationComment)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.RemoveAsyncAwait, "Remove async/await", IsEnabled(RefactoringIdentifiers.RemoveAsyncAwait)));
         }
     }
 }

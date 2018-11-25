@@ -288,51 +288,51 @@ namespace Roslynator.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1025</summary>
-        public static readonly DiagnosticDescriptor FormatEachEnumMemberOnSeparateLine = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.FormatEachEnumMemberOnSeparateLine, 
-            title:              "Format each enum member on a separate line.", 
-            messageFormat:      "Format each enum member on a separate line.", 
+        public static readonly DiagnosticDescriptor AddNewLineBeforeEnumMember = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddNewLineBeforeEnumMember, 
+            title:              "Add new line before enum member.", 
+            messageFormat:      "Add new line before enum member.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.FormatEachEnumMemberOnSeparateLine}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddNewLineBeforeEnumMember}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1026</summary>
-        public static readonly DiagnosticDescriptor FormatEachStatementOnSeparateLine = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.FormatEachStatementOnSeparateLine, 
-            title:              "Format each statement on a separate line.", 
-            messageFormat:      "Format each statement on a separate line.", 
+        public static readonly DiagnosticDescriptor AddNewLineBeforeStatement = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddNewLineBeforeStatement, 
+            title:              "Add new line before statement.", 
+            messageFormat:      "Add new line before statement.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.FormatEachStatementOnSeparateLine}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddNewLineBeforeStatement}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1027</summary>
-        public static readonly DiagnosticDescriptor FormatEmbeddedStatementOnSeparateLine = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.FormatEmbeddedStatementOnSeparateLine, 
-            title:              "Format embedded statement on a separate line.", 
-            messageFormat:      "Format embedded statement on a separate line.", 
+        public static readonly DiagnosticDescriptor AddNewLineBeforeEmbeddedStatement = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddNewLineBeforeEmbeddedStatement, 
+            title:              "Add new line before embedded statement.", 
+            messageFormat:      "Add new line before embedded statement.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.FormatEmbeddedStatementOnSeparateLine}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddNewLineBeforeEmbeddedStatement}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1028</summary>
-        public static readonly DiagnosticDescriptor FormatSwitchSectionStatementOnSeparateLine = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.FormatSwitchSectionStatementOnSeparateLine, 
-            title:              "Format switch section's statement on a separate line.", 
-            messageFormat:      "Format switch section's statement on a separate line.", 
+        public static readonly DiagnosticDescriptor AddNewLineAfterSwitchLabel = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddNewLineAfterSwitchLabel, 
+            title:              "Add new line after switch label.", 
+            messageFormat:      "Add new line after switch label.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.FormatSwitchSectionStatementOnSeparateLine}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddNewLineAfterSwitchLabel}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1029</summary>
@@ -1052,15 +1052,15 @@ namespace Roslynator.CSharp
         public static readonly DiagnosticDescriptor RemoveEmptyRegionFadeOut = RemoveEmptyRegion.CreateFadeOut();
 
         /// <summary>RCS1092</summary>
-        public static readonly DiagnosticDescriptor AddEmptyLineAfterLastStatementInDoStatement = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.AddEmptyLineAfterLastStatementInDoStatement, 
-            title:              "Add empty line after last statement in do statement.", 
-            messageFormat:      "Add empty line after last statement in do statement.", 
+        public static readonly DiagnosticDescriptor AddEmptyLineBeforeWhileInDoStatement = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddEmptyLineBeforeWhileInDoStatement, 
+            title:              "Add empty line before 'while' keyword in 'do' statement.", 
+            messageFormat:      "Add empty line before 'while' keyword in 'do' statement.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddEmptyLineAfterLastStatementInDoStatement}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddEmptyLineBeforeWhileInDoStatement}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1093</summary>
@@ -1504,27 +1504,27 @@ namespace Roslynator.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1141</summary>
-        public static readonly DiagnosticDescriptor AddParameterToDocumentationComment = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.AddParameterToDocumentationComment, 
-            title:              "Add parameter to documentation comment.", 
-            messageFormat:      "Add parameter to documentation comment.", 
+        public static readonly DiagnosticDescriptor AddParamElementToDocumentationComment = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddParamElementToDocumentationComment, 
+            title:              "Add 'param' element to documentation comment.", 
+            messageFormat:      "Add 'param' element to documentation comment.", 
             category:           DiagnosticCategories.Maintainability, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddParameterToDocumentationComment}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddParamElementToDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1142</summary>
-        public static readonly DiagnosticDescriptor AddTypeParameterToDocumentationComment = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.AddTypeParameterToDocumentationComment, 
-            title:              "Add type parameter to documentation comment.", 
-            messageFormat:      "Add type parameter to documentation comment.", 
+        public static readonly DiagnosticDescriptor AddTypeParamElementToDocumentationComment = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AddTypeParamElementToDocumentationComment, 
+            title:              "Add 'typeparam' element to documentation comment.", 
+            messageFormat:      "Add 'typeparam' element to documentation comment.", 
             category:           DiagnosticCategories.Maintainability, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddTypeParameterToDocumentationComment}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddTypeParamElementToDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1143</summary>
@@ -1737,7 +1737,7 @@ namespace Roslynator.CSharp
             title:              "Unconstrained type parameter checked for null.", 
             messageFormat:      "Unconstrained type parameter checked for null.", 
             category:           DiagnosticCategories.Usage, 
-            defaultSeverity:    DiagnosticSeverity.Warning, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnconstrainedTypeParameterCheckedForNull}", 
@@ -1834,7 +1834,7 @@ namespace Roslynator.CSharp
             messageFormat:      "Remove redundant async/await.", 
             category:           DiagnosticCategories.Redundancy, 
             defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
+            isEnabledByDefault: false, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RemoveRedundantAsyncAwait}", 
             customTags:         Array.Empty<string>());
@@ -1962,15 +1962,15 @@ namespace Roslynator.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1185</summary>
-        public static readonly DiagnosticDescriptor AvoidSingleLineBlock = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.AvoidSingleLineBlock, 
-            title:              "Avoid single-line block.", 
-            messageFormat:      "Avoid single-line block.", 
+        public static readonly DiagnosticDescriptor FormatSingleLineBlock = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.FormatSingleLineBlock, 
+            title:              "Format single-line block.", 
+            messageFormat:      "Format single-line block.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidSingleLineBlock}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.FormatSingleLineBlock}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1186</summary>
@@ -2469,6 +2469,42 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddParagraphToDocumentationComment}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1227</summary>
+        public static readonly DiagnosticDescriptor ValidateArgumentsCorrectly = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.ValidateArgumentsCorrectly, 
+            title:              "Validate arguments correctly.", 
+            messageFormat:      "Validate arguments correctly.", 
+            category:           DiagnosticCategories.Design, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ValidateArgumentsCorrectly}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1228</summary>
+        public static readonly DiagnosticDescriptor UnusedElementInDocumentationComment = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UnusedElementInDocumentationComment, 
+            title:              "Unused element in documentation comment.", 
+            messageFormat:      "Unused element in documentation comment.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnusedElementInDocumentationComment}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1229</summary>
+        public static readonly DiagnosticDescriptor UseAsyncAwait = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseAsyncAwait, 
+            title:              "Use async/await when necessary.", 
+            messageFormat:      "Use async/await when necessary.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseAsyncAwait}", 
             customTags:         Array.Empty<string>());
 
     }
