@@ -117,7 +117,7 @@ namespace Roslynator.CSharp.Refactorings
         {
             StatementSyntax newStatement = statement.TrimTrivia();
 
-            IfStatementSyntax ifElseStatement = CreateIfElseStatement(
+            IfStatementSyntax ifElseStatement = ConvertConditionalExpressionToIfElse(
                 conditionalExpression,
                 expression => CreateNewStatement(newStatement, expression),
                 recursive: recursive);
@@ -181,7 +181,7 @@ namespace Roslynator.CSharp.Refactorings
 
             IdentifierNameSyntax left = IdentifierName(variableDeclarator.Identifier.ValueText);
 
-            IfStatementSyntax ifElseStatement = CreateIfElseStatement(conditionalExpression, expression => SimpleAssignmentStatement(left, expression), recursive: recursive);
+            IfStatementSyntax ifElseStatement = ConvertConditionalExpressionToIfElse(conditionalExpression, expression => SimpleAssignmentStatement(left, expression), recursive: recursive);
 
             StatementListInfo statementsInfo = SyntaxInfo.StatementListInfo(localDeclaration);
 
@@ -194,7 +194,7 @@ namespace Roslynator.CSharp.Refactorings
             return document.ReplaceStatementsAsync(statementsInfo, newStatements, cancellationToken);
         }
 
-        private static IfStatementSyntax CreateIfElseStatement(
+        private static IfStatementSyntax ConvertConditionalExpressionToIfElse(
             ConditionalExpressionSyntax conditionalExpression,
             Func<ExpressionSyntax, StatementSyntax> createStatement,
             bool recursive = false)
@@ -206,7 +206,7 @@ namespace Roslynator.CSharp.Refactorings
             if (recursive
                 && conditionalExpression.WhenFalse.WalkDownParentheses() is ConditionalExpressionSyntax nestedConditionalExpression)
             {
-                IfStatementSyntax ifElseStatement = CreateIfElseStatement(nestedConditionalExpression, createStatement, recursive: true);
+                IfStatementSyntax ifElseStatement = ConvertConditionalExpressionToIfElse(nestedConditionalExpression, createStatement, recursive: true);
 
                 elseClause = ElseClause(ifElseStatement);
             }
