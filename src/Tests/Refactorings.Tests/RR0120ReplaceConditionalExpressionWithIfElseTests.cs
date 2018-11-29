@@ -72,6 +72,40 @@ class C
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
+        public async Task Test_LocalDeclaration_Recursive()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
+        string s = [||](f) ? x : ((f2) ? y : z);
+    }
+}
+", @"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
+        string s;
+        if (f)
+        {
+            s = x;
+        }
+        else if (f2)
+        {
+            s = y;
+        }
+        else
+        {
+            s = z;
+        }
+    }
+}
+", equivalenceKey: ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
         public async Task Test_SimpleAssignment()
         {
             await VerifyRefactoringAsync(@"
