@@ -33,7 +33,9 @@ namespace Roslynator.CSharp.Refactorings
 
             INamedTypeSymbol enumerator = symbol.FindTypeMember(
                 "Enumerator",
-                f => f.TypeKind == TypeKind.Struct && f.DeclaredAccessibility == Accessibility.Public && f.Arity == 0,
+                f => f.TypeKind == TypeKind.Struct
+                    && f.DeclaredAccessibility == Accessibility.Public
+                    && f.Arity == 0,
                 includeBaseTypes: true);
 
             if (enumerator != null)
