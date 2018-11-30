@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
+using static Roslynator.CSharp.CSharpSnippets;
+using static Roslynator.CSharp.CSharpTypeFactory;
 
 namespace Roslynator.CSharp.Refactorings
 {
@@ -31,8 +33,7 @@ namespace Roslynator.CSharp.Refactorings
 
             INamedTypeSymbol enumerator = symbol.FindTypeMember(
                 "Enumerator",
-                arity: 0,
-                f => f.TypeKind == TypeKind.Struct && f.DeclaredAccessibility == Accessibility.Public,
+                f => f.TypeKind == TypeKind.Struct && f.DeclaredAccessibility == Accessibility.Public && f.Arity == 0,
                 includeBaseTypes: true);
 
             if (enumerator != null)
@@ -51,30 +52,63 @@ namespace Roslynator.CSharp.Refactorings
             ITypeSymbol elementSymbol,
             CancellationToken cancellationToken)
         {
-            TypeSyntax type = typeSymbol.ToTypeSyntax();
-            TypeSyntax elementType = elementSymbol.ToTypeSyntax();
+            TypeSyntax type = typeSymbol.ToTypeSyntax().WithSimplifierAnnotation();
+
+            TypeSyntax elementType = elementSymbol.ToTypeSyntax().WithSimplifierAnnotation();
+
+            string identifier = NameGenerator.CreateName(typeSymbol, firstCharToLower: true) ?? DefaultNames.Variable;
+
+            string identifierWithUnderscore = "_" + identifier;
+
+            MethodDeclarationSyntax getEnumeratorDeclaration = MethodDeclaration(
+                Modifiers.Public(),
+                IdentifierName("Enumerator"),
+                Identifier("GetEnumerator"),
+                ParameterList(),
+                Block(
+                    ReturnStatement(
+                        ObjectCreationExpression(
+                            IdentifierName("Enumerator"), ArgumentList(Argument(ThisExpression()))))));
 
             StructDeclarationSyntax enumeratorDeclaration = StructDeclaration(
                 Modifiers.Public(),
                 "Enumerator",
-                CreateMembers(typeSymbol, type, elementType).ToSyntaxList());
+                CreateEnumeratorMembers(type, elementType, identifier, identifierWithUnderscore).ToSyntaxList());
 
-            enumeratorDeclaration = enumeratorDeclaration.WithFormatterAnnotation();
+            ClassDeclarationSyntax enumeratorImplDeclaration = ClassDeclaration(
+                attributeLists: default,
+                Modifiers.Private(),
+                Identifier("EnumeratorImpl"),
+                typeParameterList: default,
+                BaseList(
+                    SimpleBaseType(
+                        ParseTypeName($"global::System.Collections.Generic.IEnumerator<{elementType}>").WithSimplifierAnnotation())),
+                constraintClauses: default,
+                CreateEnumeratorImplMembers(typeSymbol, type, elementType, identifier).ToSyntaxList());
 
-            TypeDeclarationSyntax newTypeDeclaration = MemberDeclarationInserter.Default.Insert(typeDeclaration, enumeratorDeclaration);
+            enumeratorImplDeclaration = enumeratorImplDeclaration.WithLeadingTrivia(ParseLeadingTrivia(
+                "//TODO: IEnumerable.GetEnumerator() and IEnumerable<T>.GetEnumerator() should return instance of EnumeratorImpl." + System.Environment.NewLine));
 
-            return document.ReplaceNodeAsync(typeDeclaration, newTypeDeclaration, cancellationToken);
+            MemberDeclarationInserter inserter = MemberDeclarationInserter.Default;
+
+            TypeDeclarationSyntax newNode = inserter.Insert(typeDeclaration, getEnumeratorDeclaration.WithFormatterAnnotation());
+
+            newNode = inserter.Insert(newNode, enumeratorDeclaration.WithFormatterAnnotation());
+
+            newNode = inserter.Insert(newNode, enumeratorImplDeclaration.WithFormatterAnnotation());
+
+            return document.ReplaceNodeAsync(typeDeclaration, newNode, cancellationToken);
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(INamedTypeSymbol symbol, TypeSyntax type, TypeSyntax elementType)
+        private static IEnumerable<MemberDeclarationSyntax> CreateEnumeratorMembers(
+            TypeSyntax type,
+            TypeSyntax elementType,
+            string identifier,
+            string identifierWithUnderscore)
         {
-            string identifier = NameGenerator.CreateName(symbol, firstCharToLower: true) ?? DefaultNames.Variable;
-
-            string identifierWithUnderscore = "_" + identifier;
-
             yield return FieldDeclaration(Modifiers.Private_ReadOnly(), type, identifierWithUnderscore);
 
-            yield return FieldDeclaration(Modifiers.Private(), CSharpTypeFactory.IntType(), "_index");
+            yield return FieldDeclaration(Modifiers.Private(), IntType(), "_index");
 
             yield return ConstructorDeclaration(
                 Modifiers.Internal(),
@@ -87,128 +121,119 @@ namespace Roslynator.CSharp.Refactorings
             yield return PropertyDeclaration(
                 Modifiers.Public(),
                 elementType,
-                Identifier(WellKnownMemberNames.CurrentPropertyName),
+                Identifier("Current"),
                 AccessorList(
                     GetAccessorDeclaration(
-                        Block(
-                            ThrowStatement(
-                                ObjectCreationExpression(ParseTypeName("System.NotImplementedException").WithSimplifierAnnotation()))))));
+                        Block(ThrowNewNotImplementedExceptionStatement()))));
 
             yield return MethodDeclaration(
                 Modifiers.Public(),
-                CSharpTypeFactory.BoolType(),
-                Identifier(WellKnownMemberNames.MoveNextMethodName),
+                BoolType(),
+                Identifier("MoveNext"),
                 ParameterList(),
-                Block(
-                    ThrowStatement(
-                        ObjectCreationExpression(ParseTypeName("System.NotImplementedException").WithSimplifierAnnotation()))));
+                Block(ThrowNewNotImplementedExceptionStatement()));
 
             yield return MethodDeclaration(
                 Modifiers.Public(),
                 VoidType(),
                 Identifier("Reset"),
                 ParameterList(),
-                Block(
-                    ThrowStatement(
-                        ObjectCreationExpression(ParseTypeName("System.NotImplementedException").WithSimplifierAnnotation()))));
+                Block(ThrowNewNotImplementedExceptionStatement()));
 
             yield return MethodDeclaration(
                 Modifiers.Public_Override(),
-                CSharpTypeFactory.BoolType(),
-                Identifier(WellKnownMemberNames.ObjectEquals),
-                ParameterList(Parameter(CSharpTypeFactory.ObjectType(), "obj")),
-                Block(
-                    ThrowStatement(
-                        ObjectCreationExpression(ParseTypeName("System.NotSupportedException").WithSimplifierAnnotation()))));
+                BoolType(),
+                Identifier("Equals"),
+                ParameterList(Parameter(ObjectType(), "obj")),
+                Block(ThrowNewNotSupportedExceptionStatement()));
 
             yield return MethodDeclaration(
                 Modifiers.Public_Override(),
-                CSharpTypeFactory.IntType(),
-                Identifier(WellKnownMemberNames.ObjectGetHashCode),
+                IntType(),
+                Identifier("GetHashCode"),
+                ParameterList(),
+                Block(ThrowNewNotSupportedExceptionStatement()));
+        }
+
+        private static IEnumerable<MemberDeclarationSyntax> CreateEnumeratorImplMembers(
+            INamedTypeSymbol typeSymbol,
+            TypeSyntax type,
+            TypeSyntax elementType,
+            string identifier)
+        {
+            yield return FieldDeclaration(Modifiers.Private(), IdentifierName("Enumerator"), "_e");
+
+            yield return ConstructorDeclaration(
+                Modifiers.Internal(),
+                Identifier("EnumeratorImpl"),
+                ParameterList(
+                    Parameter(
+                        attributeLists: default,
+                        (typeSymbol.IsReadOnlyStruct()) ? TokenList(Token(SyntaxKind.InKeyword)) : TokenList(),
+                        type,
+                        Identifier(identifier),
+                        @default: default)),
+                Block(
+                    SimpleAssignmentStatement(
+                        IdentifierName("_e"),
+                        ObjectCreationExpression(
+                            IdentifierName("Enumerator"),
+                            ArgumentList(Argument(IdentifierName(identifier)))))));
+
+            yield return PropertyDeclaration(
+                Modifiers.Public(),
+                elementType,
+                Identifier("Current"),
+                AccessorList(
+                    GetAccessorDeclaration(
+                        Block(
+                            ReturnStatement(SimpleMemberAccessExpression(IdentifierName("_e"), IdentifierName("Current")))))));
+
+            yield return PropertyDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                ObjectType(),
+                ExplicitInterfaceSpecifier(ParseName("global::System.Collections.IEnumerator").WithSimplifierAnnotation()),
+                Identifier("Current"),
+                AccessorList(
+                    GetAccessorDeclaration(
+                        Block(
+                            ReturnStatement(SimpleMemberAccessExpression(IdentifierName("_e"), IdentifierName("Current")))))));
+
+            yield return MethodDeclaration(
+                Modifiers.Public(),
+                BoolType(),
+                Identifier("MoveNext"),
                 ParameterList(),
                 Block(
-                    ThrowStatement(
-                        ObjectCreationExpression(ParseTypeName("System.NotSupportedException").WithSimplifierAnnotation()))));
+                    ReturnStatement(
+                        SimpleMemberInvocationExpression(IdentifierName("_e"), IdentifierName("MoveNext")))));
 
-            yield return ClassDeclaration(
-                default(SyntaxList<AttributeListSyntax>),
-                Modifiers.Private(),
-                Identifier("EnumeratorImpl"),
-                default(TypeParameterListSyntax),
-                BaseList(
-                    SimpleBaseType(
-                        ParseTypeName($"System.Collections.Generic.IEnumerator<{elementType}>").WithSimplifierAnnotation())),
-                default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                CreateImplMembers().ToSyntaxList());
+            yield return MethodDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                VoidType(),
+                ExplicitInterfaceSpecifier(ParseName("global::System.Collections.IEnumerator").WithSimplifierAnnotation()),
+                Identifier("Reset"),
+                typeParameterList: default,
+                ParameterList(),
+                constraintClauses: default,
+                Block(
+                    ExpressionStatement(
+                        SimpleMemberInvocationExpression(IdentifierName("_e"), IdentifierName("Reset")))),
+                expressionBody: default);
 
-            IEnumerable<MemberDeclarationSyntax> CreateImplMembers()
-            {
-                yield return FieldDeclaration(Modifiers.Private(), IdentifierName("Enumerator"), "_e");
-
-                yield return ConstructorDeclaration(
-                    Modifiers.Internal(),
-                    Identifier("EnumeratorImpl"),
-                    ParameterList(Parameter(elementType, identifier)),
-                    Block(
-                        SimpleAssignmentStatement(
-                            IdentifierName("_e"),
-                            ObjectCreationExpression(
-                                IdentifierName("Enumerator"),
-                                ArgumentList(Argument(IdentifierName(identifier)))))));
-
-                yield return PropertyDeclaration(
-                    Modifiers.Public(),
-                    elementType,
-                    Identifier(WellKnownMemberNames.CurrentPropertyName),
-                    AccessorList(
-                        GetAccessorDeclaration(
-                            Block(
-                                ReturnStatement(SimpleMemberAccessExpression(IdentifierName("_e"), IdentifierName(WellKnownMemberNames.CurrentPropertyName)))))));
-
-                yield return PropertyDeclaration(
-                    default(SyntaxList<AttributeListSyntax>),
-                    default(SyntaxTokenList),
-                    CSharpTypeFactory.ObjectType(),
-                    ExplicitInterfaceSpecifier(ParseName("System.Collections.IEnumerator").WithSimplifierAnnotation()),
-                    Identifier(WellKnownMemberNames.CurrentPropertyName),
-                    AccessorList(
-                        GetAccessorDeclaration(
-                            Block(
-                                ReturnStatement(SimpleMemberAccessExpression(IdentifierName("_e"), IdentifierName(WellKnownMemberNames.CurrentPropertyName)))))));
-
-                yield return MethodDeclaration(
-                    Modifiers.Public(),
-                    CSharpTypeFactory.BoolType(),
-                    Identifier(WellKnownMemberNames.MoveNextMethodName),
-                    ParameterList(),
-                    Block(
-                        ReturnStatement(SimpleMemberInvocationExpression(IdentifierName("_e"), IdentifierName(WellKnownMemberNames.MoveNextMethodName)))));
-
-                yield return MethodDeclaration(
-                    default(SyntaxList<AttributeListSyntax>),
-                    default(SyntaxTokenList),
-                    VoidType(),
-                    ExplicitInterfaceSpecifier(ParseName("System.Collections.IEnumerator").WithSimplifierAnnotation()),
-                    Identifier("Reset"),
-                    default(TypeParameterListSyntax),
-                    ParameterList(),
-                    default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                    Block(
-                        ReturnStatement(SimpleMemberAccessExpression(IdentifierName("_e"), IdentifierName("Reset")))),
-                    default(ArrowExpressionClauseSyntax));
-
-                yield return MethodDeclaration(
-                    default(SyntaxList<AttributeListSyntax>),
-                    default(SyntaxTokenList),
-                    VoidType(),
-                    ExplicitInterfaceSpecifier(ParseName("System.IDisposable").WithSimplifierAnnotation()),
-                    Identifier("Dispose"),
-                    default(TypeParameterListSyntax),
-                    ParameterList(),
-                    default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                    Block(),
-                    default(ArrowExpressionClauseSyntax));
-            }
+            yield return MethodDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                VoidType(),
+                ExplicitInterfaceSpecifier(ParseName("global::System.IDisposable").WithSimplifierAnnotation()),
+                Identifier("Dispose"),
+                typeParameterList: default,
+                ParameterList(),
+                constraintClauses: default,
+                Block(),
+                expressionBody: default);
         }
     }
 }

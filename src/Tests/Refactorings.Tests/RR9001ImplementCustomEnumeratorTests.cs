@@ -21,12 +21,12 @@ class [||]C<T> : IEnumerable<T>
 {
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }
 ", @"
@@ -38,12 +38,17 @@ class C<T> : IEnumerable<T>
 {
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
+    }
+
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
     }
 
     public struct Enumerator
@@ -57,35 +62,36 @@ class C<T> : IEnumerable<T>
             _index = -1;
         }
 
-        public bool MoveNext()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public T Current
         {
             get
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
+        }
+
+        public bool MoveNext()
+        {
+            throw new NotImplementedException();
         }
 
         public void Reset()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override bool Equals(object obj)
         {
-            throw new System.NotSupportedException();
+            throw new NotSupportedException();
         }
 
         public override int GetHashCode()
         {
-            throw new System.NotSupportedException();
+            throw new NotSupportedException();
         }
     }
 
+    //TODO: IEnumerable.GetEnumerator() and IEnumerable<T>.GetEnumerator() should return instance of EnumeratorImpl.
     private class EnumeratorImpl : IEnumerator<T>
     {
         private Enumerator _e;
@@ -129,35 +135,13 @@ class C<T> : IEnumerable<T>
 ", equivalenceKey: RefactoringId);
         }
 
-        //[Theory, Trait(Traits.Refactoring, RefactoringIdentifiers.ImplementCustomEnumerator)]
-        //[InlineData("", "")]
-        public async Task Test2(string fromData, string toData)
-        {
-            await VerifyRefactoringAsync(@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-class C
-{
-    void M()
-    {
-    }
-}
-", fromData, toData, equivalenceKey: RefactoringId);
-        }
-
-        //[Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ImplementCustomEnumerator)]
-        public async Task TestNoRefactoring()
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ImplementCustomEnumerator)]
+        public async Task TestNoRefactoring_BaseTypeContainsEnumerator()
         {
             await VerifyNoRefactoringAsync(@"
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-class C
+class [||]C : List<object>
 {
     void M()
     {
