@@ -1624,11 +1624,14 @@ namespace Roslynator
             return FindMemberImpl(typeSymbol.GetMembers(name), predicate);
         }
 
-        private static TSymbol FindMemberImpl<TSymbol>(ImmutableArray<ISymbol> members, Func<TSymbol, bool> predicate) where TSymbol : ISymbol
+        //TODO: 
+        internal static TSymbol FindMemberImpl<TSymbol, TMemberSymbol>(ImmutableArray<TMemberSymbol> members, Func<TSymbol, bool> predicate)
+            where TSymbol : ISymbol
+            where TMemberSymbol : ISymbol
         {
             if (predicate != null)
             {
-                foreach (ISymbol symbol in members)
+                foreach (TMemberSymbol symbol in members)
                 {
                     if (symbol is TSymbol tsymbol
                         && predicate(tsymbol))
@@ -1639,7 +1642,7 @@ namespace Roslynator
             }
             else
             {
-                foreach (ISymbol symbol in members)
+                foreach (TMemberSymbol symbol in members)
                 {
                     if (symbol is TSymbol tsymbol)
                         return tsymbol;

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactorings>
+  <Refactoring Id="RR9001" Identifier="ImplementCustomEnumerator" Title="Implement custom enumerator">
+    <Syntaxes>
+      <Syntax>class that implements IEnumerable&lt;T&gt;</Syntax>
+    </Syntaxes>
+    <Span>identifier</Span>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
+  </Refactoring>
+</Refactorings>
