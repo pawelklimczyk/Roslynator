@@ -21,7 +21,8 @@ namespace Roslynator.CodeFixes
             IEnumerable<Diagnostic> unfixableDiagnostics = default,
             IEnumerable<DiagnosticAnalyzer> analyzers = default,
             IEnumerable<CodeFixProvider> fixers = default,
-            int formattedDocumentCount = 0)
+            int documentFormattedCount = 0,
+            int fileBannerAddedCount = 0)
         {
             Kind = kind;
             FixedDiagnostics = fixedDiagnostics?.ToImmutableArray() ?? ImmutableArray<Diagnostic>.Empty;
@@ -29,7 +30,8 @@ namespace Roslynator.CodeFixes
             UnfixableDiagnostics = unfixableDiagnostics?.ToImmutableArray() ?? ImmutableArray<Diagnostic>.Empty;
             Analyzers = analyzers?.ToImmutableArray() ?? ImmutableArray<DiagnosticAnalyzer>.Empty;
             Fixers = fixers?.ToImmutableArray() ?? ImmutableArray<CodeFixProvider>.Empty;
-            FormattedDocumentCount = formattedDocumentCount;
+            DocumentFormattedCount = documentFormattedCount;
+            FileBannerAddedCount = fileBannerAddedCount;
         }
 
         public ProjectFixKind Kind { get; }
@@ -44,6 +46,8 @@ namespace Roslynator.CodeFixes
 
         public ImmutableArray<CodeFixProvider> Fixers { get; }
 
-        public int FormattedDocumentCount { get; }
+        public int DocumentFormattedCount { get; }
+
+        public int FileBannerAddedCount { get; }
     }
 }

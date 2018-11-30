@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator
 {
+    //TODO: Concurrent
     public abstract class CodeAnalysisOptions
     {
         protected CodeAnalysisOptions(

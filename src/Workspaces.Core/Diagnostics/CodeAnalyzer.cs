@@ -135,6 +135,7 @@ namespace Roslynator.Diagnostics
                         WriteLine($"{kvp.Value.ToString().PadLeft(maxCountLength)} {kvp.Key.Id.PadRight(maxIdLength)} {kvp.Key.Title}", Verbosity.Normal);
                     }
 
+                    WriteLine(Verbosity.Minimal);
                     WriteLine($"{totalCount} {((totalCount == 1) ? "diagnostic" : "diagnostics")} found", ConsoleColor.Green, Verbosity.Minimal);
                     WriteLine(Verbosity.Minimal);
                 }

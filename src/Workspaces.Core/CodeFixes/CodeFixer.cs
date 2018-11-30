@@ -119,9 +119,16 @@ namespace Roslynator.CodeFixes
 
             stopwatch.Stop();
 
+            if (Options.FileBannerLines.Any())
+            {
+                int count = results.Sum(f => f.FileBannerAddedCount);
+                WriteLine();
+                WriteLine($"{count} file {((count == 1) ? "banner" : "banners")} added", Verbosity.Normal);
+            }
+
             if (Options.Format)
             {
-                int count = results.Sum(f => f.FormattedDocumentCount);
+                int count = results.Sum(f => f.DocumentFormattedCount);
                 WriteLine();
                 WriteLine($"{count} {((count == 1) ? "document" : "documents")} formatted", Verbosity.Normal);
             }
@@ -175,13 +182,15 @@ namespace Roslynator.CodeFixes
                 f => fixersById.TryGetValue(f.id, out ImmutableArray<CodeFixProvider> fixers2),
                 cancellationToken).ConfigureAwait(false);
 
-            if (Options.FileBannerLines.Length > 0)
-                await AddFileBannerAsync(CurrentSolution.GetProject(project.Id), Options.FileBannerLines, cancellationToken).ConfigureAwait(false);
+            int fileBannerAddedCount = 0;
 
-            int formattedDocumentCount = 0;
+            if (Options.FileBannerLines.Any())
+                fileBannerAddedCount = await AddFileBannerAsync(CurrentSolution.GetProject(project.Id), Options.FileBannerLines, cancellationToken).ConfigureAwait(false);
+
+            int documentFormattedCount = 0;
 
             if (Options.Format)
-                formattedDocumentCount = await FormatProjectAsync(CurrentSolution.GetProject(project.Id), cancellationToken).ConfigureAwait(false);
+                documentFormattedCount = await FormatProjectAsync(CurrentSolution.GetProject(project.Id), cancellationToken).ConfigureAwait(false);
 
             return new ProjectFixResult(
                 kind: fixResult.Kind,
@@ -190,7 +199,8 @@ namespace Roslynator.CodeFixes
                 unfixableDiagnostics: unfixableDiagnostics,
                 analyzers: fixResult.Analyzers,
                 fixers: fixResult.Fixers,
-                formattedDocumentCount: formattedDocumentCount);
+                documentFormattedCount: documentFormattedCount,
+                fileBannerAddedCount: fileBannerAddedCount);
         }
 
         private async Task<ProjectFixResult> FixProjectAsync(
@@ -792,12 +802,12 @@ namespace Roslynator.CodeFixes
                 .ToImmutableArray();
         }
 
-        private async Task AddFileBannerAsync(
+        private async Task<int> AddFileBannerAsync(
             Project project,
             ImmutableArray<string> banner,
             CancellationToken cancellationToken)
         {
-            bool hasChanges = false;
+            int count = 0;
 
             string solutionDirectory = Path.GetDirectoryName(project.Solution.FilePath);
 
@@ -833,15 +843,17 @@ namespace Roslynator.CodeFixes
 
                 project = newDocument.Project;
 
-                hasChanges = true;
+                count++;
             }
 
-            if (hasChanges
+            if (count > 0
                 && !Workspace.TryApplyChanges(project.Solution))
             {
                 Debug.Fail($"Cannot apply changes to solution '{project.Solution.FilePath}'");
                 WriteLine($"Cannot apply changes to solution '{project.Solution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
             }
+
+            return count;
         }
 
         private async Task<int> FormatProjectAsync(Project project, CancellationToken cancellationToken)
