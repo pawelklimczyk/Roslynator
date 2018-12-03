@@ -74,7 +74,7 @@ namespace Roslynator.CSharp.Refactorings
 
             StructDeclarationSyntax enumeratorDeclaration = StructDeclaration(
                 Modifiers.Public(),
-                "Enumerator",
+                Identifier("Enumerator").WithNavigationAnnotation(),
                 CreateEnumeratorMembers(type, elementType, identifier, identifierWithUnderscore).ToSyntaxList());
 
             ClassDeclarationSyntax enumeratorImplDeclaration = ClassDeclaration(
@@ -140,7 +140,9 @@ namespace Roslynator.CSharp.Refactorings
                 VoidType(),
                 Identifier("Reset"),
                 ParameterList(),
-                Block(ThrowNewNotImplementedExceptionStatement()));
+                Block(
+                    SimpleAssignmentStatement(IdentifierName("_index"), NumericLiteralExpression(-1)),
+                    ThrowNewNotImplementedExceptionStatement()));
 
             yield return MethodDeclaration(
                 Modifiers.Public_Override(),
