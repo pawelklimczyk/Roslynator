@@ -74,8 +74,9 @@ namespace Roslynator.CommandLine
                 WriteLine(Verbosity.Normal);
 
                 Dictionary<UnusedSymbolKind, int> countByKind = allUnusedSymbols
-                    .GroupBy(f => f.Kind)
-                    .OrderBy(f => f.Key)
+                    .GroupBy(f => UnusedSymbolFinder.GetUnusedSymbolKind(f.Symbol))
+                    .OrderByDescending(f => f.Count())
+                    .ThenBy(f => f.Key)
                     .ToDictionary(f => f.Key, f => f.Count());
 
                 int maxCountLength = countByKind.Sum(f => f.Value.ToString().Length);
@@ -106,7 +107,7 @@ namespace Roslynator.CommandLine
                 .Where(f => f != null)
                 .ToImmutableHashSet();
 
-            return await UnusedSymbolFinder.FindUnusedSymbolsAsync(project, compilation, Predicate, ignoredSymbols, cancellationToken).ConfigureAwait(false);
+            return await UnusedSymbolFinder.FindUnusedSymbolsAsync(project, compilation, Predicate, ignoredSymbols, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             bool Predicate(ISymbol symbol)
             {

@@ -10,9 +10,9 @@ namespace Roslynator.CodeFixes
 {
     public class ProjectFixResult
     {
-        public static ProjectFixResult Skipped { get; } = new ProjectFixResult(ProjectFixKind.Skipped);
+        internal static ProjectFixResult Skipped { get; } = new ProjectFixResult(ProjectFixKind.Skipped);
 
-        public static ProjectFixResult NoAnalyzers { get; } = new ProjectFixResult(ProjectFixKind.NoAnalyzers);
+        internal static ProjectFixResult NoAnalyzers { get; } = new ProjectFixResult(ProjectFixKind.NoAnalyzers);
 
         internal ProjectFixResult(
             ProjectFixKind kind,
@@ -21,8 +21,8 @@ namespace Roslynator.CodeFixes
             IEnumerable<Diagnostic> unfixableDiagnostics = default,
             IEnumerable<DiagnosticAnalyzer> analyzers = default,
             IEnumerable<CodeFixProvider> fixers = default,
-            int documentFormattedCount = 0,
-            int fileBannerAddedCount = 0)
+            int numberOfFormattedDocuments = 0,
+            int numberOfAddedFileBanners = 0)
         {
             Kind = kind;
             FixedDiagnostics = fixedDiagnostics?.ToImmutableArray() ?? ImmutableArray<Diagnostic>.Empty;
@@ -30,8 +30,8 @@ namespace Roslynator.CodeFixes
             UnfixableDiagnostics = unfixableDiagnostics?.ToImmutableArray() ?? ImmutableArray<Diagnostic>.Empty;
             Analyzers = analyzers?.ToImmutableArray() ?? ImmutableArray<DiagnosticAnalyzer>.Empty;
             Fixers = fixers?.ToImmutableArray() ?? ImmutableArray<CodeFixProvider>.Empty;
-            DocumentFormattedCount = documentFormattedCount;
-            FileBannerAddedCount = fileBannerAddedCount;
+            NumberOfFormattedDocuments = numberOfFormattedDocuments;
+            NumberOfAddedFileBanners = numberOfAddedFileBanners;
         }
 
         public ProjectFixKind Kind { get; }
@@ -46,8 +46,8 @@ namespace Roslynator.CodeFixes
 
         public ImmutableArray<CodeFixProvider> Fixers { get; }
 
-        public int DocumentFormattedCount { get; }
+        public int NumberOfFormattedDocuments { get; }
 
-        public int FileBannerAddedCount { get; }
+        public int NumberOfAddedFileBanners { get; }
     }
 }

@@ -353,6 +353,17 @@ namespace Roslynator
             }
         }
 
+        public static void WriteAnalyzerExceptionDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+        {
+            foreach (string message in diagnostics
+                .Where(f => f.IsAnalyzerExceptionDiagnostic())
+                .Select(f => f.ToString())
+                .Distinct())
+            {
+                WriteLine(message, ConsoleColor.Yellow, Verbosity.Diagnostic);
+            }
+        }
+
         public static void WriteFixSummary(
             IEnumerable<Diagnostic> fixedDiagnostics,
             IEnumerable<Diagnostic> unfixedDiagnostics,
@@ -433,7 +444,7 @@ namespace Roslynator
 
                 if (ShouldWrite(verbosity))
                 {
-                    foreach ((string prefix, int count) in Utilities.GetLetterPrefixes(analyzers.SelectMany(f => f.SupportedDiagnostics).Select(f => f.Id)))
+                    foreach ((string prefix, int count) in DiagnosticIdPrefix.CountPrefixes(analyzers.SelectMany(f => f.SupportedDiagnostics).Select(f => f.Id)))
                     {
                         WriteLine($"    {count} supported {((count == 1) ? "diagnostic" : "diagnostics")} with prefix '{prefix}'", color, verbosity);
                     }
@@ -449,7 +460,7 @@ namespace Roslynator
 
                 if (ShouldWrite(verbosity))
                 {
-                    foreach ((string prefix, int count) in Utilities.GetLetterPrefixes(fixers.SelectMany(f => f.FixableDiagnosticIds)))
+                    foreach ((string prefix, int count) in DiagnosticIdPrefix.CountPrefixes(fixers.SelectMany(f => f.FixableDiagnosticIds)))
                     {
                         WriteLine($"    {count} fixable {((count == 1) ? "diagnostic" : "diagnostics")} with prefix '{prefix}'", color, verbosity);
                     }
@@ -464,18 +475,46 @@ namespace Roslynator
             WriteLine($"    Fixer 2: '{fixer2.GetType().FullName}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
         }
 
-        public static void WriteMultipleActionsSummary(in MultipleFixesInfo info)
-        {
-            WriteLine($"  '{info.Fixer.GetType().FullName}' registered multiple actions to fix diagnostic '{info.DiagnosticId}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
-            WriteLine($"    EquivalenceKey 1: '{info.EquivalenceKey1}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
-            WriteLine($"    EquivalenceKey 2: '{info.EquivalenceKey2}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
-        }
-
         public static void WriteMultipleOperationsSummary(CodeAction fix)
         {
             WriteLine("  Code action has multiple operations", ConsoleColor.Yellow, Verbosity.Diagnostic);
             WriteLine($"    Title:           {fix.Title}", ConsoleColor.Yellow, Verbosity.Diagnostic);
             WriteLine($"    EquivalenceKey: {fix.EquivalenceKey}", ConsoleColor.Yellow, Verbosity.Diagnostic);
+        }
+
+        public static void WriteProjectFixResults(
+            List<ProjectFixResult> results,
+            CodeFixerOptions options,
+            IFormatProvider formatProvider = null)
+        {
+            if (options.FileBannerLines.Any())
+            {
+                int count = results.Sum(f => f.NumberOfAddedFileBanners);
+                WriteLine();
+                WriteLine($"{count} file {((count == 1) ? "banner" : "banners")} added", Verbosity.Normal);
+            }
+
+            if (options.Format)
+            {
+                int count = results.Sum(f => f.NumberOfFormattedDocuments);
+                WriteLine();
+                WriteLine($"{count} {((count == 1) ? "document" : "documents")} formatted", Verbosity.Normal);
+            }
+
+            WriteFixSummary(
+                results.SelectMany(f => f.FixedDiagnostics),
+                results.SelectMany(f => f.UnfixedDiagnostics),
+                results.SelectMany(f => f.UnfixableDiagnostics),
+                addEmptyLine: true,
+                formatProvider: formatProvider,
+                verbosity: Verbosity.Normal);
+
+            WriteLine(Verbosity.Minimal);
+
+            int fixedCount = results.Sum(f => f.FixedDiagnostics.Length);
+
+            WriteLine($"{fixedCount} {((fixedCount == 1) ? "diagnostic" : "diagnostics")} fixed", ConsoleColor.Green, Verbosity.Minimal);
+            WriteLine(Verbosity.Minimal);
         }
 
         private static bool ShouldWrite(Verbosity verbosity)

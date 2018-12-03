@@ -51,7 +51,7 @@ namespace Roslynator.CommandLine
                 ignoreCompilerDiagnostics: Options.IgnoreCompilerDiagnostics,
                 reportNotConfigurable: Options.ReportNotConfigurable,
                 reportSuppressedDiagnostics: Options.ReportSuppressedDiagnostics,
-                executionTime: Options.ExecutionTime,
+                logAnalyzerExecutionTime: Options.ExecutionTime,
                 severityLevel: SeverityLevel,
                 supportedDiagnosticIds: Options.SupportedDiagnostics,
                 ignoredDiagnosticIds: Options.IgnoredDiagnostics,

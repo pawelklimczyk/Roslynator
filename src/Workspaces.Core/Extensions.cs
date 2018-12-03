@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,6 +9,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Text;
+using Roslynator.CodeMetrics;
 
 namespace Roslynator
 {
@@ -121,14 +122,49 @@ namespace Roslynator
             }
         }
 
-        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> collection)
+        public static async Task<CodeMetricsInfo> CountLinesAsync(
+            this CodeMetricsCounter counter,
+            Project project,
+            CodeMetricsOptions options = null,
+            CancellationToken cancellationToken = default)
         {
-            return new HashSet<T>(collection);
+            CodeMetricsInfo codeMetrics = default;
+
+            foreach (Document document in project.Documents)
+            {
+                if (!document.SupportsSyntaxTree)
+                    continue;
+
+                CodeMetricsInfo documentMetrics = await counter.CountLinesAsync(document, options, cancellationToken).ConfigureAwait(false);
+
+                codeMetrics = codeMetrics.Add(documentMetrics);
+            }
+
+            return codeMetrics;
         }
 
-        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> collection, IEqualityComparer<T> comparer)
+        public static async Task<CodeMetricsInfo> CountLinesAsync(
+            this CodeMetricsCounter counter,
+            Document document,
+            CodeMetricsOptions options = null,
+            CancellationToken cancellationToken = default)
         {
-            return new HashSet<T>(collection, comparer);
+            SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            if (tree == null)
+                return default;
+
+            if (!options.IncludeGeneratedCode
+                && GeneratedCodeUtility.IsGeneratedCode(tree, counter.SyntaxFacts.IsComment, cancellationToken))
+            {
+                return default;
+            }
+
+            SyntaxNode root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return counter.CountLines(root, sourceText, options, cancellationToken);
         }
     }
 }

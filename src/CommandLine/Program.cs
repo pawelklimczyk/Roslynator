@@ -23,6 +23,7 @@ using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
 {
+    //TODO: banner/ruleset add, change, remove
     internal static class Program
     {
         private static readonly Encoding _defaultEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);

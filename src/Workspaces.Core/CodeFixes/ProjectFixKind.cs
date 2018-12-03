@@ -7,8 +7,9 @@ namespace Roslynator.CodeFixes
         Success = 0,
         NoAnalyzers = 1,
         NoFixers = 2,
-        CompilerError = 3,
-        Skipped = 4,
-        InfiniteLoop = 5,
+        NoFixableAnalyzers = 3,
+        CompilerError = 4,
+        Skipped = 5,
+        InfiniteLoop = 6
     }
 }

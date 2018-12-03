@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using static Roslynator.Logger;
 
 namespace Roslynator.Formatting
 {
@@ -60,9 +62,10 @@ namespace Roslynator.Formatting
         {
             ImmutableArray<DocumentId>.Builder builder = null;
 
+            //TODO: GetChangedDocuments(onlyGetDocumentsWithTextChanges: true)
             foreach (DocumentId documentId in newProject
                 .GetChanges(project)
-                .GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+                .GetChangedDocuments())
             {
                 Document document = newProject.GetDocument(documentId);
 
@@ -70,7 +73,7 @@ namespace Roslynator.Formatting
                 if ((await document.GetTextChangesAsync(project.GetDocument(documentId)).ConfigureAwait(false)).Any())
                 {
 #if DEBUG
-                    bool success = await Utilities.VerifySyntaxEquivalenceAsync(project.GetDocument(document.Id), document, syntaxFacts).ConfigureAwait(false);
+                    bool success = await VerifySyntaxEquivalenceAsync(project.GetDocument(document.Id), document, syntaxFacts).ConfigureAwait(false);
 #endif
                     (builder ?? (builder = ImmutableArray.CreateBuilder<DocumentId>())).Add(document.Id);
                 }
@@ -78,5 +81,33 @@ namespace Roslynator.Formatting
 
             return builder?.ToImmutableArray() ?? ImmutableArray<DocumentId>.Empty;
         }
+
+#if DEBUG
+        private static async Task<bool> VerifySyntaxEquivalenceAsync(
+            Document oldDocument,
+            Document newDocument,
+            SyntaxFactsService syntaxFacts,
+            CancellationToken cancellationToken = default)
+        {
+            if (!string.Equals(
+                (await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).NormalizeWhitespace("", false).ToFullString(),
+                (await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).NormalizeWhitespace("", false).ToFullString(),
+                StringComparison.Ordinal))
+            {
+                WriteLine($"Syntax roots with normalized white-space are not equivalent '{oldDocument.FilePath}'", ConsoleColor.Magenta);
+                return false;
+            }
+
+            if (!syntaxFacts.AreEquivalent(
+                await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)))
+            {
+                WriteLine($"Syntax trees are not equivalent '{oldDocument.FilePath}'", ConsoleColor.Magenta);
+                return false;
+            }
+
+            return true;
+        }
+#endif
     }
 }

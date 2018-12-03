@@ -60,7 +60,7 @@ namespace Roslynator.CommandLine
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            CodeMetricsInfo codeMetrics = await WorkspaceCodeMetrics.CountLinesAsync(project, counter, options, cancellationToken);
+            CodeMetricsInfo codeMetrics = await counter.CountLinesAsync(project, options, cancellationToken);
 
             stopwatch.Stop();
 
@@ -86,7 +86,7 @@ namespace Roslynator.CommandLine
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            ImmutableDictionary<ProjectId, CodeMetricsInfo> codeMetrics = WorkspaceCodeMetrics.CountLinesInParallel(projects, CodeMetricsCounterFactory.GetPhysicalLinesCounter, options, cancellationToken);
+            ImmutableDictionary<ProjectId, CodeMetricsInfo> codeMetrics = CountLinesInParallel(projects, CodeMetricsCounterFactory.GetPhysicalLinesCounter, options, cancellationToken);
 
             stopwatch.Stop();
 

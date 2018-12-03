@@ -2,7 +2,8 @@
 
 namespace Roslynator
 {
-    internal abstract class AbstractSyntaxFactsServiceFactory
+    //TODO: MEF
+    public abstract class AbstractSyntaxFactsServiceFactory
     {
         public abstract SyntaxFactsService GetService(string language);
 

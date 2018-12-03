@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator
 {
-    //TODO: Concurrent
     public abstract class CodeAnalysisOptions
     {
-        protected CodeAnalysisOptions(
+        internal CodeAnalysisOptions(
             DiagnosticSeverity severityLevel = DiagnosticSeverity.Info,
             bool ignoreAnalyzerReferences = false,
+            bool concurrentAnalysis = true,
             IEnumerable<string> supportedDiagnosticIds = null,
             IEnumerable<string> ignoredDiagnosticIds = null,
             IEnumerable<string> projectNames = null,
@@ -34,6 +34,7 @@ namespace Roslynator
 
             SeverityLevel = severityLevel;
             IgnoreAnalyzerReferences = ignoreAnalyzerReferences;
+            ConcurrentAnalysis = concurrentAnalysis;
             SupportedDiagnosticIds = supportedDiagnosticIds?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
             IgnoredDiagnosticIds = ignoredDiagnosticIds?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
             ProjectNames = projectNames?.ToImmutableHashSet() ?? ImmutableHashSet<string>.Empty;
@@ -44,6 +45,8 @@ namespace Roslynator
         public DiagnosticSeverity SeverityLevel { get; }
 
         public bool IgnoreAnalyzerReferences { get; }
+
+        public bool ConcurrentAnalysis { get; }
 
         public ImmutableHashSet<string> SupportedDiagnosticIds { get; }
 

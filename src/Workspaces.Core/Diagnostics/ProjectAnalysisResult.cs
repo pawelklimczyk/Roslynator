@@ -35,8 +35,6 @@ namespace Roslynator.Diagnostics
 
         public ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> Telemetry { get; }
 
-        public bool IsDefault => ProjectId == null;
-
         public IEnumerable<Diagnostic> GetAllDiagnostics()
         {
             return CompilerDiagnostics.Concat(Diagnostics);
