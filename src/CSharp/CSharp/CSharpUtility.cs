@@ -643,165 +643,21 @@ namespace Roslynator.CSharp
             if (enumSymbol == null)
                 throw new ArgumentNullException(nameof(enumSymbol));
 
-            INamedTypeSymbol enumUnderlyingType = enumSymbol.EnumUnderlyingType;
-
-            if (enumUnderlyingType == null)
+            if (enumSymbol.EnumUnderlyingType == null)
                 throw new ArgumentException($"'{enumSymbol}' is not an enumeration.", nameof(enumSymbol));
 
-            switch (enumUnderlyingType.SpecialType)
+            foreach (ISymbol symbol in enumSymbol.GetMembers())
             {
-                case SpecialType.System_SByte:
+                if (symbol.Kind == SymbolKind.Field)
+                {
+                    var fieldSymbol = (IFieldSymbol)symbol;
+
+                    if (fieldSymbol.HasConstantValue
+                        && SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, enumSymbol) == 0)
                     {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is sbyte value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
+                        return fieldSymbol;
                     }
-                case SpecialType.System_Byte:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is byte value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_Int16:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is short value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_UInt16:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is ushort value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_Int32:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is int value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_UInt32:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is uint value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_Int64:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is long value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                case SpecialType.System_UInt64:
-                    {
-                        foreach (ISymbol symbol in enumSymbol.GetMembers())
-                        {
-                            if (symbol.Kind == SymbolKind.Field)
-                            {
-                                var fieldSymbol = (IFieldSymbol)symbol;
-
-                                if (fieldSymbol.HasConstantValue
-                                    && fieldSymbol.ConstantValue is ulong value
-                                    && value == 0)
-                                {
-                                    return fieldSymbol;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
+                }
             }
 
             return default(IFieldSymbol);
