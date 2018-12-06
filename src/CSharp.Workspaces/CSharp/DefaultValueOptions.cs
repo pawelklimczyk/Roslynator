@@ -1,0 +1,26 @@
+﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Roslynator.CSharp
+{
+    [Flags]
+    internal enum DefaultValueOptions
+    {
+        /// <summary>
+        /// No option specified.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Always use <see cref="SyntaxKind.DefaultExpression"/> or <see cref="SyntaxKind.DefaultLiteralExpression"/>.
+        /// </summary>
+        AlwaysUseDefault = 1,
+
+        /// <summary>
+        /// Prefer <see cref="SyntaxKind.DefaultLiteralExpression"/> over <see cref="SyntaxKind.DefaultExpression"/>. This option is relevant only in combination with <see cref="AlwaysUseDefault"/>.
+        /// </summary>
+        PreferDefaultLiteral = 2,
+    }
+}
