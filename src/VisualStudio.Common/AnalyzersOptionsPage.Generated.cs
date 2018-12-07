@@ -14,10 +14,11 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.UseAsyncAwait;
+        = DiagnosticIdentifiers.MakeParameterRefReadOnly;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddCommaAfterLastItemInList, "Add comma after last item in list.", !IsEnabled(DiagnosticIdentifiers.AddCommaAfterLastItemInList)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddBracesWhenExpressionSpansOverMultipleLines, "Add braces (when expression spans over multiple lines).", !IsEnabled(DiagnosticIdentifiers.AddBracesWhenExpressionSpansOverMultipleLines)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveBraces, "Remove braces.", !IsEnabled(DiagnosticIdentifiers.RemoveBraces)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddBracesToIfElseWhenExpressionSpansOverMultipleLines, "Add braces to if-else (when expression spans over multiple lines).", !IsEnabled(DiagnosticIdentifiers.AddBracesToIfElseWhenExpressionSpansOverMultipleLines)));
@@ -222,6 +223,8 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ValidateArgumentsCorrectly, "Validate arguments correctly.", !IsEnabled(DiagnosticIdentifiers.ValidateArgumentsCorrectly)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnusedElementInDocumentationComment, "Unused element in documentation comment.", !IsEnabled(DiagnosticIdentifiers.UnusedElementInDocumentationComment)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseAsyncAwait, "Use async/await when necessary.", !IsEnabled(DiagnosticIdentifiers.UseAsyncAwait)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator, "Unnecessary usage of enumerator.", !IsEnabled(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.MakeParameterRefReadOnly, "Make parameter ref read-only.", !IsEnabled(DiagnosticIdentifiers.MakeParameterRefReadOnly)));
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Roslynator
         public const string Namespace = "Namespace";
         public const string SecondLambdaParameter = "g";
         public const string StringBuilderVariable = "sb";
+        public const string Struct = "MyStruct";
         public const string TypeParameter = "T";
         public const string Variable = "x";
     }

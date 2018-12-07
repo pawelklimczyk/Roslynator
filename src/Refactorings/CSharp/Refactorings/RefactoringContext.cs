@@ -574,11 +574,11 @@ namespace Roslynator.CSharp.Refactorings
                         }
                     case SyntaxKind.AnonymousMethodExpression:
                         {
-                            if (flags.IsSet(Flag.AnonymousMethod))
+                            if (flags.IsSet(Flag.AnonymousMethodExpression))
                                 continue;
 
                             AnonymousMethodExpressionRefactoring.ComputeRefactorings(this, (AnonymousMethodExpressionSyntax)node);
-                            flags.Set(Flag.AnonymousMethod);
+                            flags.Set(Flag.AnonymousMethodExpression);
                             continue;
                         }
                     case SyntaxKind.AddExpression:
@@ -644,6 +644,15 @@ namespace Roslynator.CSharp.Refactorings
 
                             await IdentifierNameRefactoring.ComputeRefactoringsAsync(this, (IdentifierNameSyntax)node).ConfigureAwait(false);
                             flags.Set(Flag.IdentifierName);
+                            continue;
+                        }
+                    case SyntaxKind.TupleType:
+                        {
+                            if (flags.IsSet(Flag.TupleType))
+                                continue;
+
+                            TupleTypeRefactoring.ComputeRefactorings(this, (TupleTypeSyntax)node);
+                            flags.Set(Flag.TupleType);
                             continue;
                         }
                     case SyntaxKind.ArrayInitializerExpression:
@@ -1054,51 +1063,53 @@ namespace Roslynator.CSharp.Refactorings
             DeclarationPattern = 15,
             TypeParameterConstraintClause = 16,
             Attribute = 17,
+            Interpolation = 18,
 
-            Expression = 18,
-            AnonymousMethod = 19,
-            AssignmentExpression = 20,
-            BinaryExpression = 21,
-            ConditionalExpression = 22,
-            QualifiedName = 23,
-            GenericName = 24,
-            IdentifierName = 25,
-            InitializerExpression = 26,
-            InterpolatedStringExpression = 27,
-            Interpolation = 28,
-            InvocationExpression = 29,
-            LambdaExpression = 30,
-            LiteralExpression = 31,
-            SimpleMemberAccessExpression = 32,
-            ConditionalAccessExpression = 33,
-            ParenthesizedExpression = 34,
-            PostfixUnaryExpression = 35,
-            PrefixUnaryExpression = 36,
-            AwaitExpression = 37,
-            CastExpression = 38,
-            ThrowExpression = 39,
-            DeclarationExpression = 40,
-            IsPatternExpression = 41,
+            Expression = 19,
+            AnonymousMethodExpression = 20,
+            AssignmentExpression = 21,
+            BinaryExpression = 22,
+            ConditionalExpression = 23,
+            InitializerExpression = 24,
+            InterpolatedStringExpression = 25,
+            InvocationExpression = 26,
+            LambdaExpression = 27,
+            LiteralExpression = 28,
+            SimpleMemberAccessExpression = 29,
+            ConditionalAccessExpression = 30,
+            ParenthesizedExpression = 31,
+            PostfixUnaryExpression = 32,
+            PrefixUnaryExpression = 33,
+            AwaitExpression = 34,
+            CastExpression = 35,
+            ThrowExpression = 36,
+            DeclarationExpression = 37,
+            IsPatternExpression = 38,
 
-            MemberDeclaration = 42,
+            QualifiedName = 39,
+            GenericName = 40,
+            IdentifierName = 41,
+            TupleType = 42,
 
-            Statement = 43,
-            ExpressionStatement = 44,
-            LoopStatement = 45,
-            IfStatement = 46,
-            LocalDeclarationStatement = 47,
-            ReturnStatement = 48,
-            SwitchStatement = 49,
-            UsingStatement = 50,
-            YieldStatement = 51,
-            LockStatement = 52,
-            Block = 53,
-            BlockOrSwitchStatement = 54,
-            ThrowStatement = 55,
-            LocalFunctionStatement = 56,
-            UnsafeStatement = 57,
+            MemberDeclaration = 43,
 
-            Count = 58,
+            Statement = 44,
+            ExpressionStatement = 45,
+            LoopStatement = 46,
+            IfStatement = 47,
+            LocalDeclarationStatement = 48,
+            ReturnStatement = 49,
+            SwitchStatement = 50,
+            UsingStatement = 51,
+            YieldStatement = 52,
+            LockStatement = 53,
+            Block = 54,
+            BlockOrSwitchStatement = 55,
+            ThrowStatement = 56,
+            LocalFunctionStatement = 57,
+            UnsafeStatement = 58,
+
+            Count = 59,
         }
     }
 }

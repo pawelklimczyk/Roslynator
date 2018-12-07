@@ -9,18 +9,6 @@ namespace Roslynator.CSharp
 {
     public static partial class DiagnosticDescriptors
     {
-        /// <summary>RCS0001</summary>
-        public static readonly DiagnosticDescriptor MarkParameterWithInModifier = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.MarkParameterWithInModifier, 
-            title:              "Mark parameter with 'in' modifier.", 
-            messageFormat:      "Mark parameter with 'in' modifier.", 
-            category:           DiagnosticCategories.Performance, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.MarkParameterWithInModifier}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS0002</summary>
         public static readonly DiagnosticDescriptor AddCommaAfterLastItemInList = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.AddCommaAfterLastItemInList, 
@@ -31,18 +19,6 @@ namespace Roslynator.CSharp
             isEnabledByDefault: false, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddCommaAfterLastItemInList}", 
-            customTags:         Array.Empty<string>());
-
-        /// <summary>RCS0003</summary>
-        public static readonly DiagnosticDescriptor ReplaceEnumeratorWithForEach = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.ReplaceEnumeratorWithForEach, 
-            title:              "Replace enumerator with foreach.", 
-            messageFormat:      "Replace enumerator with foreach.", 
-            category:           DiagnosticCategories.Readability, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ReplaceEnumeratorWithForEach}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1001</summary>

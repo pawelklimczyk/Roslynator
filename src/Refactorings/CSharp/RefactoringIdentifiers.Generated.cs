@@ -172,6 +172,7 @@ namespace Roslynator.CSharp.Refactorings
         public const string ReplaceStatementWithIfElse = Prefix + "0143";
         public const string ReplaceStringFormatWithInterpolatedString = Prefix + "0145";
         public const string ReplaceSwitchWithIf = Prefix + "0147";
+        public const string ReplaceTupleWithStruct = Prefix + "9002";
         public const string ReplaceVerbatimStringLiteralWithRegularStringLiteral = Prefix + "0148";
         public const string ReplaceVerbatimStringLiteralWithRegularStringLiterals = Prefix + "0149";
         public const string ReplaceWhileWithDo = Prefix + "0150";
@@ -205,7 +206,6 @@ namespace Roslynator.CSharp.Refactorings
         public const string UseStringBuilderInsteadOfConcatenation = Prefix + "0182";
         public const string UseStringEmptyInsteadOfEmptyStringLiteral = Prefix + "0171";
         public const string WrapInCondition = Prefix + "0172";
-        public const string WrapInElement = Prefix + "X001";
         public const string WrapInElseClause = Prefix + "0173";
         public const string WrapInIfDirective = Prefix + "0174";
         public const string WrapInRegion = Prefix + "0175";
