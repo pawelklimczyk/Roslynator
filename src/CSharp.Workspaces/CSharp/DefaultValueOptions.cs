@@ -22,5 +22,12 @@ namespace Roslynator.CSharp
         /// Prefer <see cref="SyntaxKind.DefaultLiteralExpression"/> over <see cref="SyntaxKind.DefaultExpression"/>. This option is relevant only in combination with <see cref="AlwaysUseDefault"/>.
         /// </summary>
         PreferDefaultLiteral = 2,
+
+        /// <summary>
+        /// Enum default value should be displayed as '0' and not as enum member whose value is equal to 0.
+        /// </summary>
+        EnumAlwaysAsNumber = 4,
+
+        //TODO: AddNumberSuffix
     }
 }

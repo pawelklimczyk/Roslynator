@@ -40,13 +40,16 @@ namespace Roslynator.CSharp
                 if ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
                     return CreateDefault();
 
-                IFieldSymbol fieldSymbol = CSharpUtility.FindEnumDefaultField((INamedTypeSymbol)typeSymbol);
-
-                if (fieldSymbol != null)
+                if ((options & DefaultValueOptions.EnumAlwaysAsNumber) == 0)
                 {
-                    type = type ?? typeSymbol.ToTypeSyntax(format).WithFormatterAnnotation();
+                    IFieldSymbol fieldSymbol = CSharpUtility.FindEnumDefaultField((INamedTypeSymbol)typeSymbol);
 
-                    return SimpleMemberAccessExpression(type, IdentifierName(fieldSymbol.Name));
+                    if (fieldSymbol != null)
+                    {
+                        type = type ?? typeSymbol.ToTypeSyntax(format).WithFormatterAnnotation();
+
+                        return SimpleMemberAccessExpression(type, IdentifierName(fieldSymbol.Name));
+                    }
                 }
 
                 return NumericLiteralExpression(0);
