@@ -651,7 +651,7 @@ namespace Roslynator.CSharp.Refactorings
                             if (flags.IsSet(Flag.TupleType))
                                 continue;
 
-                            TupleTypeRefactoring.ComputeRefactorings(this, (TupleTypeSyntax)node);
+                            await TupleTypeRefactoring.ComputeRefactoringsAsync(this, (TupleTypeSyntax)node).ConfigureAwait(false);
                             flags.Set(Flag.TupleType);
                             continue;
                         }

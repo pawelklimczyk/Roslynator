@@ -108,5 +108,99 @@ namespace N
 }
 ", equivalenceKey: RefactoringId);
         }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        public async Task Test_IEnumerableOfTuple()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    class C
+    {
+        IEnumerable<[|(object value, DateTime date)|]> M()
+        {
+            yield return (null, DateTime.Now);
+        }
+    }
+}
+", @"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    public struct MyStruct
+    {
+        public MyStruct(object value, DateTime date)
+        {
+            Value = value;
+            Date = date;
+        }
+
+        public object Value { get; }
+        public DateTime Date { get; }
+    }
+
+    class C
+    {
+        IEnumerable<MyStruct> M()
+        {
+            yield return new MyStruct(null, DateTime.Now);
+        }
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        public async Task Test_TaskOfTuple()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task<[|(object value, DateTime date)|]> M()
+        {
+            await Task.CompletedTask;
+            return (null, DateTime.Now);
+        }
+    }
+}
+", @"
+using System;
+using System.Threading.Tasks;
+
+namespace N
+{
+    public struct MyStruct
+    {
+        public MyStruct(object value, DateTime date)
+        {
+            Value = value;
+            Date = date;
+        }
+
+        public object Value { get; }
+        public DateTime Date { get; }
+    }
+
+    class C
+    {
+        async Task<MyStruct> M()
+        {
+            await Task.CompletedTask;
+            return new MyStruct(null, DateTime.Now);
+        }
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
     }
 }

@@ -598,6 +598,19 @@ namespace Roslynator
         {
             return metadataName.Equals(symbol);
         }
+
+        internal static bool HasMetadataName(this ISymbol symbol, in MetadataName metadataName1, in MetadataName metadataName2)
+        {
+            return HasMetadataName(symbol, metadataName1)
+                || HasMetadataName(symbol, metadataName2);
+        }
+
+        internal static bool HasMetadataName(this ISymbol symbol, in MetadataName metadataName1, in MetadataName metadataName2, in MetadataName metadataName3)
+        {
+            return HasMetadataName(symbol, metadataName1)
+                || HasMetadataName(symbol, metadataName2)
+                || HasMetadataName(symbol, metadataName3);
+        }
         #endregion ISymbol
 
         #region IEventSymbol

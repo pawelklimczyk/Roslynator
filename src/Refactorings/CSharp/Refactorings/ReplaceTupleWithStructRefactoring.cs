@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,23 +11,54 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
-using System.Collections.Immutable;
 
 namespace Roslynator.CSharp.Refactorings
 {
     internal static class ReplaceTupleWithStructRefactoring
     {
-        public static void ComputeRefactoring(RefactoringContext context, TupleTypeSyntax tupleType)
+        public static async Task ComputeRefactoringAsync(RefactoringContext context, TupleTypeSyntax tupleType)
         {
             if (tupleType.ContainsDiagnostics)
                 return;
 
             SyntaxNode parent = tupleType.Parent;
 
-            TypeSyntax type = GetReturnType();
+            TypeSyntax type = GetReturnType(parent);
 
             if (type != tupleType)
-                return;
+            {
+                if (!(parent is TypeArgumentListSyntax typeArgumentList))
+                    return;
+
+                if (typeArgumentList.Arguments.SingleOrDefault(shouldThrow: false) != tupleType)
+                    return;
+
+                if (!(typeArgumentList.Parent is GenericNameSyntax genericName))
+                    return;
+
+                parent = genericName.Parent;
+
+                TypeSyntax returnType = GetReturnType(parent);
+
+                SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(genericName, context.CancellationToken);
+
+                if (typeSymbol == null)
+                    return;
+
+                typeSymbol = typeSymbol.OriginalDefinition;
+
+                if (!typeSymbol.HasMetadataName(MetadataNames.System_Collections_Generic_IEnumerable_T))
+                {
+                    if (!(parent is MethodDeclarationSyntax methodDeclaration)
+                        || !methodDeclaration.Modifiers.Contains(SyntaxKind.AsyncKeyword)
+                        || !typeSymbol.HasMetadataName(MetadataNames.System_Threading_Tasks_Task_T, MetadataNames.System_Threading_Tasks_ValueTask_T))
+                    {
+                        return;
+                    }
+                }
+            }
 
             if (!parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
                 return;
@@ -41,21 +73,21 @@ namespace Roslynator.CSharp.Refactorings
                 ct => RefactorAsync(context.Document, tupleType, ct),
                 RefactoringIdentifiers.ReplaceTupleWithStruct);
 
-            TypeSyntax GetReturnType()
+            TypeSyntax GetReturnType(SyntaxNode node)
             {
-                switch (parent.Kind())
+                switch (node.Kind())
                 {
                     case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)parent).ReturnType;
+                        return ((DelegateDeclarationSyntax)node).ReturnType;
                     case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)parent).Type;
+                        return ((IndexerDeclarationSyntax)node).Type;
                     case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)parent).ReturnType;
+                        return ((MethodDeclarationSyntax)node).ReturnType;
                     case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)parent).Type;
-                    default:
-                        return null;
+                        return ((PropertyDeclarationSyntax)node).Type;
                 }
+
+                return null;
             }
         }
 
@@ -64,7 +96,10 @@ namespace Roslynator.CSharp.Refactorings
             TupleTypeSyntax tupleType,
             CancellationToken cancellationToken)
         {
-            var containingMember = (MemberDeclarationSyntax)tupleType.Parent;
+            if (!(tupleType.Parent is MemberDeclarationSyntax containingMember))
+            {
+                containingMember = (MemberDeclarationSyntax)tupleType.Parent.Parent.Parent;
+            }
 
             var containingType = (TypeDeclarationSyntax)containingMember.Parent;
 
