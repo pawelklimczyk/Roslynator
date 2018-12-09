@@ -4216,6 +4216,32 @@ namespace Roslynator.CSharp
         {
             return xmlElement.StartTag?.Name?.IsLocalName(localName, comparison) == true;
         }
+
+        internal static string GetAttributeValue(this XmlElementSyntax element, string attributeName)
+        {
+            XmlElementStartTagSyntax startTag = element.StartTag;
+
+            if (startTag != null)
+            {
+                foreach (XmlAttributeSyntax attribute in startTag.Attributes)
+                {
+                    if (attribute.IsKind(SyntaxKind.XmlNameAttribute))
+                    {
+                        var nameAttribute = (XmlNameAttributeSyntax)attribute;
+
+                        if (nameAttribute.Name?.LocalName.ValueText == attributeName)
+                        {
+                            IdentifierNameSyntax identifierName = nameAttribute.Identifier;
+
+                            if (identifierName != null)
+                                return identifierName.Identifier.ValueText;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
         #endregion XmlElementSyntax
 
         #region XmlEmptyElementSyntax
