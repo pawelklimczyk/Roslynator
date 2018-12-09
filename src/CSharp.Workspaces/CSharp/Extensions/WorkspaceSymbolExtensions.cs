@@ -21,7 +21,7 @@ namespace Roslynator.CSharp
         /// <returns></returns>
         public static ExpressionSyntax GetDefaultValueSyntax(
             this ITypeSymbol typeSymbol,
-            DefaultValueOptions options = DefaultValueOptions.None,
+            DefaultSyntaxOptions options = DefaultSyntaxOptions.None,
             TypeSyntax type = null,
             SymbolDisplayFormat format = null)
         {
@@ -30,17 +30,17 @@ namespace Roslynator.CSharp
 
             if (typeSymbol.IsReferenceTypeOrNullableType())
             {
-                return ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
+                return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
                     ? CreateDefault()
                     : NullLiteralExpression();
             }
 
             if (typeSymbol.TypeKind == TypeKind.Enum)
             {
-                if ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
+                if ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
                     return CreateDefault();
 
-                if ((options & DefaultValueOptions.EnumAlwaysAsNumber) == 0)
+                if ((options & DefaultSyntaxOptions.EnumAlwaysAsNumber) == 0)
                 {
                     IFieldSymbol fieldSymbol = CSharpUtility.FindEnumDefaultField((INamedTypeSymbol)typeSymbol);
 
@@ -59,13 +59,13 @@ namespace Roslynator.CSharp
             {
                 case SpecialType.System_Boolean:
                     {
-                        return ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
+                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
                             ? CreateDefault()
                             : FalseLiteralExpression();
                     }
                 case SpecialType.System_Char:
                     {
-                        return ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
+                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
                             ? CreateDefault()
                             : CharacterLiteralExpression('\0');
                     }
@@ -81,7 +81,7 @@ namespace Roslynator.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
                     {
-                        return ((options & DefaultValueOptions.AlwaysUseDefault) != 0)
+                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
                             ? CreateDefault()
                             : NumericLiteralExpression(0);
                     }
@@ -91,7 +91,7 @@ namespace Roslynator.CSharp
 
             ExpressionSyntax CreateDefault()
             {
-                if ((options & DefaultValueOptions.PreferDefaultLiteral) != 0)
+                if ((options & DefaultSyntaxOptions.PreferDefaultLiteral) != 0)
                 {
                     return DefaultLiteralExpression();
                 }

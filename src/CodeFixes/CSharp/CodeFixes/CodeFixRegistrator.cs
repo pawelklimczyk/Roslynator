@@ -153,7 +153,7 @@ namespace Roslynator.CSharp.CodeFixes
                 cancellationToken =>
                 {
                     ExpressionSyntax defaultValue = typeSymbol
-                        .GetDefaultValueSyntax(document.GetDefaultValueOptions())
+                        .GetDefaultValueSyntax(document.GetDefaultSyntaxOptions())
                         .WithTriviaFrom(expression);
 
                     return document.ReplaceNodeAsync(expression, defaultValue, cancellationToken);

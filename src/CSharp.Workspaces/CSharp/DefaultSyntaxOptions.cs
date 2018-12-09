@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Roslynator.CSharp
 {
     [Flags]
-    internal enum DefaultValueOptions
+    internal enum DefaultSyntaxOptions
     {
         /// <summary>
         /// No option specified.
@@ -27,7 +27,5 @@ namespace Roslynator.CSharp
         /// Enum default value should be displayed as '0' and not as enum member whose value is equal to 0.
         /// </summary>
         EnumAlwaysAsNumber = 4,
-
-        //TODO: AddNumberSuffix
     }
 }

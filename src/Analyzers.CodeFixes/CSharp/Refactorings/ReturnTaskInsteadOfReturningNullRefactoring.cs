@@ -160,7 +160,7 @@ namespace Roslynator.CSharp.Refactorings
 
             TypeSyntax type = typeArgument.ToMinimalTypeSyntax(semanticModel, position);
 
-            ExpressionSyntax defaultValue = typeArgument.GetDefaultValueSyntax(document.GetDefaultValueOptions(), type);
+            ExpressionSyntax defaultValue = typeArgument.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions(), type);
 
             SimpleNameSyntax name;
 

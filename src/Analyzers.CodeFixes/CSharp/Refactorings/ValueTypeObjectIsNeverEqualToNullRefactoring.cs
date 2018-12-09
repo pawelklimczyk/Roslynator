@@ -28,7 +28,7 @@ namespace Roslynator.CSharp.Refactorings
             if (CSharpFacts.IsSimpleType(typeSymbol.SpecialType)
                 || typeSymbol.ContainsMember<IMethodSymbol>(WellKnownMemberNames.EqualityOperatorName))
             {
-                newNode = typeSymbol.GetDefaultValueSyntax(document.GetDefaultValueOptions())
+                newNode = typeSymbol.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions())
                     .WithTriviaFrom(right)
                     .WithFormatterAnnotation();
 

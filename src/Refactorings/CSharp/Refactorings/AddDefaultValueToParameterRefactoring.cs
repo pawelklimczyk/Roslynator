@@ -71,7 +71,7 @@ namespace Roslynator.CSharp.Refactorings
 
             ParameterSyntax GetNewParameter()
             {
-                ExpressionSyntax value = typeSymbol.GetDefaultValueSyntax(document.GetDefaultValueOptions(), parameter.Type.WithoutTrivia());
+                ExpressionSyntax value = typeSymbol.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions(), parameter.Type.WithoutTrivia());
 
                 EqualsValueClauseSyntax @default = EqualsValueClause(value);
 

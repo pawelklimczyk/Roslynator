@@ -83,7 +83,7 @@ namespace Roslynator.CSharp.Refactorings
             ITypeSymbol typeSymbol,
             CancellationToken cancellationToken)
         {
-            ExpressionSyntax defaultValue = typeSymbol.GetDefaultValueSyntax(document.GetDefaultValueOptions());
+            ExpressionSyntax defaultValue = typeSymbol.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions());
 
             LocalDeclarationStatementSyntax newNode = localDeclarationStatement.ReplaceNode(
                 value,

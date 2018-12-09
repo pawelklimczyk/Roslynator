@@ -161,7 +161,7 @@ namespace Roslynator.CSharp.CodeFixes
             ITypeSymbol typeSymbol,
             CancellationToken cancellationToken)
         {
-            ExpressionSyntax returnExpression = typeSymbol.GetDefaultValueSyntax(document.GetDefaultValueOptions());
+            ExpressionSyntax returnExpression = typeSymbol.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions());
 
             ReturnStatementSyntax returnStatement = SyntaxFactory.ReturnStatement(returnExpression);
 
