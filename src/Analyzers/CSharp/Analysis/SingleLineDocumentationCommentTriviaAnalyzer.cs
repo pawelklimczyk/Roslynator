@@ -93,11 +93,8 @@ namespace Roslynator.CSharp.Analysis
                             }
                         case XmlElementKind.Summary:
                             {
-                                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddSummaryToDocumentationComment)
-                                    && info.IsContentEmptyOrWhitespace)
-                                {
-                                    context.ReportDiagnostic(DiagnosticDescriptors.AddSummaryToDocumentationComment, info.Element);
-                                }
+                                if (info.IsContentEmptyOrWhitespace)
+                                    context.ReportDiagnosticIfNotSuppressed(DiagnosticDescriptors.AddSummaryToDocumentationComment, info.Element);
 
                                 containsSummaryElement = true;
                                 break;
@@ -108,11 +105,8 @@ namespace Roslynator.CSharp.Analysis
                         case XmlElementKind.Returns:
                         case XmlElementKind.Value:
                             {
-                                if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment)
-                                    && info.IsContentEmptyOrWhitespace)
-                                {
-                                    context.ReportDiagnostic(DiagnosticDescriptors.UnusedElementInDocumentationComment, info.Element);
-                                }
+                                if (info.IsContentEmptyOrWhitespace)
+                                    context.ReportDiagnosticIfNotSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment, info.Element);
 
                                 break;
                             }
@@ -136,26 +130,52 @@ namespace Roslynator.CSharp.Analysis
             }
 
             if (!containsSummaryElement
-                && !containsContentElement
-                && !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddSummaryElementToDocumentationComment))
+                && !containsContentElement)
             {
-                context.ReportDiagnostic(DiagnosticDescriptors.AddSummaryElementToDocumentationComment, documentationComment);
+                context.ReportDiagnosticIfNotSuppressed(DiagnosticDescriptors.AddSummaryElementToDocumentationComment, documentationComment);
             }
 
             SyntaxNode parent = documentationComment.ParentTrivia.Token.Parent;
 
-            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddParamElementToDocumentationComment))
+            bool unusedElement = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment);
+            bool reorderParams = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.ReorderElementsInDocumentationComment);
+            bool addParam = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddParamElementToDocumentationComment);
+            bool addTypeParam = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddTypeParamElementToDocumentationComment);
+
+            if (addParam
+                || reorderParams
+                || unusedElement)
             {
                 SeparatedSyntaxList<ParameterSyntax> parameters = ParameterListInfo.Create(parent).Parameters;
 
-                AnalyzeParam(context, documentationComment, parameters);
+                if (parameters.Any())
+                {
+                    if (addParam)
+                        AnalyzeParam(context, documentationComment, parameters);
+
+                    if (reorderParams || unusedElement)
+                    {
+                        Analyze(context, documentationComment, parameters, XmlElementKind.Param, IndexOf);
+                    }
+                }
             }
 
-            if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddTypeParamElementToDocumentationComment))
+            if (addTypeParam
+                || reorderParams
+                || unusedElement)
             {
                 SeparatedSyntaxList<TypeParameterSyntax> typeParameters = TypeParameterListInfo.Create(parent).Parameters;
 
-                AnalyzeTypeParam(context, documentationComment, typeParameters);
+                if (typeParameters.Any())
+                {
+                    if (addTypeParam)
+                        AnalyzeTypeParam(context, documentationComment, typeParameters);
+
+                    if (reorderParams || unusedElement)
+                    {
+                        Analyze(context, documentationComment, typeParameters, XmlElementKind.TypeParam, IndexOf);
+                    }
+                }
             }
         }
 
@@ -171,7 +191,7 @@ namespace Roslynator.CSharp.Analysis
 
                     if (elementInfo.Success
                         && !elementInfo.IsEmptyElement
-                        && elementInfo.GetElementKind() == XmlElementKind.Param)
+                        && elementInfo.IsElementKind(XmlElementKind.Param))
                     {
                         var element = (XmlElementSyntax)elementInfo.Element;
 
@@ -206,7 +226,7 @@ namespace Roslynator.CSharp.Analysis
 
                     if (elementInfo.Success
                         && !elementInfo.IsEmptyElement
-                        && elementInfo.GetElementKind() == XmlElementKind.TypeParam)
+                        && elementInfo.IsElementKind(XmlElementKind.TypeParam))
                     {
                         var element = (XmlElementSyntax)elementInfo.Element;
 
@@ -227,6 +247,81 @@ namespace Roslynator.CSharp.Analysis
                     return;
                 }
             }
+        }
+
+        private static void Analyze<TNode>(
+            SyntaxNodeAnalysisContext context,
+            DocumentationCommentTriviaSyntax documentationComment,
+            SeparatedSyntaxList<TNode> nodes,
+            XmlElementKind kind,
+            Func<SeparatedSyntaxList<TNode>, string, int> indexOf) where TNode : SyntaxNode
+        {
+            XmlElementSyntax firstElement = null;
+
+            int firstIndex = -1;
+
+            foreach (XmlNodeSyntax xmlNode in documentationComment.Content)
+            {
+                XmlElementInfo elementInfo = SyntaxInfo.XmlElementInfo(xmlNode);
+
+                if (!elementInfo.Success)
+                    continue;
+
+                if (!elementInfo.IsElementKind(kind))
+                {
+                    firstIndex = -1;
+                    continue;
+                }
+
+                var element = (XmlElementSyntax)elementInfo.Element;
+
+                string name = element.GetAttributeValue("name");
+
+                if (name == null)
+                {
+                    firstIndex = -1;
+                    continue;
+                }
+
+                int index = indexOf(nodes, name);
+
+                if (index == -1)
+                {
+                    context.ReportDiagnosticIfNotSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment, element);
+                }
+                else if (firstIndex == -1)
+                {
+                    firstElement = element;
+                }
+                else if (index < firstIndex)
+                {
+                    context.ReportDiagnosticIfNotSuppressed(DiagnosticDescriptors.ReorderElementsInDocumentationComment, firstElement);
+                }
+
+                firstIndex = index;
+            }
+        }
+
+        private static int IndexOf(SeparatedSyntaxList<ParameterSyntax> parameters, string name)
+        {
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                if (string.Equals(parameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private static int IndexOf(SeparatedSyntaxList<TypeParameterSyntax> typeParameters, string name)
+        {
+            for (int i = 0; i < typeParameters.Count; i++)
+            {
+                if (string.Equals(typeParameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
         }
     }
 }

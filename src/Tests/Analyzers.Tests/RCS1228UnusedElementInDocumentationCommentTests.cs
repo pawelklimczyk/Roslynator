@@ -190,6 +190,44 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UnusedElementInDocumentationComment)]
+        public async Task Test_ParamElement()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// <param name=""p""></param>
+    void M(object p1, object p2) => M();
+}
+", @"
+class C
+{
+    /// <summary></summary>
+    void M(object p1, object p2) => M();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UnusedElementInDocumentationComment)]
+        public async Task Test_TypeParamElement()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// <typeparam name=""T""></param>
+    void M<T1, T2>() => M();
+}
+", @"
+class C
+{
+    /// <summary></summary>
+    void M<T1, T2>() => M();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UnusedElementInDocumentationComment)]
         public async Task TestNoDiagnostic_NoReturnsElement()
         {
             await VerifyNoDiagnosticAsync(@"
