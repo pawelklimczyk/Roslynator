@@ -229,6 +229,7 @@ namespace Roslynator.CSharp
         /// <param name="typeSymbol"></param>
         /// <param name="type"></param>
         /// <returns></returns>
+        [Obsolete("This method is obsolete. Use method Roslynator.CSharp.WorkspaceSymbolExtensions.GetDefaultValueSyntax instead.", error: true)]
         public static ExpressionSyntax GetDefaultValueSyntax(this ITypeSymbol typeSymbol, TypeSyntax type)
         {
             if (typeSymbol == null)
@@ -248,6 +249,7 @@ namespace Roslynator.CSharp
         /// <param name="position"></param>
         /// <param name="format"></param>
         /// <returns></returns>
+        [Obsolete("This method is obsolete. Use method Roslynator.CSharp.WorkspaceSymbolExtensions.GetDefaultValueSyntax instead.", error: true)]
         public static ExpressionSyntax GetDefaultValueSyntax(this ITypeSymbol typeSymbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
         {
             if (typeSymbol == null)
@@ -314,10 +316,10 @@ namespace Roslynator.CSharp
         }
 
         /// <summary>
-        /// Returns true if the specified type can be used to declare constant value.
-        /// </summary>
-        /// <param name="typeSymbol"></param>
-        /// <returns></returns>
+                 /// Returns true if the specified type can be used to declare constant value.
+                 /// </summary>
+                 /// <param name="typeSymbol"></param>
+                 /// <returns></returns>
         public static bool SupportsConstantValue(this ITypeSymbol typeSymbol)
         {
             if (typeSymbol == null)
