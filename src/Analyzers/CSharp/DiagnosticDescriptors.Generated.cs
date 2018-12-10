@@ -2505,7 +2505,7 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnusedElementInDocumentationComment}", 
-            customTags:         Array.Empty<string>());
+            customTags:         WellKnownDiagnosticTags.Unnecessary);
 
         /// <summary>RCS1229</summary>
         public static readonly DiagnosticDescriptor UseAsyncAwait = new DiagnosticDescriptor(
@@ -2541,6 +2541,18 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.MakeParameterRefReadOnly}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCSX005</summary>
+        public static readonly DiagnosticDescriptor ReorderElementsInDocumentationComment = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.ReorderElementsInDocumentationComment, 
+            title:              "Reorder elements in documentation comment.", 
+            messageFormat:      "Reorder elements in documentation comment.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ReorderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
     }

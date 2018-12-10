@@ -434,7 +434,7 @@ namespace Roslynator.CSharp.Refactorings.ExpandLinqMethodOperation
                     case "All":
                         return TrueLiteralExpression();
                     case "FirstOrDefault":
-                        return typeArgument.GetDefaultValueSyntax(elementType);
+                        return typeArgument.GetDefaultValueSyntax(document.GetDefaultSyntaxOptions(), elementType);
                     default:
                         throw new InvalidOperationException();
                 }

@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Refactorings.ExpandLinqMethodOperation
 
         protected override ReturnStatementSyntax GetLastReturnStatement()
         {
-            ExpressionSyntax expression = ElementTypeSymbol.GetDefaultValueSyntax(ElementType);
+            ExpressionSyntax expression = ElementTypeSymbol.GetDefaultValueSyntax(Document.GetDefaultSyntaxOptions(), ElementType);
 
             return ReturnStatement(expression);
         }
