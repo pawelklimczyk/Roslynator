@@ -1821,6 +1821,28 @@ namespace Roslynator.CSharp
                 }
             }
         }
+
+        internal static int IndexOf(this SeparatedSyntaxList<ParameterSyntax> parameters, string name)
+        {
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                if (string.Equals(parameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        internal static int IndexOf(this SeparatedSyntaxList<TypeParameterSyntax> typeParameters, string name)
+        {
+            for (int i = 0; i < typeParameters.Count; i++)
+            {
+                if (string.Equals(typeParameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
+        }
         #endregion SeparatedSyntaxList<T>
 
         #region StatementSyntax

@@ -2493,7 +2493,7 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnusedElementInDocumentationComment}", 
-            customTags:         Array.Empty<string>());
+            customTags:         WellKnownDiagnosticTags.Unnecessary);
 
         /// <summary>RCS1229</summary>
         public static readonly DiagnosticDescriptor UseAsyncAwait = new DiagnosticDescriptor(

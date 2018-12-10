@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslynator.CSharp.CodeFixes;
 using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
@@ -14,16 +15,16 @@ namespace Roslynator.CSharp.Analysis.Tests
 
         public override DiagnosticAnalyzer Analyzer { get; } = new SingleLineDocumentationCommentTriviaAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; }
+        public override CodeFixProvider FixProvider { get; } = new ReorderElementsInDocumentationCommentCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
-        public async Task Test()
+        public async Task Test_Parameters()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
     /// <summary></summary>
-    /// <param name=""c""></param>
+    /// [|<param name=""c""></param>|]
     /// <param name=""b""></param>
     /// <param name=""a""></param>
     void M(object a, object b, object c)
@@ -45,13 +46,13 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
-        public async Task Test2()
+        public async Task Test_Parameters2()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
     /// <summary></summary>
-    /// <param name=""b""></param>
+    /// [|<param name=""b""></param>|]
     /// <param name=""a""></param>
     /// <param name=""c""></param>
     void M(object a, object b, object c)
@@ -73,14 +74,14 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
-        public async Task Test3()
+        public async Task Test_Parameters3()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
     /// <summary></summary>
     /// <param name=""a""></param>
-    /// <param name=""c""></param>
+    /// [|<param name=""c""></param>|]
     /// <param name=""b""></param>
     void M(object a, object b, object c)
     {
@@ -101,13 +102,13 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
-        public async Task Test4()
+        public async Task Test_Parameters4()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
     /// <summary></summary>
-    /// <param name=""c""></param>
+    /// [|<param name=""c""></param>|]
     /// <param name=""b""></param>
     void M(object a, object b, object c)
     {
@@ -127,7 +128,35 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
-        public async Task TestNoDiagnostic_Sorted()
+        public async Task Test_TypeParameters()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// [|<typeparam name=""T3""></param>|]
+    /// <typeparam name=""T2""></param>
+    /// <typeparam name=""T1""></param>
+    void M<T1, T2, T3>()
+    {
+    }
+}
+", @"
+class C
+{
+    /// <summary></summary>
+    /// <typeparam name=""T1""></param>
+    /// <typeparam name=""T2""></param>
+    /// <typeparam name=""T3""></param>
+    void M<T1, T2, T3>()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
+        public async Task TestNoDiagnostic_Parameters()
         {
             await VerifyNoDiagnosticAsync(@"
 class C
@@ -137,6 +166,23 @@ class C
     /// <param name=""b""></param>
     /// <param name=""c""></param>
     void M(object a, object b, object c)
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ReorderElementsInDocumentationComment)]
+        public async Task TestNoDiagnostic_TypeParameters()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// <typeparam name=""T1""></param>
+    /// <typeparam name=""T2""></param>
+    /// <typeparam name=""T3""></param>
+    void M<T1, T2, T3>()
     {
     }
 }

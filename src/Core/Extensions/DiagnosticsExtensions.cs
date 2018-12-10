@@ -540,6 +540,18 @@ namespace Roslynator
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "<Pending>")]
+        internal static bool AreAnalyzersSuppressed(this CompilationStartAnalysisContext context, ImmutableArray<DiagnosticDescriptor> descriptors)
+        {
+            foreach (DiagnosticDescriptor descriptor in descriptors)
+            {
+                if (!context.IsAnalyzerSuppressed(descriptor))
+                    return false;
+            }
+
+            return true;
+        }
+
         internal static bool AreAnalyzersSuppressed(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
         {
             return IsAnalyzerSuppressed(context, descriptor1)

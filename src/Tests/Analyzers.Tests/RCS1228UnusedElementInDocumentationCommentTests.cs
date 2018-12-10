@@ -196,14 +196,33 @@ class C
 class C
 {
     /// <summary></summary>
-    /// <param name=""p""></param>
-    void M(object p1, object p2) => M();
+    /// [|<param name=""p""></param>|]
+    void M(object p1, object p2) => M(p1, p2);
 }
 ", @"
 class C
 {
     /// <summary></summary>
-    void M(object p1, object p2) => M();
+    void M(object p1, object p2) => M(p1, p2);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UnusedElementInDocumentationComment)]
+        public async Task Test_ParamElement2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// [|<param name=""p""></param>|]
+    void M() => M();
+}
+", @"
+class C
+{
+    /// <summary></summary>
+    void M() => M();
 }
 ");
         }
@@ -215,14 +234,33 @@ class C
 class C
 {
     /// <summary></summary>
-    /// <typeparam name=""T""></param>
-    void M<T1, T2>() => M();
+    /// [|<typeparam name=""T""></param>|]
+    void M<T1, T2>() => M<T1, T2>();
 }
 ", @"
 class C
 {
     /// <summary></summary>
-    void M<T1, T2>() => M();
+    void M<T1, T2>() => M<T1, T2>();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UnusedElementInDocumentationComment)]
+        public async Task Test_TypeParamElement2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    /// <summary></summary>
+    /// [|<typeparam name=""T""></param>|]
+    void M() => M();
+}
+", @"
+class C
+{
+    /// <summary></summary>
+    void M() => M();
 }
 ");
         }
