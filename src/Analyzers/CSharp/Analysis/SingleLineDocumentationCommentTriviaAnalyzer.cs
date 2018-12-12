@@ -55,11 +55,13 @@ namespace Roslynator.CSharp.Analysis
 
             CancellationToken cancellationToken = context.CancellationToken;
 
-            foreach (XmlNodeSyntax xmlNode in documentationComment.Content)
+            SyntaxList<XmlNodeSyntax> content = documentationComment.Content;
+
+            for (int i = 0; i < content.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                XmlElementInfo info = SyntaxInfo.XmlElementInfo(xmlNode);
+                XmlElementInfo info = SyntaxInfo.XmlElementInfo(content[i]);
 
                 if (info.Success)
                 {
@@ -98,7 +100,7 @@ namespace Roslynator.CSharp.Analysis
                         case XmlElementKind.Value:
                             {
                                 if (info.IsContentEmptyOrWhitespace)
-                                    ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.UnusedElementInDocumentationComment, info.Element);
+                                    ReportUnusedElement(context, info.Element, i, content);
 
                                 break;
                             }
@@ -286,6 +288,46 @@ namespace Roslynator.CSharp.Analysis
                 }
 
                 firstIndex = index;
+            }
+        }
+
+        private static void ReportUnusedElement(
+              SyntaxNodeAnalysisContext context,
+              XmlNodeSyntax xmlNode,
+              int index,
+              SyntaxList<XmlNodeSyntax> xmlNodes)
+        {
+            if (context.IsAnalyzerSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment))
+                return;
+
+            context.ReportDiagnostic(DiagnosticDescriptors.UnusedElementInDocumentationComment, xmlNode);
+
+            if (index > 0
+                && xmlNodes[index - 1] is XmlTextSyntax xmlText)
+            {
+                SyntaxTokenList tokens = xmlText.TextTokens;
+
+                if (tokens.Count == 1)
+                {
+                    if (tokens[0].IsKind(SyntaxKind.XmlTextLiteralToken))
+                    {
+                        SyntaxTrivia trivia = tokens[0].LeadingTrivia.SingleOrDefault(shouldThrow: false);
+
+                        if (trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
+                            context.ReportDiagnostic(DiagnosticDescriptors.UnusedElementInDocumentationCommentFadeOut, trivia);
+                    }
+                }
+                else if (tokens.Count == 2)
+                {
+                    if (tokens[0].IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
+                        && tokens[1].IsKind(SyntaxKind.XmlTextLiteralToken))
+                    {
+                        SyntaxTrivia trivia = tokens[1].LeadingTrivia.SingleOrDefault(shouldThrow: false);
+
+                        if (trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
+                            context.ReportDiagnostic(DiagnosticDescriptors.UnusedElementInDocumentationCommentFadeOut, trivia);
+                    }
+                }
             }
         }
     }

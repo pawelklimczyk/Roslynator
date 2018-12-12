@@ -5027,7 +5027,7 @@ class Foo
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>true</SupportsFadeOut>
-    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
     <Summary></Summary>
     <Samples>
       <Sample>

@@ -2507,6 +2507,8 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnusedElementInDocumentationComment}", 
             customTags:         WellKnownDiagnosticTags.Unnecessary);
 
+        public static readonly DiagnosticDescriptor UnusedElementInDocumentationCommentFadeOut = UnusedElementInDocumentationComment.CreateFadeOut();
+
         /// <summary>RCS1229</summary>
         public static readonly DiagnosticDescriptor UseAsyncAwait = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.UseAsyncAwait, 
