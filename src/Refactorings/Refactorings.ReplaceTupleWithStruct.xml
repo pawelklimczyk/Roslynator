@@ -1,11 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Refactorings>
-  <Refactoring Id="RR9002" Identifier="ReplaceTupleWithStruct" Title="Replace tuple with struct">
+  <Refactoring Id="RRX002" Identifier="GenerateStructFromTuple" Title="Generate struct from tuple">
     <Syntaxes>
       <Syntax>delegate declaration</Syntax>
-      <Syntax>event declaration</Syntax>
       <Syntax>indexer declaration</Syntax>
-      <Syntax>local function declaration</Syntax>
       <Syntax>method declaration</Syntax>
       <Syntax>property declaration</Syntax>
     </Syntaxes>

@@ -5,11 +5,11 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RR9002ReplaceTupleWitStructTests : AbstractCSharpCodeRefactoringVerifier
+    public class RRX002GenerateStructFromTupleTests : AbstractCSharpCodeRefactoringVerifier
     {
-        public override string RefactoringId { get; } = RefactoringIdentifiers.ReplaceTupleWithStruct;
+        public override string RefactoringId { get; } = RefactoringIdentifiers.GenerateStructFromTuple;
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateStructFromTuple)]
         public async Task Test_CompilationUnit()
         {
             await VerifyRefactoringAsync(@"
@@ -34,7 +34,7 @@ class C
 ", @"
 using System;
 
-public struct MyStruct
+internal struct MyStruct
 {
     public MyStruct(object value, DateTime date)
     {
@@ -65,7 +65,7 @@ class C
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateStructFromTuple)]
         public async Task Test_Namespace()
         {
             await VerifyRefactoringAsync(@"
@@ -86,7 +86,7 @@ using System;
 
 namespace N
 {
-    public struct MyStruct
+    internal struct MyStruct
     {
         public MyStruct(object value, DateTime date)
         {
@@ -109,7 +109,51 @@ namespace N
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateStructFromTuple)]
+        public async Task Test_Nested()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+
+namespace N
+{
+    class C
+    {
+        [|(object value, DateTime date)|] M()
+        {
+            return (null, DateTime.Now);
+        }
+    }
+}
+", @"
+using System;
+
+namespace N
+{
+    class C
+    {
+        MyStruct M()
+        {
+            return new MyStruct(null, DateTime.Now);
+        }
+
+        private struct MyStruct
+        {
+            public MyStruct(object value, DateTime date)
+            {
+                Value = value;
+                Date = date;
+            }
+
+            public object Value { get; }
+            public DateTime Date { get; }
+        }
+    }
+}
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "Nested"));
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateStructFromTuple)]
         public async Task Test_IEnumerableOfTuple()
         {
             await VerifyRefactoringAsync(@"
@@ -132,7 +176,7 @@ using System.Collections.Generic;
 
 namespace N
 {
-    public struct MyStruct
+    internal struct MyStruct
     {
         public MyStruct(object value, DateTime date)
         {
@@ -155,7 +199,7 @@ namespace N
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceTupleWithStruct)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateStructFromTuple)]
         public async Task Test_TaskOfTuple()
         {
             await VerifyRefactoringAsync(@"
@@ -179,7 +223,7 @@ using System.Threading.Tasks;
 
 namespace N
 {
-    public struct MyStruct
+    internal struct MyStruct
     {
         public MyStruct(object value, DateTime date)
         {

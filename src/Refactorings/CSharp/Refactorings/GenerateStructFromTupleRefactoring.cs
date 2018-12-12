@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.Refactorings
 {
-    internal static class ReplaceTupleWithStructRefactoring
+    internal static class GenerateStructFromTupleRefactoring
     {
         public static async Task ComputeRefactoringAsync(RefactoringContext context, TupleTypeSyntax tupleType)
         {
@@ -38,16 +37,17 @@ namespace Roslynator.CSharp.Refactorings
 
                 parent = genericName.Parent;
 
-                TypeSyntax returnType = GetReturnType(parent);
+                type = GetReturnType(parent);
+
+                if (type == null)
+                    return;
 
                 SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
-                ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(genericName, context.CancellationToken);
+                ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(genericName, context.CancellationToken)?.OriginalDefinition;
 
                 if (typeSymbol == null)
                     return;
-
-                typeSymbol = typeSymbol.OriginalDefinition;
 
                 if (!typeSymbol.HasMetadataName(MetadataNames.System_Collections_Generic_IEnumerable_T))
                 {
@@ -60,78 +60,117 @@ namespace Roslynator.CSharp.Refactorings
                 }
             }
 
-            if (!parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
-                return;
+            SyntaxNode node = parent.Parent;
 
-            Debug.Assert(parent.Parent.FirstAncestor(SyntaxKind.NamespaceDeclaration, SyntaxKind.CompilationUnit) != null);
-
-            if (parent.Parent.FirstAncestor(SyntaxKind.NamespaceDeclaration, SyntaxKind.CompilationUnit) == null)
-                return;
-
-            context.RegisterRefactoring(
-                "Replace tuple with struct",
-                ct => RefactorAsync(context.Document, tupleType, ct),
-                RefactoringIdentifiers.ReplaceTupleWithStruct);
-
-            TypeSyntax GetReturnType(SyntaxNode node)
+            if (node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
             {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)node).ReturnType;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)node).Type;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)node).ReturnType;
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)node).Type;
-                }
+                var containingMember = (MemberDeclarationSyntax)parent;
+                var containingType = (TypeDeclarationSyntax)node;
 
-                return null;
+                context.RegisterRefactoring(
+                    "Generate nested struct from tuple",
+                    ct => RefactorAsync(context.Document, tupleType, containingMember, containingType, null, ct),
+                    EquivalenceKey.Join(RefactoringIdentifiers.GenerateStructFromTuple, "Nested"));
+
+                node = node.Parent;
+
+                while (node != null)
+                {
+                    if (node.IsKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.CompilationUnit))
+                    {
+                        SyntaxNode namespaceOrCompilationUnit = node;
+
+                        context.RegisterRefactoring(
+                            "Generate struct from tuple",
+                            ct => RefactorAsync(context.Document, tupleType, containingMember, containingType, namespaceOrCompilationUnit, ct),
+                            RefactoringIdentifiers.GenerateStructFromTuple);
+                    }
+                    else if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+                    {
+                        return;
+                    }
+
+                    node = node.Parent;
+                }
             }
+        }
+
+        private static TypeSyntax GetReturnType(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.DelegateDeclaration:
+                    return ((DelegateDeclarationSyntax)node).ReturnType;
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)node).Type;
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)node).ReturnType;
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)node).Type;
+            }
+
+            return null;
         }
 
         private static async Task<Document> RefactorAsync(
             Document document,
             TupleTypeSyntax tupleType,
+            MemberDeclarationSyntax containingMember,
+            TypeDeclarationSyntax containingType,
+            SyntaxNode namespaceOrCompilationUnit,
             CancellationToken cancellationToken)
         {
-            if (!(tupleType.Parent is MemberDeclarationSyntax containingMember))
-            {
-                containingMember = (MemberDeclarationSyntax)tupleType.Parent.Parent.Parent;
-            }
-
-            var containingType = (TypeDeclarationSyntax)containingMember.Parent;
-
-            SyntaxNode namespaceOrCompilationUnit = containingType.FirstAncestor(SyntaxKind.NamespaceDeclaration, SyntaxKind.CompilationUnit);
-
             SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             string structName = GetStructName();
 
             var tupleSymbol = (INamedTypeSymbol)semanticModel.GetSymbol(tupleType, cancellationToken);
 
-            StructDeclarationSyntax structDeclaration = GenerateStructFromTupleType(structName, tupleSymbol).WithFormatterAnnotation();
+            SyntaxTokenList modifiers = (namespaceOrCompilationUnit != null) ? Modifiers.Internal() : Modifiers.Private();
 
-            var rewriter = new ReplaceTupleWithStructRewriter(IdentifierName(structName), tupleType, tupleSymbol, semanticModel, cancellationToken);
+            StructDeclarationSyntax structDeclaration = GenerateStructFromTupleType(tupleSymbol, modifiers, structName).WithFormatterAnnotation();
+
+            var rewriter = new GenerateStructFromTupleRewriter(IdentifierName(structName), tupleType, tupleSymbol, semanticModel, cancellationToken);
 
             SyntaxNode newContainingMember = rewriter.Visit(containingMember);
 
             MemberDeclarationInserter inserter = MemberDeclarationInserter.Default;
 
-            SyntaxNode newNode = namespaceOrCompilationUnit.ReplaceNode(containingMember, newContainingMember);
+            if (namespaceOrCompilationUnit != null)
+            {
+                SyntaxNode newNode = namespaceOrCompilationUnit.ReplaceNode(containingMember, newContainingMember);
 
-            newNode = (newNode.IsKind(SyntaxKind.NamespaceDeclaration))
-                ? inserter.Insert((NamespaceDeclarationSyntax)newNode, structDeclaration)
-                : (SyntaxNode)inserter.Insert((CompilationUnitSyntax)newNode, structDeclaration);
+                newNode = (newNode.IsKind(SyntaxKind.NamespaceDeclaration))
+                    ? inserter.Insert((NamespaceDeclarationSyntax)newNode, structDeclaration)
+                    : (SyntaxNode)inserter.Insert((CompilationUnitSyntax)newNode, structDeclaration);
 
-            return await document.ReplaceNodeAsync(namespaceOrCompilationUnit, newNode, cancellationToken).ConfigureAwait(false);
+                return await document.ReplaceNodeAsync(namespaceOrCompilationUnit, newNode, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                TypeDeclarationSyntax newNode = containingType.ReplaceNode(containingMember, newContainingMember);
+
+                newNode = inserter.Insert(newNode, structDeclaration);
+
+                return await document.ReplaceNodeAsync(containingType, newNode, cancellationToken).ConfigureAwait(false);
+            }
 
             string GetStructName()
             {
-                int position = (namespaceOrCompilationUnit.IsKind(SyntaxKind.NamespaceDeclaration))
-                    ? ((NamespaceDeclarationSyntax)namespaceOrCompilationUnit).OpenBraceToken.Span.End
-                    : ((CompilationUnitSyntax)namespaceOrCompilationUnit).Members.First().SpanStart;
+                int position;
+
+                if (namespaceOrCompilationUnit == null)
+                {
+                    position = containingType.OpenBraceToken.Span.End;
+                }
+                else if (namespaceOrCompilationUnit.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    position = ((NamespaceDeclarationSyntax)namespaceOrCompilationUnit).OpenBraceToken.Span.End;
+                }
+                else
+                {
+                    position = ((CompilationUnitSyntax)namespaceOrCompilationUnit).Members.First().SpanStart;
+                }
 
                 const string name = DefaultNames.Struct;
 
@@ -149,10 +188,10 @@ namespace Roslynator.CSharp.Refactorings
             }
         }
 
-        private static StructDeclarationSyntax GenerateStructFromTupleType(string structName, INamedTypeSymbol tupleSymbol)
+        private static StructDeclarationSyntax GenerateStructFromTupleType(INamedTypeSymbol tupleSymbol, SyntaxTokenList modifiers, string structName)
         {
             return StructDeclaration(
-                Modifiers.Public(),
+                modifiers,
                 Identifier(structName).WithRenameAnnotation(),
                 GenerateMembers().ToSyntaxList());
 
@@ -177,7 +216,7 @@ namespace Roslynator.CSharp.Refactorings
             }
         }
 
-        private class ReplaceTupleWithStructRewriter : CSharpSyntaxRewriter
+        private class GenerateStructFromTupleRewriter : CSharpSyntaxRewriter
         {
             private readonly IdentifierNameSyntax _structName;
             private readonly TupleTypeSyntax _tupleType;
@@ -185,7 +224,7 @@ namespace Roslynator.CSharp.Refactorings
             private readonly SemanticModel _semanticModel;
             private readonly CancellationToken _cancellationToken;
 
-            public ReplaceTupleWithStructRewriter(IdentifierNameSyntax structName, TupleTypeSyntax tupleType, INamedTypeSymbol tupleSymbol, SemanticModel semanticModel, CancellationToken cancellationToken)
+            public GenerateStructFromTupleRewriter(IdentifierNameSyntax structName, TupleTypeSyntax tupleType, INamedTypeSymbol tupleSymbol, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 _structName = structName;
                 _tupleType = tupleType;

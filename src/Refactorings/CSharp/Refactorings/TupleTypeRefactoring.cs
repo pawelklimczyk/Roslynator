@@ -9,10 +9,10 @@ namespace Roslynator.CSharp.Refactorings
     {
         public static async Task ComputeRefactoringsAsync(RefactoringContext context, TupleTypeSyntax tupleType)
         {
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ReplaceTupleWithStruct)
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateStructFromTuple)
                 && context.Span.IsBetweenSpans(tupleType))
             {
-                await ReplaceTupleWithStructRefactoring.ComputeRefactoringAsync(context, tupleType).ConfigureAwait(false);
+                await GenerateStructFromTupleRefactoring.ComputeRefactoringAsync(context, tupleType).ConfigureAwait(false);
             }
         }
     }
