@@ -253,9 +253,9 @@ namespace Roslynator.CSharp.Analysis
 
             int firstIndex = -1;
 
-            foreach (XmlNodeSyntax xmlNode in xmlNodes)
+            for (int i = 0; i < xmlNodes.Count; i++)
             {
-                XmlElementInfo elementInfo = SyntaxInfo.XmlElementInfo(xmlNode);
+                XmlElementInfo elementInfo = SyntaxInfo.XmlElementInfo(xmlNodes[i]);
 
                 if (!elementInfo.Success)
                     continue;
@@ -280,7 +280,7 @@ namespace Roslynator.CSharp.Analysis
 
                 if (index == -1)
                 {
-                    ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.UnusedElementInDocumentationComment, element);
+                    ReportUnusedElement(context, element, i, xmlNodes);
                 }
                 else if (index < firstIndex)
                 {
