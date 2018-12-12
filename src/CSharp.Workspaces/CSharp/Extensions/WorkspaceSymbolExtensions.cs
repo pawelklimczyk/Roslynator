@@ -15,10 +15,9 @@ namespace Roslynator.CSharp
         /// Creates a new <see cref="ExpressionSyntax"/> that represents default value of the specified type symbol.
         /// </summary>
         /// <param name="typeSymbol"></param>
-        /// <param name="type"></param>
         /// <param name="options"></param>
+        /// <param name="type"></param>
         /// <param name="format"></param>
-        /// <returns></returns>
         public static ExpressionSyntax GetDefaultValueSyntax(
             this ITypeSymbol typeSymbol,
             DefaultSyntaxOptions options = DefaultSyntaxOptions.None,
@@ -28,46 +27,34 @@ namespace Roslynator.CSharp
             if (typeSymbol == null)
                 throw new ArgumentNullException(nameof(typeSymbol));
 
+            if ((options & DefaultSyntaxOptions.UseDefaultExpression) != 0)
+                return DefaultExpression(GetTypeSyntax());
+
+            if ((options & DefaultSyntaxOptions.UseDefaultLiteral) != 0)
+                return DefaultLiteralExpression();
+
             if (typeSymbol.IsReferenceTypeOrNullableType())
-            {
-                return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
-                    ? CreateDefault()
-                    : NullLiteralExpression();
-            }
+                return NullLiteralExpression();
 
             if (typeSymbol.TypeKind == TypeKind.Enum)
             {
-                if ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
-                    return CreateDefault();
+                IFieldSymbol fieldSymbol = CSharpUtility.FindEnumDefaultField((INamedTypeSymbol)typeSymbol);
 
-                if ((options & DefaultSyntaxOptions.EnumAlwaysAsNumber) == 0)
-                {
-                    IFieldSymbol fieldSymbol = CSharpUtility.FindEnumDefaultField((INamedTypeSymbol)typeSymbol);
+                if (fieldSymbol != null)
+                    return SimpleMemberAccessExpression(GetTypeSyntax(), IdentifierName(fieldSymbol.Name));
 
-                    if (fieldSymbol != null)
-                    {
-                        type = type ?? typeSymbol.ToTypeSyntax(format).WithFormatterAnnotation();
-
-                        return SimpleMemberAccessExpression(type, IdentifierName(fieldSymbol.Name));
-                    }
-                }
-
-                return NumericLiteralExpression(0);
+                return CastExpression(GetTypeSyntax(), NumericLiteralExpression(0)).WithSimplifierAnnotation();
             }
 
             switch (typeSymbol.SpecialType)
             {
                 case SpecialType.System_Boolean:
                     {
-                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
-                            ? CreateDefault()
-                            : FalseLiteralExpression();
+                        return FalseLiteralExpression();
                     }
                 case SpecialType.System_Char:
                     {
-                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
-                            ? CreateDefault()
-                            : CharacterLiteralExpression('\0');
+                        return CharacterLiteralExpression('\0');
                     }
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
@@ -81,26 +68,18 @@ namespace Roslynator.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
                     {
-                        return ((options & DefaultSyntaxOptions.AlwaysUseDefault) != 0)
-                            ? CreateDefault()
-                            : NumericLiteralExpression(0);
+                        return NumericLiteralExpression(0);
                     }
             }
 
-            return CreateDefault();
+            if ((options & DefaultSyntaxOptions.UseDefaultLiteral) != 0)
+                return DefaultLiteralExpression();
 
-            ExpressionSyntax CreateDefault()
+            return DefaultExpression(GetTypeSyntax());
+
+            TypeSyntax GetTypeSyntax()
             {
-                if ((options & DefaultSyntaxOptions.PreferDefaultLiteral) != 0)
-                {
-                    return DefaultLiteralExpression();
-                }
-                else
-                {
-                    type = type ?? typeSymbol.ToTypeSyntax(format).WithSimplifierAnnotation();
-
-                    return DefaultExpression(type);
-                }
+                return type ?? typeSymbol.ToTypeSyntax(format).WithSimplifierAnnotation();
             }
         }
     }

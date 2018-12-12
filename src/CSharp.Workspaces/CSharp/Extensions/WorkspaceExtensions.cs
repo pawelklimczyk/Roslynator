@@ -37,12 +37,11 @@ namespace Roslynator.CSharp
             throw new ArgumentException($"Unknown enum value '{feature}'.", nameof(feature));
         }
 
-        internal static DefaultSyntaxOptions GetDefaultSyntaxOptions(this Document document, DefaultSyntaxOptions options = DefaultSyntaxOptions.None)
+        internal static DefaultSyntaxOptions GetDefaultSyntaxOptions(this Document document)
         {
-            if (document.SupportsLanguageFeature(CSharpLanguageFeature.DefaultLiteral))
-                options |= DefaultSyntaxOptions.PreferDefaultLiteral;
-
-            return options;
+            return (document.SupportsLanguageFeature(CSharpLanguageFeature.DefaultLiteral))
+                ? DefaultSyntaxOptions.UseDefaultLiteral
+                : DefaultSyntaxOptions.None;
         }
 
         internal static Task<Document> RemoveNodeAsync(

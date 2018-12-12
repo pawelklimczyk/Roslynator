@@ -14,18 +14,13 @@ namespace Roslynator.CSharp
         None = 0,
 
         /// <summary>
-        /// Always use <see cref="SyntaxKind.DefaultExpression"/> or <see cref="SyntaxKind.DefaultLiteralExpression"/>.
+        /// Always use <see cref="SyntaxKind.DefaultExpression"/>.
         /// </summary>
-        AlwaysUseDefault = 1,
+        UseDefaultExpression = 1,
 
         /// <summary>
-        /// Prefer <see cref="SyntaxKind.DefaultLiteralExpression"/> over <see cref="SyntaxKind.DefaultExpression"/>. This option is relevant only in combination with <see cref="AlwaysUseDefault"/>.
+        /// Always use <see cref="SyntaxKind.DefaultLiteralExpression"/>.
         /// </summary>
-        PreferDefaultLiteral = 2,
-
-        /// <summary>
-        /// Enum default value should be displayed as '0' and not as enum member whose value is equal to 0.
-        /// </summary>
-        EnumAlwaysAsNumber = 4,
+        UseDefaultLiteral = 2,
     }
 }
