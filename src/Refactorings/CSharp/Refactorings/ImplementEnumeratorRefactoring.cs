@@ -26,7 +26,7 @@ namespace Roslynator.CSharp.Refactorings
             if (symbol.IsAbstract)
                 return;
 
-            INamedTypeSymbol ienumerableOfT = symbol.AllInterfaces.FirstOrDefault(f => f.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_IEnumerable_T));
+            INamedTypeSymbol ienumerableOfT = symbol.Interfaces.FirstOrDefault(f => f.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_IEnumerable_T));
 
             if (ienumerableOfT == null)
                 return;
