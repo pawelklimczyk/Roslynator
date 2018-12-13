@@ -531,6 +531,15 @@ namespace Roslynator.CSharp
 
             return null;
         }
+
+        internal static bool IsIfElseDirective(this DirectiveTriviaSyntax directiveTrivia)
+        {
+            return directiveTrivia.IsKind(
+                SyntaxKind.IfDirectiveTrivia,
+                SyntaxKind.ElseDirectiveTrivia,
+                SyntaxKind.ElifDirectiveTrivia,
+                SyntaxKind.EndIfDirectiveTrivia);
+        }
         #endregion DirectiveTriviaSyntax
 
         #region DocumentationCommentTriviaSyntax
@@ -1811,6 +1820,28 @@ namespace Roslynator.CSharp
                     return list.ReplaceSeparator(separator, separator.TrimTrailingTrivia());
                 }
             }
+        }
+
+        internal static int IndexOf(this SeparatedSyntaxList<ParameterSyntax> parameters, string name)
+        {
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                if (string.Equals(parameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        internal static int IndexOf(this SeparatedSyntaxList<TypeParameterSyntax> typeParameters, string name)
+        {
+            for (int i = 0; i < typeParameters.Count; i++)
+            {
+                if (string.Equals(typeParameters[i].Identifier.ValueText, name, StringComparison.Ordinal))
+                    return i;
+            }
+
+            return -1;
         }
         #endregion SeparatedSyntaxList<T>
 
@@ -3134,27 +3165,30 @@ namespace Roslynator.CSharp
             return IncreaseIndentation(trivia);
         }
 
-        //TODO: make public
         internal static bool ContainsUnbalancedIfElseDirectives(this SyntaxNode node)
         {
+            return ContainsUnbalancedIfElseDirectives(node, node.FullSpan);
+        }
+
+        //TODO: make public
+        internal static bool ContainsUnbalancedIfElseDirectives(this SyntaxNode node, TextSpan span)
+        {
+            if (node == null)
+                throw new ArgumentNullException(nameof(node));
+
+            if (!node.FullSpan.Contains(span))
+                throw new ArgumentOutOfRangeException(nameof(span));
+
             if (node.ContainsDirectives)
             {
-                DirectiveTriviaSyntax first = node.GetFirstDirective(f => f.IsKind(
-                    SyntaxKind.IfDirectiveTrivia,
-                    SyntaxKind.ElseDirectiveTrivia,
-                    SyntaxKind.ElifDirectiveTrivia,
-                    SyntaxKind.EndIfDirectiveTrivia));
+                DirectiveTriviaSyntax first = node.GetFirstDirective(span, IsIfElseDirective);
 
                 if (first != null)
                 {
                     if (!first.IsKind(SyntaxKind.IfDirectiveTrivia))
                         return true;
 
-                    DirectiveTriviaSyntax last = node.GetLastDirective(f => f.IsKind(
-                        SyntaxKind.IfDirectiveTrivia,
-                        SyntaxKind.ElseDirectiveTrivia,
-                        SyntaxKind.ElifDirectiveTrivia,
-                        SyntaxKind.EndIfDirectiveTrivia));
+                    DirectiveTriviaSyntax last = node.GetLastDirective(span, IsIfElseDirective);
 
                     if (last == first)
                         return true;
@@ -3171,7 +3205,7 @@ namespace Roslynator.CSharp
                         if (d == null)
                             return true;
 
-                        if (!d.FullSpan.OverlapsWith(node.FullSpan))
+                        if (!d.FullSpan.OverlapsWith(span))
                             return true;
                     }
                     while (d != last);
@@ -3179,6 +3213,49 @@ namespace Roslynator.CSharp
             }
 
             return false;
+        }
+
+        //TODO: make public
+        internal static DirectiveTriviaSyntax GetFirstDirective(this SyntaxNode node, TextSpan span, Func<DirectiveTriviaSyntax, bool> predicate = null)
+        {
+            DirectiveTriviaSyntax directive = node.GetFirstDirective(predicate);
+
+            if (directive == null)
+                return null;
+
+            while (!directive.FullSpan.OverlapsWith(span))
+            {
+                directive = directive.GetNextDirective(predicate);
+
+                if (directive == null)
+                    return null;
+
+                if (!node.FullSpan.Contains(directive.FullSpan))
+                    return null;
+            }
+
+            return directive;
+        }
+
+        internal static DirectiveTriviaSyntax GetLastDirective(this SyntaxNode node, TextSpan span, Func<DirectiveTriviaSyntax, bool> predicate = null)
+        {
+            DirectiveTriviaSyntax directive = node.GetLastDirective(predicate);
+
+            if (directive == null)
+                return null;
+
+            while (!directive.FullSpan.OverlapsWith(span))
+            {
+                directive = directive.GetPreviousDirective(predicate);
+
+                if (directive == null)
+                    return null;
+
+                if (!node.FullSpan.Contains(directive.FullSpan))
+                    return null;
+            }
+
+            return directive;
         }
         #endregion SyntaxNode
 
@@ -4160,6 +4237,32 @@ namespace Roslynator.CSharp
         internal static bool IsLocalName(this XmlElementSyntax xmlElement, string localName, StringComparison comparison = StringComparison.Ordinal)
         {
             return xmlElement.StartTag?.Name?.IsLocalName(localName, comparison) == true;
+        }
+
+        internal static string GetAttributeValue(this XmlElementSyntax element, string attributeName)
+        {
+            XmlElementStartTagSyntax startTag = element.StartTag;
+
+            if (startTag != null)
+            {
+                foreach (XmlAttributeSyntax attribute in startTag.Attributes)
+                {
+                    if (attribute.IsKind(SyntaxKind.XmlNameAttribute))
+                    {
+                        var nameAttribute = (XmlNameAttributeSyntax)attribute;
+
+                        if (nameAttribute.Name?.LocalName.ValueText == attributeName)
+                        {
+                            IdentifierNameSyntax identifierName = nameAttribute.Identifier;
+
+                            if (identifierName != null)
+                                return identifierName.Identifier.ValueText;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
         #endregion XmlElementSyntax
 

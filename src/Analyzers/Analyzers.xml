@@ -5010,8 +5010,8 @@ class Foo
     <Category>Readability</Category>
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
-    <SupportsFadeOut>false</SupportsFadeOut>
-    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <SupportsFadeOut>true</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
     <Summary></Summary>
     <Samples>
       <Sample>
@@ -5092,7 +5092,7 @@ public string Foo()
 }]]></Before>
         <After><![CDATA[foreach (var item in items)
 {
-    yield return en.Current;
+    yield return item;
 }]]></After>
       </Sample>
     </Samples>

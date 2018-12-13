@@ -14,7 +14,7 @@ namespace Roslynator.CSharp.CodeFixes
 {
     internal static class CodeFixRegistrator
     {
-        public static void ChangeType(
+        public static CodeFixRegistrationResult ChangeType(
             CodeFixContext context,
             Diagnostic diagnostic,
             TypeSyntax type,
@@ -39,9 +39,11 @@ namespace Roslynator.CSharp.CodeFixes
                 EquivalenceKey.Create(diagnostic, additionalKey));
 
             context.RegisterCodeFix(codeAction, diagnostic);
+
+            return new CodeFixRegistrationResult(true);
         }
 
-        public static void ChangeTypeToVar(
+        public static CodeFixRegistrationResult ChangeTypeToVar(
             CodeFixContext context,
             Diagnostic diagnostic,
             TypeSyntax type,
@@ -60,6 +62,8 @@ namespace Roslynator.CSharp.CodeFixes
                 EquivalenceKey.Create(diagnostic, additionalKey));
 
             context.RegisterCodeFix(codeAction, diagnostic);
+
+            return new CodeFixRegistrationResult(true);
         }
 
         public static void AddCastExpression(
@@ -129,7 +133,7 @@ namespace Roslynator.CSharp.CodeFixes
             if (typeSymbol == null)
                 return;
 
-            ReplaceNullWithDefaultValue(context, diagnostic, expression, typeSymbol, semanticModel, additionalKey);
+            ReplaceNullWithDefaultValue(context, diagnostic, expression, typeSymbol, additionalKey);
         }
 
         public static void ReplaceNullWithDefaultValue(
@@ -137,7 +141,6 @@ namespace Roslynator.CSharp.CodeFixes
             Diagnostic diagnostic,
             ExpressionSyntax expression,
             ITypeSymbol typeSymbol,
-            SemanticModel semanticModel,
             string additionalKey = null)
         {
             if (!typeSymbol.SupportsExplicitDeclaration())
@@ -149,11 +152,11 @@ namespace Roslynator.CSharp.CodeFixes
                 "Replace 'null' with default value",
                 cancellationToken =>
                 {
-                    ExpressionSyntax newNode = typeSymbol.GetDefaultValueSyntax(semanticModel, expression.SpanStart);
+                    ExpressionSyntax defaultValue = typeSymbol
+                        .GetDefaultValueSyntax(document.GetDefaultSyntaxOptions())
+                        .WithTriviaFrom(expression);
 
-                    newNode = newNode.WithTriviaFrom(expression);
-
-                    return document.ReplaceNodeAsync(expression, newNode, cancellationToken);
+                    return document.ReplaceNodeAsync(expression, defaultValue, cancellationToken);
                 },
                 EquivalenceKey.Create(diagnostic, additionalKey));
 
