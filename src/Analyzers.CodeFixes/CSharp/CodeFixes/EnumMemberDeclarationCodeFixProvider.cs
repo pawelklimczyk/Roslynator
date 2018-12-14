@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CodeFixes;
-using Roslynator.CSharp.Refactorings;
 using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.CodeFixes
@@ -22,12 +21,7 @@ namespace Roslynator.CSharp.CodeFixes
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get
-            {
-                return ImmutableArray.Create(
-                    DiagnosticIdentifiers.EnumMemberShouldDeclareExplicitValue,
-                    DiagnosticIdentifiers.DeclareEnumValueAsCombinationOfNames);
-            }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.DeclareEnumValueAsCombinationOfNames); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -41,16 +35,6 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 switch (diagnostic.Id)
                 {
-                    case DiagnosticIdentifiers.EnumMemberShouldDeclareExplicitValue:
-                        {
-                            CodeAction codeAction = CodeAction.Create(
-                                "Declare explicit value",
-                                cancellationToken => EnumMemberShouldDeclareExplicitValueRefactoring.RefactorAsync(context.Document, enumMemberDeclaration, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
-
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                            break;
-                        }
                     case DiagnosticIdentifiers.DeclareEnumValueAsCombinationOfNames:
                         {
                             CodeAction codeAction = CodeAction.Create(

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CodeFixes;
 using Roslynator.Comparers;
 using Roslynator.CSharp.Refactorings;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.CodeFixes
@@ -27,7 +31,8 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 return ImmutableArray.Create(
                     DiagnosticIdentifiers.AddNewLineBeforeEnumMember,
-                    DiagnosticIdentifiers.SortEnumMembers);
+                    DiagnosticIdentifiers.SortEnumMembers,
+                    DiagnosticIdentifiers.EnumShouldDeclareExplicitValues);
             }
         }
 
@@ -57,6 +62,16 @@ namespace Roslynator.CSharp.CodeFixes
                             CodeAction codeAction = CodeAction.Create(
                                 $"Sort '{enumDeclaration.Identifier}' members",
                                 cancellationToken => SortEnumMembersAsync(context.Document, enumDeclaration, cancellationToken),
+                                GetEquivalenceKey(diagnostic));
+
+                            context.RegisterCodeFix(codeAction, diagnostic);
+                            break;
+                        }
+                    case DiagnosticIdentifiers.EnumShouldDeclareExplicitValues:
+                        {
+                            CodeAction codeAction = CodeAction.Create(
+                                "Declare explicit values",
+                                cancellationToken => DeclareExplicitValueAsync(context.Document, enumDeclaration, cancellationToken),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -142,6 +157,62 @@ namespace Roslynator.CSharp.CodeFixes
             CancellationToken cancellationToken)
         {
             return semanticModel.GetDeclaredSymbol(enumMemberDeclaration, cancellationToken)?.ConstantValue;
+        }
+
+        private static async Task<Document> DeclareExplicitValueAsync(
+            Document document,
+            EnumDeclarationSyntax enumDeclaration,
+            CancellationToken cancellationToken)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            INamedTypeSymbol enumSymbol = semanticModel.GetDeclaredSymbol(enumDeclaration, cancellationToken);
+
+            EnumSymbolInfo enumInfo = EnumSymbolInfo.Create(enumSymbol);
+
+            List<ulong> values = enumInfo
+                .Fields
+                .Where(f => f.HasValue && ((EnumMemberDeclarationSyntax)f.Symbol.GetSyntax(cancellationToken)).EqualsValue != null)
+                .Select(f => f.Value)
+                .ToList();
+
+            SeparatedSyntaxList<EnumMemberDeclarationSyntax> newMembers = enumDeclaration.Members
+                .Select(enumMember =>
+                {
+                    if (enumMember.EqualsValue != null)
+                        return enumMember;
+
+                    IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(enumMember, cancellationToken);
+
+                    ulong? value = null;
+                    if (enumSymbol.IsEnumWithFlags())
+                    {
+                        Optional<ulong> optional = FlagsUtility.GetUniquePowerOfTwo(values, startFromHighestExistingValue: false);
+
+                        if (optional.HasValue)
+                            value = optional.Value;
+                    }
+                    else
+                    {
+                        value = SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, enumSymbol);
+                    }
+
+                    Debug.Assert(value != null, "");
+
+                    if (value == null)
+                        return enumMember;
+
+                    values.Add(value.Value);
+
+                    EqualsValueClauseSyntax equalsValue = EqualsValueClause(ParseExpression(value.Value.ToString(CultureInfo.InvariantCulture)));
+
+                    return enumMember.WithEqualsValue(equalsValue);
+                })
+                .ToSeparatedSyntaxList();
+
+            EnumDeclarationSyntax newEnumDeclaration = enumDeclaration.WithMembers(newMembers);
+
+            return await document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, cancellationToken).ConfigureAwait(false);
         }
     }
 }

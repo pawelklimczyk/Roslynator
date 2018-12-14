@@ -42,6 +42,8 @@ namespace Roslynator
 
         public abstract int ByteCount { get; }
 
+        public abstract T MaxValue { get; }
+
         public abstract Optional<T> GetUniquePowerOfTwo(IEnumerable<T> reservedValues, bool startFromHighestExistingValue = false);
 
         public abstract bool IsZeroOrPowerOfTwo(T value);
@@ -55,6 +57,8 @@ namespace Roslynator
         private class SByteFlagsUtility : FlagsUtility<sbyte>
         {
             public override int ByteCount => (sizeof(sbyte) * 8) - 1;
+
+            public override sbyte MaxValue => sbyte.MaxValue;
 
             public override Optional<sbyte> GetUniquePowerOfTwo(IEnumerable<sbyte> reservedValues, bool startFromHighestExistingValue = false)
             {
@@ -129,6 +133,8 @@ namespace Roslynator
         {
             public override int ByteCount => (sizeof(byte) * 8) - 1;
 
+            public override byte MaxValue => byte.MaxValue;
+
             public override Optional<byte> GetUniquePowerOfTwo(IEnumerable<byte> reservedValues, bool startFromHighestExistingValue = false)
             {
                 if (reservedValues == null)
@@ -201,6 +207,8 @@ namespace Roslynator
         private class ShortFlagsUtility : FlagsUtility<short>
         {
             public override int ByteCount => (sizeof(short) * 8) - 1;
+
+            public override short MaxValue => short.MaxValue;
 
             public override Optional<short> GetUniquePowerOfTwo(IEnumerable<short> reservedValues, bool startFromHighestExistingValue = false)
             {
@@ -275,6 +283,8 @@ namespace Roslynator
         {
             public override int ByteCount => (sizeof(ushort) * 8) - 1;
 
+            public override ushort MaxValue => ushort.MaxValue;
+
             public override Optional<ushort> GetUniquePowerOfTwo(IEnumerable<ushort> reservedValues, bool startFromHighestExistingValue = false)
             {
                 if (reservedValues == null)
@@ -347,6 +357,8 @@ namespace Roslynator
         private class IntFlagsUtility : FlagsUtility<int>
         {
             public override int ByteCount => (sizeof(int) * 8) - 1;
+
+            public override int MaxValue => int.MaxValue;
 
             public override Optional<int> GetUniquePowerOfTwo(IEnumerable<int> reservedValues, bool startFromHighestExistingValue = false)
             {
@@ -421,6 +433,8 @@ namespace Roslynator
         {
             public override int ByteCount => (sizeof(uint) * 8) - 1;
 
+            public override uint MaxValue => uint.MaxValue;
+
             public override Optional<uint> GetUniquePowerOfTwo(IEnumerable<uint> reservedValues, bool startFromHighestExistingValue = false)
             {
                 if (reservedValues == null)
@@ -494,6 +508,8 @@ namespace Roslynator
         {
             public override int ByteCount => (sizeof(long) * 8) - 1;
 
+            public override long MaxValue => long.MaxValue;
+
             public override Optional<long> GetUniquePowerOfTwo(IEnumerable<long> reservedValues, bool startFromHighestExistingValue = false)
             {
                 if (reservedValues == null)
@@ -566,6 +582,8 @@ namespace Roslynator
         private class ULongFlagsUtility : FlagsUtility<ulong>
         {
             public override int ByteCount => (sizeof(ulong) * 8) - 1;
+
+            public override ulong MaxValue => ulong.MaxValue;
 
             public override Optional<ulong> GetUniquePowerOfTwo(IEnumerable<ulong> reservedValues, bool startFromHighestExistingValue = false)
             {

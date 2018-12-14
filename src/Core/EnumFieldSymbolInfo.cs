@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Roslynator
@@ -61,30 +60,6 @@ namespace Roslynator
         public IEnumerable<ulong> DecomposeValue()
         {
             return FlagsUtility<ulong>.Instance.Decompose(Value);
-        }
-
-        public static ImmutableArray<EnumFieldSymbolInfo> CreateRange(INamedTypeSymbol enumType)
-        {
-            ImmutableArray<EnumFieldSymbolInfo>.Builder builder = ImmutableArray.CreateBuilder<EnumFieldSymbolInfo>();
-
-            foreach (ISymbol member in enumType.GetMembers())
-            {
-                if (member.Kind == SymbolKind.Field)
-                {
-                    var fieldSymbol = (IFieldSymbol)member;
-
-                    if (!fieldSymbol.HasConstantValue)
-                    {
-                        return default;
-                    }
-
-                    builder.Add(new EnumFieldSymbolInfo(fieldSymbol, SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.HasConstantValue, enumType)));
-                }
-            }
-
-            builder.Sort((f, g) => f.Value.CompareTo(g.Value));
-
-            return builder.ToImmutableArray();
         }
     }
 }
