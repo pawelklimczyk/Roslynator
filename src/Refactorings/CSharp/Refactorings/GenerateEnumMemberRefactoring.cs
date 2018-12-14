@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,28 +21,26 @@ namespace Roslynator.CSharp.Refactorings
 
             if (enumSymbol.IsEnumWithFlags())
             {
-                List<object> values = GetConstantValues(enumSymbol);
+                List<ulong> values = GetConstantValues(enumSymbol);
 
-                SpecialType specialType = enumSymbol.EnumUnderlyingType.SpecialType;
-
-                Optional<object> optional = FlagsUtility.GetUniquePowerOfTwo(specialType, values);
+                Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
 
                 if (optional.HasValue)
                 {
                     context.RegisterRefactoring(
                         "Generate enum member",
-                        cancellationToken => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional.Value, cancellationToken),
-                RefactoringIdentifiers.GenerateEnumMember);
+                        ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional.Value, ct),
+                        RefactoringIdentifiers.GenerateEnumMember);
 
-                    Optional<object> optional2 = FlagsUtility.GetUniquePowerOfTwo(specialType, values, startFromHighestExistingValue: true);
+                    Optional<ulong> optional2 = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue: true);
 
                     if (optional2.HasValue
-                        && !optional.Value.Equals(optional2.Value))
+                        && optional.Value != optional2.Value)
                     {
                         context.RegisterRefactoring(
                             $"Generate enum member (with value {optional2.Value})",
-                            cancellationToken => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional2.Value, cancellationToken),
-                            RefactoringIdentifiers.GenerateEnumMember);
+                            ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional2.Value, ct),
+                            EquivalenceKey.Join(RefactoringIdentifiers.GenerateEnumMember, "StartFromHighestExistingValue"));
                     }
                 }
             }
@@ -49,14 +48,14 @@ namespace Roslynator.CSharp.Refactorings
             {
                 context.RegisterRefactoring(
                     "Generate enum member",
-                    cancellationToken => RefactorAsync(context.Document, enumDeclaration, enumSymbol, null, cancellationToken),
-                RefactoringIdentifiers.GenerateEnumMember);
+                    ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, null, ct),
+                    RefactoringIdentifiers.GenerateEnumMember);
             }
         }
 
-        private static List<object> GetConstantValues(ITypeSymbol enumSymbol)
+        private static List<ulong> GetConstantValues(INamedTypeSymbol enumSymbol)
         {
-            var values = new List<object>();
+            var values = new List<ulong>();
 
             foreach (ISymbol member in enumSymbol.GetMembers())
             {
@@ -65,7 +64,7 @@ namespace Roslynator.CSharp.Refactorings
                     var fieldSymbol = (IFieldSymbol)member;
 
                     if (fieldSymbol.HasConstantValue)
-                        values.Add(fieldSymbol.ConstantValue);
+                        values.Add(SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, enumSymbol));
                 }
             }
 
@@ -76,31 +75,26 @@ namespace Roslynator.CSharp.Refactorings
             Document document,
             EnumDeclarationSyntax enumDeclaration,
             INamedTypeSymbol enumSymbol,
-            object value,
+            ulong? value,
             CancellationToken cancellationToken)
-        {
-            EnumMemberDeclarationSyntax newEnumMember = CreateEnumMember(enumSymbol, DefaultNames.EnumMember, value);
-
-            EnumDeclarationSyntax newNode = enumDeclaration.AddMembers(newEnumMember);
-
-            return document.ReplaceNodeAsync(enumDeclaration, newNode, cancellationToken);
-        }
-
-        private static EnumMemberDeclarationSyntax CreateEnumMember(INamedTypeSymbol enumSymbol, string name, object value)
         {
             EqualsValueClauseSyntax equalsValue = null;
 
             if (value != null)
-                equalsValue = EqualsValueClause(CSharpFactory.LiteralExpression(value));
+                equalsValue = EqualsValueClause(ParseExpression(value.Value.ToString(CultureInfo.InvariantCulture)));
 
-            name = NameGenerator.Default.EnsureUniqueMemberName(name, enumSymbol);
+            string name = NameGenerator.Default.EnsureUniqueMemberName(DefaultNames.EnumMember, enumSymbol);
 
             SyntaxToken identifier = Identifier(name).WithRenameAnnotation();
 
-            return EnumMemberDeclaration(
+            EnumMemberDeclarationSyntax newEnumMember = EnumMemberDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 identifier,
                 equalsValue);
+
+            EnumDeclarationSyntax newNode = enumDeclaration.AddMembers(newEnumMember);
+
+            return document.ReplaceNodeAsync(enumDeclaration, newNode, cancellationToken);
         }
     }
 }

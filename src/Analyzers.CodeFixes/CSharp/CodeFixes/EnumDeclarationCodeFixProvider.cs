@@ -187,7 +187,7 @@ namespace Roslynator.CSharp.CodeFixes
                     ulong? value = null;
                     if (enumSymbol.IsEnumWithFlags())
                     {
-                        Optional<ulong> optional = FlagsUtility.GetUniquePowerOfTwo(values, startFromHighestExistingValue: false);
+                        Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
 
                         if (optional.HasValue)
                             value = optional.Value;

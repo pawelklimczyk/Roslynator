@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -28,33 +29,31 @@ namespace Roslynator.CSharp.Refactorings
 
             SpecialType specialType = enumSymbol.EnumUnderlyingType.SpecialType;
 
-            List<object> values = GetExplicitValues(enumDeclaration, semanticModel, context.CancellationToken);
+            List<ulong> values = GetExplicitValues(enumDeclaration, semanticModel, context.CancellationToken);
 
-            Optional<object> optional = FlagsUtility.GetUniquePowerOfTwo(specialType, values);
+            Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
 
             if (!optional.HasValue)
                 return;
 
             context.RegisterRefactoring(
                 "Generate enum values",
-                cancellationToken => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: false, cancellationToken: cancellationToken),
+                ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: false, cancellationToken: ct),
                 RefactoringIdentifiers.GenerateEnumValues);
 
-            if (!members.Any(f => f.EqualsValue != null))
-                return;
+            if (members.Any(f => f.EqualsValue != null))
+            {
+                Optional<ulong> optional2 = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue: true);
 
-            Optional<object> optional2 = FlagsUtility.GetUniquePowerOfTwo(specialType, values, startFromHighestExistingValue: true);
-
-            if (!optional2.HasValue)
-                return;
-
-            if (optional.Value.Equals(optional2.Value))
-                return;
-
-            context.RegisterRefactoring(
-                $"Generate enum values (starting from {optional2.Value})",
-                cancellationToken => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: true, cancellationToken: cancellationToken),
-                RefactoringIdentifiers.GenerateEnumValues);
+                if (optional2.HasValue
+                    && !optional.Value.Equals(optional2.Value))
+                {
+                    context.RegisterRefactoring(
+                        $"Generate enum values (starting from {optional2.Value})",
+                        ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: true, cancellationToken: ct),
+                        EquivalenceKey.Join(RefactoringIdentifiers.GenerateEnumValues, "StartFromHighestExistingValue"));
+                }
+            }
         }
 
         private static async Task<Document> RefactorAsync(
@@ -70,19 +69,19 @@ namespace Roslynator.CSharp.Refactorings
 
             SpecialType specialType = enumSymbol.EnumUnderlyingType.SpecialType;
 
-            List<object> values = GetExplicitValues(enumDeclaration, semanticModel, cancellationToken);
+            List<ulong> values = GetExplicitValues(enumDeclaration, semanticModel, cancellationToken);
 
             for (int i = 0; i < members.Count; i++)
             {
                 if (members[i].EqualsValue == null)
                 {
-                    Optional<object> optional = FlagsUtility.GetUniquePowerOfTwo(specialType, values, startFromHighestExistingValue);
+                    Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue);
 
                     if (optional.HasValue)
                     {
                         values.Add(optional.Value);
 
-                        EqualsValueClauseSyntax equalsValue = EqualsValueClause(CSharpFactory.LiteralExpression(optional.Value));
+                        EqualsValueClauseSyntax equalsValue = EqualsValueClause(ParseExpression(optional.Value.ToString(CultureInfo.InvariantCulture)));
 
                         EnumMemberDeclarationSyntax newMember = members[i]
                             .WithEqualsValue(equalsValue)
@@ -102,12 +101,12 @@ namespace Roslynator.CSharp.Refactorings
             return await document.ReplaceNodeAsync(enumDeclaration, newNode, cancellationToken).ConfigureAwait(false);
         }
 
-        private static List<object> GetExplicitValues(
+        private static List<ulong> GetExplicitValues(
             EnumDeclarationSyntax enumDeclaration,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var values = new List<object>();
+            var values = new List<ulong>();
 
             foreach (EnumMemberDeclarationSyntax member in enumDeclaration.Members)
             {
@@ -122,7 +121,7 @@ namespace Roslynator.CSharp.Refactorings
                         IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(member, cancellationToken);
 
                         if (fieldSymbol?.HasConstantValue == true)
-                            values.Add(fieldSymbol.ConstantValue);
+                            values.Add(SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, fieldSymbol.ContainingType));
                     }
                 }
             }
