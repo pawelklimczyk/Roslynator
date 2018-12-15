@@ -14,13 +14,13 @@ namespace Roslynator.CSharp
         None = 0,
 
         /// <summary>
-        /// Always use <see cref="SyntaxKind.DefaultExpression"/>.
+        /// Use <see cref="SyntaxKind.DefaultExpression"/> or <see cref="SyntaxKind.DefaultLiteralExpression"/>.
         /// </summary>
-        UseDefaultExpression = 1,
+        UseDefault = 1,
 
         /// <summary>
-        /// Always use <see cref="SyntaxKind.DefaultLiteralExpression"/>.
+        /// Prefer <see cref="SyntaxKind.DefaultLiteralExpression"/> to <see cref="SyntaxKind.DefaultExpression"/>.
         /// </summary>
-        UseDefaultLiteral = 2,
+        PreferDefaultLiteral = 2,
     }
 }

@@ -27,11 +27,8 @@ namespace Roslynator.CSharp
             if (typeSymbol == null)
                 throw new ArgumentNullException(nameof(typeSymbol));
 
-            if ((options & DefaultSyntaxOptions.UseDefaultExpression) != 0)
-                return DefaultExpression(GetTypeSyntax());
-
-            if ((options & DefaultSyntaxOptions.UseDefaultLiteral) != 0)
-                return DefaultLiteralExpression();
+            if ((options & DefaultSyntaxOptions.UseDefault) != 0)
+                return CreateDefault();
 
             if (typeSymbol.IsReferenceTypeOrNullableType())
                 return NullLiteralExpression();
@@ -49,13 +46,9 @@ namespace Roslynator.CSharp
             switch (typeSymbol.SpecialType)
             {
                 case SpecialType.System_Boolean:
-                    {
-                        return FalseLiteralExpression();
-                    }
+                    return FalseLiteralExpression();
                 case SpecialType.System_Char:
-                    {
-                        return CharacterLiteralExpression('\0');
-                    }
+                    return CharacterLiteralExpression('\0');
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
                 case SpecialType.System_Int16:
@@ -67,19 +60,22 @@ namespace Roslynator.CSharp
                 case SpecialType.System_Decimal:
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
-                    {
-                        return NumericLiteralExpression(0);
-                    }
+                    return NumericLiteralExpression(0);
             }
 
-            if ((options & DefaultSyntaxOptions.UseDefaultLiteral) != 0)
-                return DefaultLiteralExpression();
-
-            return DefaultExpression(GetTypeSyntax());
+            return CreateDefault();
 
             TypeSyntax GetTypeSyntax()
             {
                 return type ?? typeSymbol.ToTypeSyntax(format).WithSimplifierAnnotation();
+            }
+
+            ExpressionSyntax CreateDefault()
+            {
+                if ((options & DefaultSyntaxOptions.PreferDefaultLiteral) != 0)
+                    return DefaultLiteralExpression();
+
+                return DefaultExpression(GetTypeSyntax());
             }
         }
     }
