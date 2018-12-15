@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.FindSymbols;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -113,8 +113,10 @@ namespace Roslynator.CommandLine
             {
                 return (UnusedSymbolKinds & GetUnusedSymbolKinds(symbol)) != 0
                     && IsVisible(symbol)
+                    && (!Options.IgnoreObsolete
+                        || !symbol.HasAttribute(MetadataNames.System_ObsoleteAttribute))
                     && (Options.IncludeGeneratedCode
-                        || !GeneratedCodeUtility.IsGeneratedCode(symbol, generatedCodeAttribute, LanguageServices.Default.GetService<ISyntaxFactsService>(project.Language).IsComment, cancellationToken));
+                        || !GeneratedCodeUtility.IsGeneratedCode(symbol, generatedCodeAttribute, MefWorkspaceServices.Default.GetService<ISyntaxFactsService>(project.Language).IsComment, cancellationToken));
             }
         }
 

@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CodeMetrics;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -31,7 +31,7 @@ namespace Roslynator.CommandLine
             {
                 Project project = projectOrSolution.AsProject();
 
-                ICodeMetricsService service = LanguageServices.Default.GetService<ICodeMetricsService>(project.Language);
+                ICodeMetricsService service = MefWorkspaceServices.Default.GetService<ICodeMetricsService>(project.Language);
 
                 if (service != null)
                 {

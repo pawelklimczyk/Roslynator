@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.Diagnostics
@@ -168,7 +168,7 @@ namespace Roslynator.Diagnostics
                         SyntaxTree tree = diagnostic.Location.SourceTree;
 
                         if (tree == null
-                            || !GeneratedCodeUtility.IsGeneratedCode(tree, f => LanguageServices.Default.GetService<ISyntaxFactsService>(tree.Options.Language).IsComment(f), cancellationToken))
+                            || !GeneratedCodeUtility.IsGeneratedCode(tree, f => MefWorkspaceServices.Default.GetService<ISyntaxFactsService>(tree.Options.Language).IsComment(f), cancellationToken))
                         {
                             yield return diagnostic;
                         }

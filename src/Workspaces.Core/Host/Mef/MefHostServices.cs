@@ -10,27 +10,27 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslynator.Mef
+namespace Roslynator.Host.Mef
 {
-    internal class MefServices
+    internal class MefHostServices
     {
-        private static MefServices _default;
+        private static MefHostServices _default;
         private static ImmutableArray<Assembly> _defaultAssemblies;
 
         private readonly CompositionContext _compositionContext;
 
-        public MefServices(CompositionContext compositionContext)
+        public MefHostServices(CompositionContext compositionContext)
         {
             _compositionContext = compositionContext;
         }
 
-        public static MefServices Default
+        public static MefHostServices Default
         {
             get
             {
                 if (_default == null)
                 {
-                    MefServices services = Create(DefaultAssemblies);
+                    MefHostServices services = Create(DefaultAssemblies);
                     Interlocked.CompareExchange(ref _default, services, null);
                 }
 
@@ -49,15 +49,15 @@ namespace Roslynator.Mef
             }
         }
 
-        public static MefServices Create(CompositionContext compositionContext)
+        public static MefHostServices Create(CompositionContext compositionContext)
         {
             if (compositionContext == null)
                 throw new ArgumentNullException(nameof(compositionContext));
 
-            return new MefServices(compositionContext);
+            return new MefHostServices(compositionContext);
         }
 
-        public static MefServices Create(IEnumerable<Assembly> assemblies)
+        public static MefHostServices Create(IEnumerable<Assembly> assemblies)
         {
             if (assemblies == null)
                 throw new ArgumentNullException(nameof(assemblies));
@@ -66,7 +66,7 @@ namespace Roslynator.Mef
 
             CompositionHost container = compositionConfiguration.CreateContainer();
 
-            return new MefServices(container);
+            return new MefHostServices(container);
         }
 
         private static ImmutableArray<Assembly> LoadDefaultAssemblies()
@@ -78,7 +78,7 @@ namespace Roslynator.Mef
 
             IEnumerable<string> GetAssemblyNames()
             {
-                Version assemblyVersion = typeof(MefServices).GetTypeInfo().Assembly.GetName().Version;
+                Version assemblyVersion = typeof(MefHostServices).GetTypeInfo().Assembly.GetName().Version;
 
                 yield return $"Roslynator.CSharp.Workspaces, Version={assemblyVersion}, Culture=neutral, PublicKeyToken=ec3f0c29a7973f23";
                 yield return $"Roslynator.VisualBasic.Workspaces, Version={assemblyVersion}, Culture=neutral, PublicKeyToken=59e9c6ae3cea4cef";

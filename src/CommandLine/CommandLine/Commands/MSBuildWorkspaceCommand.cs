@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine

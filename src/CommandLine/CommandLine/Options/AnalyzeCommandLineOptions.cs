@@ -7,7 +7,6 @@ namespace Roslynator.CommandLine
     [Verb("analyze", HelpText = "Analyzes specified project or solution and reports diagnostics.")]
     public class AnalyzeCommandLineOptions : AbstractAnalyzeCommandLineOptions
     {
-        //TODO: LogAnalyzerExecutionTime
         [Option(longName: "execution-time",
             HelpText = "Indicates whether to measure execution time of each analyzer.")]
         public bool ExecutionTime { get; set; }

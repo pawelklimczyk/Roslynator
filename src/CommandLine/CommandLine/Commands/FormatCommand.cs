@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CodeFixes;
 using Roslynator.Formatting;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -90,7 +90,7 @@ namespace Roslynator.CommandLine
             {
                 WriteLine($"  Analyze '{project.Name}'", Verbosity.Minimal);
 
-                ISyntaxFactsService syntaxFacts = LanguageServices.Default.GetService<ISyntaxFactsService>(project.Language);
+                ISyntaxFactsService syntaxFacts = MefWorkspaceServices.Default.GetService<ISyntaxFactsService>(project.Language);
 
                 Project newProject = CodeFormatter.FormatProjectAsync(project, syntaxFacts, options, cancellationToken).Result;
 
@@ -140,7 +140,7 @@ namespace Roslynator.CommandLine
 
             WriteLine($"  Analyze '{project.Name}'", Verbosity.Minimal);
 
-            ISyntaxFactsService syntaxFacts = LanguageServices.Default.GetService<ISyntaxFactsService>(project.Language);
+            ISyntaxFactsService syntaxFacts = MefWorkspaceServices.Default.GetService<ISyntaxFactsService>(project.Language);
 
             Project newProject = await CodeFormatter.FormatProjectAsync(project, syntaxFacts, options, cancellationToken);
 

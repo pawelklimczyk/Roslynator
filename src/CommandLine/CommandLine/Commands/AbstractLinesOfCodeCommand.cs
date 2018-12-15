@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CodeMetrics;
-using Roslynator.Mef;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -29,7 +29,7 @@ namespace Roslynator.CommandLine
 
             Parallel.ForEach(projects, project =>
             {
-                ICodeMetricsService service = LanguageServices.Default.GetService<ICodeMetricsService>(project.Language);
+                ICodeMetricsService service = MefWorkspaceServices.Default.GetService<ICodeMetricsService>(project.Language);
 
                 CodeMetricsInfo projectMetrics = (service != null)
                     ? service.CountLinesAsync(project, kind, options, cancellationToken).Result
@@ -51,7 +51,7 @@ namespace Roslynator.CommandLine
 
             foreach (Project project in projects)
             {
-                ICodeMetricsService service = LanguageServices.Default.GetService<ICodeMetricsService>(project.Language);
+                ICodeMetricsService service = MefWorkspaceServices.Default.GetService<ICodeMetricsService>(project.Language);
 
                 CodeMetricsInfo projectMetrics = (service != null)
                     ? await service.CountLinesAsync(project, kind, options, cancellationToken).ConfigureAwait(false)

@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Roslynator.Mef
+namespace Roslynator.Host.Mef
 {
     internal class LanguageServiceMetadata : LanguageMetadata
     {

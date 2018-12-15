@@ -39,7 +39,6 @@ namespace Roslynator.Diagnostics
 
         public bool IgnoreCompilerDiagnostics { get; }
 
-        //TODO: ReportNotConfigurableDiagnostics
         public bool ReportNotConfigurable { get; }
 
         public bool ReportSuppressedDiagnostics { get; }
