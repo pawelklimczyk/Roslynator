@@ -124,5 +124,43 @@ enum Foo
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.EnumShouldDeclareExplicitValues)]
+        public async Task Test_Flags_SByte()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+[Flags]
+enum [|Foo|] : sbyte
+{
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+}
+", @"
+using System;
+
+[Flags]
+enum Foo : sbyte
+{
+    A = 0,
+    B = 1,
+    C = 2,
+    D = 4,
+    E = 8,
+    F = 16,
+    G = 32,
+    H = 64,
+    I
+}
+");
+        }
     }
 }

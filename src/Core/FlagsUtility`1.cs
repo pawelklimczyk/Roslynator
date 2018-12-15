@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -53,6 +54,8 @@ namespace Roslynator
         public abstract bool IsComposite(T value);
 
         public abstract IEnumerable<T> Decompose(T value);
+
+        public abstract Optional<T> TryCompose(ImmutableArray<T> values);
 
         private class SByteFlagsUtility : FlagsUtility<sbyte>
         {
@@ -126,6 +129,23 @@ namespace Roslynator
                     if ((value & x) != 0)
                         yield return x;
                 }
+            }
+
+            public override Optional<sbyte> TryCompose(ImmutableArray<sbyte> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => (sbyte)(f + g));
             }
         }
 
@@ -202,6 +222,23 @@ namespace Roslynator
                         yield return x;
                 }
             }
+
+            public override Optional<byte> TryCompose(ImmutableArray<byte> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => (byte)(f + g));
+            }
         }
 
         private class ShortFlagsUtility : FlagsUtility<short>
@@ -276,6 +313,23 @@ namespace Roslynator
                     if ((value & x) != 0)
                         yield return x;
                 }
+            }
+
+            public override Optional<short> TryCompose(ImmutableArray<short> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => (short)(f + g));
             }
         }
 
@@ -352,6 +406,23 @@ namespace Roslynator
                         yield return x;
                 }
             }
+
+            public override Optional<ushort> TryCompose(ImmutableArray<ushort> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => (ushort)(f + g));
+            }
         }
 
         private class IntFlagsUtility : FlagsUtility<int>
@@ -418,7 +489,7 @@ namespace Roslynator
             {
                 for (int i = 0; i < ByteCount; i++)
                 {
-                    var x = (int)(1 << i);
+                    int x = 1 << i;
 
                     if (x > value)
                         yield break;
@@ -426,6 +497,23 @@ namespace Roslynator
                     if ((value & x) != 0)
                         yield return x;
                 }
+            }
+
+            public override Optional<int> TryCompose(ImmutableArray<int> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => f + g);
             }
         }
 
@@ -502,6 +590,23 @@ namespace Roslynator
                         yield return x;
                 }
             }
+
+            public override Optional<uint> TryCompose(ImmutableArray<uint> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => f + g);
+            }
         }
 
         private class LongFlagsUtility : FlagsUtility<long>
@@ -577,6 +682,23 @@ namespace Roslynator
                         yield return x;
                 }
             }
+
+            public override Optional<long> TryCompose(ImmutableArray<long> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => f + g);
+            }
         }
 
         private class ULongFlagsUtility : FlagsUtility<ulong>
@@ -641,7 +763,7 @@ namespace Roslynator
 
             public override IEnumerable<ulong> Decompose(ulong value)
             {
-                for (int i = 0; i < (int)ByteCount; i++)
+                for (int i = 0; i < ByteCount; i++)
                 {
                     ulong x = 1UL << i;
 
@@ -651,6 +773,23 @@ namespace Roslynator
                     if ((value & x) != 0)
                         yield return x;
                 }
+            }
+
+            public override Optional<ulong> TryCompose(ImmutableArray<ulong> values)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    for (int j = 0; j < values.Length; j++)
+                    {
+                        if (j != i
+                            && (values[i] & values[j]) != 0)
+                        {
+                            return default;
+                        }
+                    }
+                }
+
+                return values.Aggregate((f, g) => f + g);
             }
         }
     }

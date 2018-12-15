@@ -3,8 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,9 +67,29 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case DiagnosticIdentifiers.EnumShouldDeclareExplicitValues:
                         {
+                            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                            INamedTypeSymbol enumSymbol = semanticModel.GetDeclaredSymbol(enumDeclaration, context.CancellationToken);
+
+                            EnumSymbolInfo enumInfo = EnumSymbolInfo.Create(enumSymbol);
+
+                            ImmutableArray<ulong> values = enumInfo
+                                .Fields
+                                .Where(f => f.HasValue && ((EnumMemberDeclarationSyntax)f.Symbol.GetSyntax(context.CancellationToken)).EqualsValue != null)
+                                .Select(f => f.Value)
+                                .ToImmutableArray();
+
+                            Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
+
+                            if (!optional.HasValue
+                                || !EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
+                            {
+                                return;
+                            }
+
                             CodeAction codeAction = CodeAction.Create(
                                 "Declare explicit values",
-                                cancellationToken => DeclareExplicitValueAsync(context.Document, enumDeclaration, cancellationToken),
+                                ct => DeclareExplicitValueAsync(context.Document, enumDeclaration, enumSymbol, values, semanticModel, ct),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -162,19 +180,14 @@ namespace Roslynator.CSharp.CodeFixes
         private static async Task<Document> DeclareExplicitValueAsync(
             Document document,
             EnumDeclarationSyntax enumDeclaration,
+            INamedTypeSymbol enumSymbol,
+            ImmutableArray<ulong> values,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            bool isFlags = enumSymbol.HasAttribute(MetadataNames.System_FlagsAttribute);
 
-            INamedTypeSymbol enumSymbol = semanticModel.GetDeclaredSymbol(enumDeclaration, cancellationToken);
-
-            EnumSymbolInfo enumInfo = EnumSymbolInfo.Create(enumSymbol);
-
-            List<ulong> values = enumInfo
-                .Fields
-                .Where(f => f.HasValue && ((EnumMemberDeclarationSyntax)f.Symbol.GetSyntax(cancellationToken)).EqualsValue != null)
-                .Select(f => f.Value)
-                .ToList();
+            List<ulong> valuesList = values.ToList();
 
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> newMembers = enumDeclaration.Members
                 .Select(enumMember =>
@@ -185,26 +198,27 @@ namespace Roslynator.CSharp.CodeFixes
                     IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(enumMember, cancellationToken);
 
                     ulong? value = null;
-                    if (enumSymbol.IsEnumWithFlags())
+                    if (isFlags)
                     {
-                        Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
+                        Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(valuesList);
 
-                        if (optional.HasValue)
+                        if (optional.HasValue
+                            && EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
+                        {
                             value = optional.Value;
+                        }
                     }
                     else
                     {
                         value = SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, enumSymbol);
                     }
 
-                    Debug.Assert(value != null, "");
-
                     if (value == null)
                         return enumMember;
 
-                    values.Add(value.Value);
+                    valuesList.Add(value.Value);
 
-                    EqualsValueClauseSyntax equalsValue = EqualsValueClause(ParseExpression(value.Value.ToString(CultureInfo.InvariantCulture)));
+                    EqualsValueClauseSyntax equalsValue = EqualsValueClause(NumericLiteralExpression(value.Value, enumSymbol.EnumUnderlyingType.SpecialType));
 
                     return enumMember.WithEqualsValue(equalsValue);
                 })

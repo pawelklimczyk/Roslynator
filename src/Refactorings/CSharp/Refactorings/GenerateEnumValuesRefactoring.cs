@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,13 +15,18 @@ namespace Roslynator.CSharp.Refactorings
 {
     internal static class GenerateEnumValuesRefactoring
     {
-        public static async Task ComputeRefactoringAsync(RefactoringContext context, EnumDeclarationSyntax enumDeclaration)
-        {
-            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+        internal const string EquivalenceKey = RefactoringIdentifiers.GenerateEnumValues;
 
+        internal static readonly string StartFromHighestExistingValueEquivalenceKey = Roslynator.EquivalenceKey.Join(EquivalenceKey, "StartFromHighestExistingValue");
+
+        public static void ComputeRefactoring(
+            RefactoringContext context,
+            EnumDeclarationSyntax enumDeclaration,
+            SemanticModel semanticModel)
+        {
             INamedTypeSymbol enumSymbol = semanticModel.GetDeclaredSymbol(enumDeclaration, context.CancellationToken);
 
-            if (!enumSymbol.IsEnumWithFlags())
+            if (enumSymbol?.HasAttribute(MetadataNames.System_FlagsAttribute) != true)
                 return;
 
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members = enumDeclaration.Members;
@@ -27,31 +34,34 @@ namespace Roslynator.CSharp.Refactorings
             if (!members.Any(f => f.EqualsValue == null))
                 return;
 
-            SpecialType specialType = enumSymbol.EnumUnderlyingType.SpecialType;
-
-            List<ulong> values = GetExplicitValues(enumDeclaration, semanticModel, context.CancellationToken);
+            ImmutableArray<ulong> values = GetExplicitValues(enumDeclaration, semanticModel, context.CancellationToken);
 
             Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
 
             if (!optional.HasValue)
                 return;
 
+            if (!EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
+                return;
+
+            Document document = context.Document;
+
             context.RegisterRefactoring(
-                "Generate enum values",
-                ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: false, cancellationToken: ct),
-                RefactoringIdentifiers.GenerateEnumValues);
+                "Declare explicit values",
+                ct => RefactorAsync(document, enumDeclaration, enumSymbol, values, startFromHighestExistingValue: false, cancellationToken: ct),
+                EquivalenceKey);
 
             if (members.Any(f => f.EqualsValue != null))
             {
                 Optional<ulong> optional2 = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue: true);
 
                 if (optional2.HasValue
-                    && !optional.Value.Equals(optional2.Value))
+                    && optional.Value != optional2.Value)
                 {
                     context.RegisterRefactoring(
-                        $"Generate enum values (starting from {optional2.Value})",
-                        ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, startFromHighestExistingValue: true, cancellationToken: ct),
-                        EquivalenceKey.Join(RefactoringIdentifiers.GenerateEnumValues, "StartFromHighestExistingValue"));
+                        $"Declare explicit values (starting from {optional2.Value})",
+                        ct => RefactorAsync(document, enumDeclaration, enumSymbol, values, startFromHighestExistingValue: true, cancellationToken: ct),
+                        StartFromHighestExistingValueEquivalenceKey);
                 }
             }
         }
@@ -60,26 +70,24 @@ namespace Roslynator.CSharp.Refactorings
             Document document,
             EnumDeclarationSyntax enumDeclaration,
             INamedTypeSymbol enumSymbol,
+            ImmutableArray<ulong> values,
             bool startFromHighestExistingValue,
             CancellationToken cancellationToken)
         {
             SeparatedSyntaxList<EnumMemberDeclarationSyntax> members = enumDeclaration.Members;
 
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            SpecialType specialType = enumSymbol.EnumUnderlyingType.SpecialType;
-
-            List<ulong> values = GetExplicitValues(enumDeclaration, semanticModel, cancellationToken);
+            List<ulong> valuesList = values.ToList();
 
             for (int i = 0; i < members.Count; i++)
             {
                 if (members[i].EqualsValue == null)
                 {
-                    Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue);
+                    Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(valuesList, startFromHighestExistingValue);
 
-                    if (optional.HasValue)
+                    if (optional.HasValue
+                        && EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
                     {
-                        values.Add(optional.Value);
+                        valuesList.Add(optional.Value);
 
                         EqualsValueClauseSyntax equalsValue = EqualsValueClause(ParseExpression(optional.Value.ToString(CultureInfo.InvariantCulture)));
 
@@ -101,32 +109,27 @@ namespace Roslynator.CSharp.Refactorings
             return await document.ReplaceNodeAsync(enumDeclaration, newNode, cancellationToken).ConfigureAwait(false);
         }
 
-        private static List<ulong> GetExplicitValues(
+        private static ImmutableArray<ulong> GetExplicitValues(
             EnumDeclarationSyntax enumDeclaration,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var values = new List<ulong>();
+            ImmutableArray<ulong>.Builder values = ImmutableArray.CreateBuilder<ulong>();
 
             foreach (EnumMemberDeclarationSyntax member in enumDeclaration.Members)
             {
-                EqualsValueClauseSyntax equalsValue = member.EqualsValue;
+                ExpressionSyntax value = member.EqualsValue?.Value;
 
-                if (equalsValue != null)
+                if (value != null)
                 {
-                    ExpressionSyntax value = equalsValue.Value;
+                    IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(member, cancellationToken);
 
-                    if (value != null)
-                    {
-                        IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(member, cancellationToken);
-
-                        if (fieldSymbol?.HasConstantValue == true)
-                            values.Add(SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, fieldSymbol.ContainingType));
-                    }
+                    if (fieldSymbol?.HasConstantValue == true)
+                        values.Add(SymbolUtility.GetEnumValueAsUInt64(fieldSymbol.ConstantValue, fieldSymbol.ContainingType));
                 }
             }
 
-            return values;
+            return values.ToImmutableArray();
         }
     }
 }

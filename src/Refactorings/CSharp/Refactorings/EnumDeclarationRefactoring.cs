@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Roslynator.CSharp.Refactorings
@@ -14,12 +15,22 @@ namespace Roslynator.CSharp.Refactorings
 
             if (enumDeclaration.BracesSpan().Contains(context.Span))
             {
+                if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumValues)
+                    && context.Span.IsEmpty)
+                {
+                    SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                    GenerateEnumValuesRefactoring.ComputeRefactoring(context, enumDeclaration, semanticModel);
+                }
+
                 await SelectedEnumMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, enumDeclaration).ConfigureAwait(false);
 
                 if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumMember)
                     && context.Span.IsEmpty)
                 {
-                    await GenerateEnumMemberRefactoring.ComputeRefactoringAsync(context, enumDeclaration).ConfigureAwait(false);
+                    SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                    GenerateEnumMemberRefactoring.ComputeRefactoring(context, enumDeclaration, semanticModel);
                 }
             }
         }

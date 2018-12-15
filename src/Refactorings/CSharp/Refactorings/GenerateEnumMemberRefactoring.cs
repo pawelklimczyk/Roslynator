@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Globalization;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,34 +12,43 @@ namespace Roslynator.CSharp.Refactorings
 {
     internal static class GenerateEnumMemberRefactoring
     {
-        public static async Task ComputeRefactoringAsync(RefactoringContext context, EnumDeclarationSyntax enumDeclaration)
+        internal const string EquivalenceKey = RefactoringIdentifiers.GenerateEnumMember;
+
+        internal static readonly string StartFromHighestExistingValueEquivalenceKey = Roslynator.EquivalenceKey.Join(EquivalenceKey, "StartFromHighestExistingValue");
+
+        public static void ComputeRefactoring(
+            RefactoringContext context,
+            EnumDeclarationSyntax enumDeclaration,
+            SemanticModel semanticModel)
         {
-            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+            Document document = context.Document;
 
             INamedTypeSymbol enumSymbol = semanticModel.GetDeclaredSymbol(enumDeclaration, context.CancellationToken);
 
-            if (enumSymbol.IsEnumWithFlags())
+            if (enumSymbol?.HasAttribute(MetadataNames.System_FlagsAttribute) == true)
             {
-                List<ulong> values = GetConstantValues(enumSymbol);
+                ImmutableArray<ulong> values = GetConstantValues(enumSymbol);
 
                 Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values);
 
-                if (optional.HasValue)
+                if (optional.HasValue
+                    && EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
                 {
                     context.RegisterRefactoring(
                         "Generate enum member",
-                        ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional.Value, ct),
-                        RefactoringIdentifiers.GenerateEnumMember);
+                        ct => RefactorAsync(document, enumDeclaration, enumSymbol, optional.Value, ct),
+                        EquivalenceKey);
 
                     Optional<ulong> optional2 = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(values, startFromHighestExistingValue: true);
 
                     if (optional2.HasValue
+                        && EnumHelpers.IsAllowedValue(optional2.Value, enumSymbol.EnumUnderlyingType.SpecialType)
                         && optional.Value != optional2.Value)
                     {
                         context.RegisterRefactoring(
                             $"Generate enum member (with value {optional2.Value})",
-                            ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, optional2.Value, ct),
-                            EquivalenceKey.Join(RefactoringIdentifiers.GenerateEnumMember, "StartFromHighestExistingValue"));
+                            ct => RefactorAsync(document, enumDeclaration, enumSymbol, optional2.Value, ct),
+                            StartFromHighestExistingValueEquivalenceKey);
                     }
                 }
             }
@@ -48,14 +56,14 @@ namespace Roslynator.CSharp.Refactorings
             {
                 context.RegisterRefactoring(
                     "Generate enum member",
-                    ct => RefactorAsync(context.Document, enumDeclaration, enumSymbol, null, ct),
-                    RefactoringIdentifiers.GenerateEnumMember);
+                    ct => RefactorAsync(document, enumDeclaration, enumSymbol, null, ct),
+                    EquivalenceKey);
             }
         }
 
-        private static List<ulong> GetConstantValues(INamedTypeSymbol enumSymbol)
+        private static ImmutableArray<ulong> GetConstantValues(INamedTypeSymbol enumSymbol)
         {
-            var values = new List<ulong>();
+            ImmutableArray<ulong>.Builder values = ImmutableArray.CreateBuilder<ulong>();
 
             foreach (ISymbol member in enumSymbol.GetMembers())
             {
@@ -68,7 +76,7 @@ namespace Roslynator.CSharp.Refactorings
                 }
             }
 
-            return values;
+            return values.ToImmutableArray();
         }
 
         private static Task<Document> RefactorAsync(
@@ -81,7 +89,7 @@ namespace Roslynator.CSharp.Refactorings
             EqualsValueClauseSyntax equalsValue = null;
 
             if (value != null)
-                equalsValue = EqualsValueClause(ParseExpression(value.Value.ToString(CultureInfo.InvariantCulture)));
+                equalsValue = EqualsValueClause(CSharpFactory.NumericLiteralExpression(value.Value, enumSymbol.EnumUnderlyingType.SpecialType));
 
             string name = NameGenerator.Default.EnsureUniqueMemberName(DefaultNames.EnumMember, enumSymbol);
 
