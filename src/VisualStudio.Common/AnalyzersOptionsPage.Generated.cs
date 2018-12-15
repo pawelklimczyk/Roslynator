@@ -14,7 +14,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.MakeParameterRefReadOnly;
+        = DiagnosticIdentifiers.ReorderElementsInDocumentationComment;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
@@ -155,7 +155,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.StaticMemberInGenericTypeShouldUseTypeParameter, "Static member in generic type should use a type parameter.", !IsEnabled(DiagnosticIdentifiers.StaticMemberInGenericTypeShouldUseTypeParameter)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseGenericEventHandler, "Use EventHandler<T>.", !IsEnabled(DiagnosticIdentifiers.UseGenericEventHandler)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AbstractTypeShouldNotHavePublicConstructors, "Abstract type should not have public constructors.", !IsEnabled(DiagnosticIdentifiers.AbstractTypeShouldNotHavePublicConstructors)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.EnumMemberShouldDeclareExplicitValue, "Enum member should declare explicit value.", !IsEnabled(DiagnosticIdentifiers.EnumMemberShouldDeclareExplicitValue)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.EnumShouldDeclareExplicitValues, "Enum should declare explicit values.", !IsEnabled(DiagnosticIdentifiers.EnumShouldDeclareExplicitValues)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidChainOfAssignments, "Avoid chain of assignments.", !IsEnabled(DiagnosticIdentifiers.AvoidChainOfAssignments)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnusedParameter, "Unused parameter.", !IsEnabled(DiagnosticIdentifiers.UnusedParameter)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnusedTypeParameter, "Unused type parameter.", !IsEnabled(DiagnosticIdentifiers.UnusedTypeParameter)));
@@ -225,6 +225,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseAsyncAwait, "Use async/await when necessary.", !IsEnabled(DiagnosticIdentifiers.UseAsyncAwait)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator, "Unnecessary usage of enumerator.", !IsEnabled(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.MakeParameterRefReadOnly, "Make parameter ref read-only.", !IsEnabled(DiagnosticIdentifiers.MakeParameterRefReadOnly)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReorderElementsInDocumentationComment, "Reorder elements in documentation comment.", !IsEnabled(DiagnosticIdentifiers.ReorderElementsInDocumentationComment)));
         }
     }
 }

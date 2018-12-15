@@ -58,7 +58,7 @@ namespace Roslynator.CSharp.Analysis
                 {
                     var enumDeclaration = (EnumDeclarationSyntax)typeSymbol.GetSyntax(context.CancellationToken);
 
-                    context.ReportDiagnostic(DiagnosticDescriptors.DeclareEnumMemberWithZeroValue, enumDeclaration.Identifier);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.DeclareEnumMemberWithZeroValue, enumDeclaration.Identifier);
                 }
             }
 
@@ -123,7 +123,7 @@ namespace Roslynator.CSharp.Analysis
                         List<EnumFieldSymbolInfo> values = enumInfo.Decompose(fieldInfo);
 
                         if (values?.Count > 1)
-                            context.ReportDiagnostic(DiagnosticDescriptors.DeclareEnumValueAsCombinationOfNames, expression);
+                            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.DeclareEnumValueAsCombinationOfNames, expression);
                     }
                 }
             }
@@ -154,7 +154,8 @@ namespace Roslynator.CSharp.Analysis
         {
             var enumMember = (EnumMemberDeclarationSyntax)fieldSymbol.GetSyntax(context.CancellationToken);
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.CompositeEnumValueContainsUndefinedFlag,
                 enumMember.GetLocation(),
                 ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("Value", value) }),

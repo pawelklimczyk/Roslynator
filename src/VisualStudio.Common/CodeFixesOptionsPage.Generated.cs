@@ -65,7 +65,7 @@ namespace Roslynator.VisualStudio
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.MakeMemberNonStatic, "Make member non-static (fixes CS0120)", IsEnabled(CodeFixIdentifiers.MakeMemberNonStatic)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveConstraintClauses, "Remove constraint clauses (fixes CS0080)", IsEnabled(CodeFixIdentifiers.RemoveConstraintClauses)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.AddTypeArgument, "Add type argument (fixes CS0305)", IsEnabled(CodeFixIdentifiers.AddTypeArgument)));
-            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveConstModifier, "Remove 'const' modifier (fixes CS0133)", IsEnabled(CodeFixIdentifiers.RemoveConstModifier)));
+            codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveConstModifier, "Remove 'const' modifier (fixes CS0131, CS0133)", IsEnabled(CodeFixIdentifiers.RemoveConstModifier)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.RemoveEmptySwitchStatement, "Remove empty switch statement (fixes CS1522)", IsEnabled(CodeFixIdentifiers.RemoveEmptySwitchStatement)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.IntroduceLocalVariable, "Introduce local variable (fixes CS0201)", IsEnabled(CodeFixIdentifiers.IntroduceLocalVariable)));
             codeFixes.Add(new BaseModel(CodeFixIdentifiers.UseExplicitTypeInsteadOfVar, "Use explicit type instead of 'var' (fixes CS0819, CS0822)", IsEnabled(CodeFixIdentifiers.UseExplicitTypeInsteadOfVar)));
