@@ -14,7 +14,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.ReorderElementsInDocumentationComment;
+        = DiagnosticIdentifiers.RemoveUnnecessaryNewLine;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
@@ -36,7 +36,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseExpressionBodiedMember, "Use expression-bodied member.", !IsEnabled(DiagnosticIdentifiers.UseExpressionBodiedMember)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidMultilineExpressionBody, "Avoid multiline expression body.", !IsEnabled(DiagnosticIdentifiers.AvoidMultilineExpressionBody)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddDefaultAccessModifier, "Add default access modifier.", !IsEnabled(DiagnosticIdentifiers.AddDefaultAccessModifier)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReorderModifiers, "Reorder modifiers.", !IsEnabled(DiagnosticIdentifiers.ReorderModifiers)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderModifiers, "Order modifiers.", !IsEnabled(DiagnosticIdentifiers.OrderModifiers)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.SimplifyNullableOfT, "Simplify Nullable<T> to T?.", !IsEnabled(DiagnosticIdentifiers.SimplifyNullableOfT)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.SimplifyLambdaExpression, "Simplify lambda expression.", !IsEnabled(DiagnosticIdentifiers.SimplifyLambdaExpression)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.FormatEmptyBlock, "Format empty block.", !IsEnabled(DiagnosticIdentifiers.FormatEmptyBlock)));
@@ -198,11 +198,11 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidNullReferenceException, "Avoid NullReferenceException.", !IsEnabled(DiagnosticIdentifiers.AvoidNullReferenceException)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseAttributeUsageAttribute, "Use AttributeUsageAttribute.", !IsEnabled(DiagnosticIdentifiers.UseAttributeUsageAttribute)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseEventArgsEmpty, "Use EventArgs.Empty.", !IsEnabled(DiagnosticIdentifiers.UseEventArgsEmpty)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReorderNamedArguments, "Reorder named arguments according to the order of parameters.", !IsEnabled(DiagnosticIdentifiers.ReorderNamedArguments)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderNamedArguments, "Order named arguments according to the order of parameters.", !IsEnabled(DiagnosticIdentifiers.OrderNamedArguments)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression, "Use conditional access instead of conditional expression.", !IsEnabled(DiagnosticIdentifiers.UseConditionalAccessInsteadOfConditionalExpression)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseMethodGroupInsteadOfAnonymousFunction, "Use method group instead of anonymous function.", !IsEnabled(DiagnosticIdentifiers.UseMethodGroupInsteadOfAnonymousFunction)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReduceIfNesting, "Reduce if nesting.", !IsEnabled(DiagnosticIdentifiers.ReduceIfNesting)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReorderTypeParameterConstraints, "Reorder type parameter constraints.", !IsEnabled(DiagnosticIdentifiers.ReorderTypeParameterConstraints)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderTypeParameterConstraints, "Order type parameter constraints.", !IsEnabled(DiagnosticIdentifiers.OrderTypeParameterConstraints)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReturnTaskInsteadOfNull, "Return Task.FromResult instead of returning null.", !IsEnabled(DiagnosticIdentifiers.ReturnTaskInsteadOfNull)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveUnnecessaryElseClause, "Remove unnecessary else clause.", !IsEnabled(DiagnosticIdentifiers.RemoveUnnecessaryElseClause)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveRedundantAssignment, "Remove redundant assignment.", !IsEnabled(DiagnosticIdentifiers.RemoveRedundantAssignment)));
@@ -226,6 +226,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator, "Unnecessary usage of enumerator.", !IsEnabled(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.MakeParameterRefReadOnly, "Make parameter ref read-only.", !IsEnabled(DiagnosticIdentifiers.MakeParameterRefReadOnly)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReorderElementsInDocumentationComment, "Reorder elements in documentation comment.", !IsEnabled(DiagnosticIdentifiers.ReorderElementsInDocumentationComment)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveUnnecessaryNewLine, "Remove unnecessary new line.", !IsEnabled(DiagnosticIdentifiers.RemoveUnnecessaryNewLine)));
         }
     }
 }
