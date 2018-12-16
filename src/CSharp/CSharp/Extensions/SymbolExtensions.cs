@@ -222,6 +222,7 @@ namespace Roslynator.CSharp
                 throw new ArgumentException($"Type '{typeSymbol.ToDisplayString()}' does not support explicit declaration.", nameof(typeSymbol));
         }
 
+        /// <summary>
         /// Returns true if the specified type can be used to declare constant value.
         /// </summary>
         /// <param name="typeSymbol"></param>
