@@ -216,5 +216,6 @@ namespace Roslynator.CSharp
         public const string UnnecessaryUsageOfEnumerator = "RCS1230";
         public const string MakeParameterRefReadOnly = "RCS1231";
         public const string ReorderElementsInDocumentationComment = "RCSX005";
+        public const string RemoveUnnecessaryNewLine = "RCSX006";
     }
 }

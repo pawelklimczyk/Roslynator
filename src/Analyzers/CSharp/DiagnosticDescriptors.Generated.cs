@@ -2557,5 +2557,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ReorderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCSX006</summary>
+        public static readonly DiagnosticDescriptor RemoveUnnecessaryNewLine = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.RemoveUnnecessaryNewLine, 
+            title:              "Remove unnecessary new line.", 
+            messageFormat:      "Remove unnecessary new line.", 
+            category:           DiagnosticCategories.Formatting, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RemoveUnnecessaryNewLine}", 
+            customTags:         Array.Empty<string>());
+
     }
 }
