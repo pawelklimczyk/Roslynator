@@ -13,25 +13,35 @@ namespace Roslynator.CSharp.Refactorings
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.ExtractTypeDeclarationToNewFile))
                 ExtractTypeDeclarationToNewFileRefactoring.ComputeRefactorings(context, enumDeclaration);
 
-            if (enumDeclaration.BracesSpan().Contains(context.Span))
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.RemoveEnumMemberValue)
+                && context.Span.IsEmptyAndContainedInSpan(enumDeclaration.Identifier))
             {
-                if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumValues)
-                    && context.Span.IsEmpty)
+                RemoveEnumMemberValueRefactoring.ComputeRefactoring(context, enumDeclaration);
+            }
+
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumValues)
+                && context.Span.IsEmpty)
+            {
+                if (enumDeclaration.BracesSpan().Contains(context.Span))
                 {
                     SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
                     GenerateEnumValuesRefactoring.ComputeRefactoring(context, enumDeclaration, semanticModel);
                 }
 
-                await SelectedEnumMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, enumDeclaration).ConfigureAwait(false);
+                if (enumDeclaration.Identifier.Span.Contains(context.Span))
+                    GenerateAllEnumValuesRefactoring.ComputeRefactoring(context, enumDeclaration);
+            }
 
-                if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumMember)
-                    && context.Span.IsEmpty)
-                {
-                    SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+            await SelectedEnumMemberDeclarationsRefactoring.ComputeRefactoringAsync(context, enumDeclaration).ConfigureAwait(false);
 
-                    GenerateEnumMemberRefactoring.ComputeRefactoring(context, enumDeclaration, semanticModel);
-                }
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateEnumMember)
+                && context.Span.IsEmpty
+                && enumDeclaration.BracesSpan().Contains(context.Span))
+            {
+                SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                GenerateEnumMemberRefactoring.ComputeRefactoring(context, enumDeclaration, semanticModel);
             }
         }
     }

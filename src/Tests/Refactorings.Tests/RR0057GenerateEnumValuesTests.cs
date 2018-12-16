@@ -36,5 +36,57 @@ enum Foo
 }
 ", equivalenceKey: RefactoringId);
         }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateEnumValues)]
+        public async Task Test_OverwriteExistingValues()
+        {
+            await VerifyRefactoringAsync(@"
+enum [||]Foo
+{
+    None = 0,
+    A = 2,
+    B = 1,
+    C = 4,
+}
+", @"
+enum Foo
+{
+    None = 0,
+    A = 1,
+    B = 2,
+    C = 3
+}
+", equivalenceKey: GenerateAllEnumValuesRefactoring.EquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateEnumValues)]
+        public async Task Test_OverwriteExistingValues_Flags()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+
+[Flags]
+enum [||]Foo
+{
+    None = 0,
+    A = 2,
+    B = 1,
+    AB = A | B,
+    C = 4,
+}
+", @"
+using System;
+
+[Flags]
+enum Foo
+{
+    None = 0,
+    A = 1,
+    B = 2,
+    AB = A | B,
+    C = 4
+}
+", equivalenceKey: GenerateAllEnumValuesRefactoring.EquivalenceKey);
+        }
     }
 }
