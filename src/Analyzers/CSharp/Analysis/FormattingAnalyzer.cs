@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#pragma warning disable RCS1213
+
 namespace Roslynator.CSharp.Analysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -38,7 +40,7 @@ namespace Roslynator.CSharp.Analysis
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeLocalDeclarationStatement, SyntaxKind.LocalDeclarationStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeExpressionStatement, SyntaxKind.ExpressionStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeEmptyStatement, SyntaxKind.EmptyStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeEmptyStatement, SyntaxKind.EmptyStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeLabeledStatement, SyntaxKind.LabeledStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeGotoStatement, SyntaxKind.GotoStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeGotoCaseStatement, SyntaxKind.GotoCaseStatement);
@@ -49,21 +51,21 @@ namespace Roslynator.CSharp.Analysis
                 startContext.RegisterSyntaxNodeAction(AnalyzeYieldReturnStatement, SyntaxKind.YieldReturnStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeYieldBreakStatement, SyntaxKind.YieldBreakStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeThrowStatement, SyntaxKind.ThrowStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeWhileStatement, SyntaxKind.WhileStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeWhileStatement, SyntaxKind.WhileStatement);
                 startContext.RegisterSyntaxNodeAction(AnalyzeDoStatement, SyntaxKind.DoStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeForStatement, SyntaxKind.ForStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeFixedStatement, SyntaxKind.FixedStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeCheckedStatement, SyntaxKind.CheckedStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeUncheckedStatement, SyntaxKind.UncheckedStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeUnsafeStatement, SyntaxKind.UnsafeStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeLockStatement, SyntaxKind.LockStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeSwitchStatement, SyntaxKind.SwitchStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeTryStatement, SyntaxKind.TryStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachVariableStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeForStatement, SyntaxKind.ForStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeFixedStatement, SyntaxKind.FixedStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeCheckedStatement, SyntaxKind.CheckedStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeUncheckedStatement, SyntaxKind.UncheckedStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeUnsafeStatement, SyntaxKind.UnsafeStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeLockStatement, SyntaxKind.LockStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeSwitchStatement, SyntaxKind.SwitchStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeTryStatement, SyntaxKind.TryStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
+                //startContext.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachVariableStatement);
 
                 startContext.RegisterSyntaxNodeAction(AnalyzeCasePatternSwitchLabel, SyntaxKind.CasePatternSwitchLabel);
                 startContext.RegisterSyntaxNodeAction(AnalyzeCaseSwitchLabel, SyntaxKind.CaseSwitchLabel);
@@ -109,7 +111,7 @@ namespace Roslynator.CSharp.Analysis
 
         private static void AnalyzeStructDeclaration(SyntaxNodeAnalysisContext context)
         {
-            var structDeclaration = (ClassDeclarationSyntax)context.Node;
+            var structDeclaration = (StructDeclarationSyntax)context.Node;
 
             if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveUnnecessaryNewLine))
                 AnalyzeUnnecessaryNewLine(context, structDeclaration);
@@ -362,7 +364,7 @@ namespace Roslynator.CSharp.Analysis
 
         private static void AnalyzeUncheckedStatement(SyntaxNodeAnalysisContext context)
         {
-            var statement = (StatementSyntax)context.Node;
+            var checkedStatement = (CheckedStatementSyntax)context.Node;
         }
 
         private static void AnalyzeUnsafeStatement(SyntaxNodeAnalysisContext context)
