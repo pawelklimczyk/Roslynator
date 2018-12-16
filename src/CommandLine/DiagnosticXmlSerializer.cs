@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslynator.Diagnostics;
 using static Roslynator.Logger;
 
-namespace Roslynator
+namespace Roslynator.CommandLine
 {
     internal static class DiagnosticXmlSerializer
     {

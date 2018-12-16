@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Security;
 using static Roslynator.Logger;
 
-namespace Roslynator
+namespace Roslynator.CommandLine
 {
     internal static class AnalyzerAssemblyLoader
     {
