@@ -89,7 +89,7 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         valuesList.Add(optional.Value);
 
-                        EqualsValueClauseSyntax equalsValue = EqualsValueClause(ParseExpression(optional.Value.ToString(CultureInfo.InvariantCulture)));
+                        EqualsValueClauseSyntax equalsValue = EqualsValueClause(CSharpFactory.NumericLiteralExpression(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType));
 
                         EnumMemberDeclarationSyntax newMember = members[i]
                             .WithEqualsValue(equalsValue)
