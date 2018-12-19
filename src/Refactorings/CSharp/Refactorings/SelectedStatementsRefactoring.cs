@@ -14,6 +14,7 @@ namespace Roslynator.CSharp.Refactorings
             return context.IsRefactoringEnabled(RefactoringIdentifiers.WrapInUsingStatement)
                 || context.IsRefactoringEnabled(RefactoringIdentifiers.CollapseToInitializer)
                 || context.IsRefactoringEnabled(RefactoringIdentifiers.MergeIfStatements)
+                || context.IsRefactoringEnabled(RefactoringIdentifiers.JoinIfStatements)
                 || context.IsRefactoringEnabled(RefactoringIdentifiers.MergeLocalDeclarations)
                 || context.IsRefactoringEnabled(RefactoringIdentifiers.WrapInCondition)
                 || context.IsRefactoringEnabled(RefactoringIdentifiers.WrapInTryCatch)
@@ -38,6 +39,9 @@ namespace Roslynator.CSharp.Refactorings
 
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.MergeIfStatements))
                 MergeIfStatementsRefactoring.ComputeRefactorings(context, selectedStatements);
+
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.JoinIfStatements))
+                JoinIfStatementsRefactoring.ComputeRefactorings(context, selectedStatements);
 
             if (context.IsAnyRefactoringEnabled(
                 RefactoringIdentifiers.UseCoalesceExpressionInsteadOfIf,

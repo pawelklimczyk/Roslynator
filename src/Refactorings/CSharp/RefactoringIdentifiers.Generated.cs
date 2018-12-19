@@ -93,6 +93,7 @@ namespace Roslynator.CSharp.Refactorings
         public const string InvertIsExpression = Prefix + "0081";
         public const string InvertOperator = Prefix + "0082";
         public const string InvertPrefixOrPostfixUnaryOperator = Prefix + "0134";
+        public const string JoinIfStatements = Prefix + "X007";
         public const string JoinStringExpressions = Prefix + "0078";
         public const string MakeMemberAbstract = Prefix + "0069";
         public const string MakeMemberVirtual = Prefix + "0070";
