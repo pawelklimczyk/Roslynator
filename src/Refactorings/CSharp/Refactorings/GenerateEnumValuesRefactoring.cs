@@ -41,7 +41,7 @@ namespace Roslynator.CSharp.Refactorings
             if (!optional.HasValue)
                 return;
 
-            if (!EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
+            if (!ConvertHelpers.CanConvert(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
                 return;
 
             Document document = context.Document;
@@ -85,7 +85,7 @@ namespace Roslynator.CSharp.Refactorings
                     Optional<ulong> optional = FlagsUtility<ulong>.Instance.GetUniquePowerOfTwo(valuesList, startFromHighestExistingValue);
 
                     if (optional.HasValue
-                        && EnumHelpers.IsAllowedValue(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
+                        && ConvertHelpers.CanConvert(optional.Value, enumSymbol.EnumUnderlyingType.SpecialType))
                     {
                         valuesList.Add(optional.Value);
 

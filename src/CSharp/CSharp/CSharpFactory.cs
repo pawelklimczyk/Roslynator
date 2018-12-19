@@ -1613,33 +1613,7 @@ namespace Roslynator.CSharp
 
         internal static LiteralExpressionSyntax NumericLiteralExpression(ulong value, SpecialType numericType)
         {
-            switch (numericType)
-            {
-                case SpecialType.System_SByte:
-                    return NumericLiteralExpression(Convert.ToSByte(value));
-                case SpecialType.System_Byte:
-                    return NumericLiteralExpression(Convert.ToByte(value));
-                case SpecialType.System_Int16:
-                    return NumericLiteralExpression(Convert.ToInt16(value));
-                case SpecialType.System_UInt16:
-                    return NumericLiteralExpression(Convert.ToUInt16(value));
-                case SpecialType.System_Int32:
-                    return NumericLiteralExpression(Convert.ToInt32(value));
-                case SpecialType.System_UInt32:
-                    return NumericLiteralExpression(Convert.ToUInt32(value));
-                case SpecialType.System_Int64:
-                    return NumericLiteralExpression(Convert.ToInt64(value));
-                case SpecialType.System_UInt64:
-                    return NumericLiteralExpression(value);
-                case SpecialType.System_Decimal:
-                    return NumericLiteralExpression(Convert.ToDecimal(value));
-                case SpecialType.System_Single:
-                    return NumericLiteralExpression(Convert.ToSingle(value));
-                case SpecialType.System_Double:
-                    return NumericLiteralExpression(Convert.ToDouble(value));
-                default:
-                    throw new ArgumentException("", nameof(numericType));
-            }
+            return LiteralExpression(ConvertHelpers.Convert(value, numericType));
         }
 
         public static LiteralExpressionSyntax TrueLiteralExpression()

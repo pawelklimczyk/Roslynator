@@ -59,7 +59,7 @@ namespace Roslynator.CSharp.Refactorings
 
             EnumMemberDeclarationSyntax CreateNewFlagsMember(EnumMemberDeclarationSyntax enumMember)
             {
-                if (!EnumHelpers.IsAllowedValue(value, enumSymbol.EnumUnderlyingType.SpecialType))
+                if (!ConvertHelpers.CanConvert(value, enumSymbol.EnumUnderlyingType.SpecialType))
                     return enumMember;
 
                 IFieldSymbol fieldSymbol = semanticModel.GetDeclaredSymbol(enumMember, cancellationToken);
@@ -81,7 +81,7 @@ namespace Roslynator.CSharp.Refactorings
 
             EnumMemberDeclarationSyntax CreateNewMember(EnumMemberDeclarationSyntax enumMember)
             {
-                if (!EnumHelpers.IsAllowedValue(value, enumSymbol.EnumUnderlyingType.SpecialType))
+                if (!ConvertHelpers.CanConvert(value, enumSymbol.EnumUnderlyingType.SpecialType))
                     return enumMember;
 
                 EqualsValueClauseSyntax equalsValue = EqualsValueClause(NumericLiteralExpression(value, enumSymbol.EnumUnderlyingType.SpecialType));
