@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslynator.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
 using static Roslynator.CSharp.CSharpFacts;
@@ -127,41 +128,39 @@ namespace Roslynator.CSharp.Refactorings
 
             bool IsFixableEqualsExpression(BinaryExpressionSyntax equalsExpression)
             {
-                ExpressionSyntax left = equalsExpression.Left?.WalkDownParentheses();
+                BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo(equalsExpression);
 
-                if (IsFixableSwitchExpression(left))
+                if (!binaryExpressionInfo.Success)
+                    return false;
+
+                ExpressionSyntax right = binaryExpressionInfo.Right;
+
+                if (!right.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression, SyntaxKind.DefaultExpression))
                 {
-                    ExpressionSyntax right = equalsExpression.Right?.WalkDownParentheses();
+                    ITypeSymbol typeSymbol = semanticModel.GetTypeInfo(right, cancellationToken).ConvertedType;
 
-                    if (IsFixableSwitchExpression(right)
-                        && semanticModel.HasConstantValue(right))
-                    {
-                        if (switchExpression == null)
-                        {
-                            switchExpression = left;
-                            return true;
-                        }
-                        else
-                        {
-                            return CSharpFactory.AreEquivalent(left, switchExpression);
-                        }
-                    }
+                    if (typeSymbol == null)
+                        return false;
+
+                    if (!SymbolUtility.SupportsSwitchExpression(typeSymbol))
+                        return false;
                 }
 
-                return false;
-            }
-
-            bool IsFixableSwitchExpression(ExpressionSyntax expression)
-            {
-                if (expression == null)
+                if (!semanticModel.HasConstantValue(right, cancellationToken))
                     return false;
 
-                ITypeSymbol typeSymbol = semanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType;
+                ExpressionSyntax left = binaryExpressionInfo.Left;
 
-                if (typeSymbol == null)
+                if (switchExpression == null)
+                {
+                    switchExpression = left;
+                }
+                else if (!CSharpFactory.AreEquivalent(left, switchExpression))
+                {
                     return false;
+                }
 
-                return SymbolUtility.SupportsSwitchExpression(typeSymbol);
+                return true;
             }
         }
 

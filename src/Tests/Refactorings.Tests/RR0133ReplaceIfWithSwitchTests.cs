@@ -147,7 +147,7 @@ class C
         {
             return 3;
         }
-        else if (s is null)
+        else if (s == null)
         {
             M();
         }
