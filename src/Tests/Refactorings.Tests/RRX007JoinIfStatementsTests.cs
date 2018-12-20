@@ -66,5 +66,37 @@ class C
 }
 ", equivalenceKey: RefactoringId);
         }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.JoinIfStatements)]
+        public async Task Test_IfElse()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    int M()
+    {
+        bool f1 = false;
+
+[|        if (f1)
+            return 1;
+
+        return 0;|]
+    }
+}
+", @"
+class C
+{
+    int M()
+    {
+        bool f1 = false;
+
+        if (f1)
+            return 1;
+        else
+            return 0;
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
     }
 }

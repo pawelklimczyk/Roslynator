@@ -15,7 +15,7 @@ namespace Roslynator.CSharp.Refactorings
             if (selectedStatements.Count < 2)
                 return;
 
-            for (int i = 0; i < selectedStatements.Count; i++)
+            for (int i = 0; i < selectedStatements.Count - 1; i++)
             {
                 if (!(selectedStatements[i] is IfStatementSyntax ifStatement))
                     return;
@@ -57,21 +57,23 @@ namespace Roslynator.CSharp.Refactorings
             StatementListSelection selectedStatements,
             CancellationToken cancellationToken)
         {
-            var ifStatement = (IfStatementSyntax)selectedStatements.Last();
+            IfStatementSyntax newIfStatement = null;
 
             for (int i = selectedStatements.Count - 2; i >= 0; i--)
             {
-                var ifStatement2 = (IfStatementSyntax)selectedStatements[i];
+                var ifStatement = (IfStatementSyntax)selectedStatements[i];
 
-                IfStatementSyntax lastIf = ifStatement2.GetCascadeInfo().Last.AsIf();
+                IfStatementSyntax lastIf = ifStatement.GetCascadeInfo().Last.AsIf();
 
-                IfStatementSyntax newLastIf = lastIf.WithElse(SyntaxFactory.ElseClause(ifStatement));
+                ElseClauseSyntax elseClause = SyntaxFactory.ElseClause(newIfStatement ?? selectedStatements.Last());
 
-                ifStatement = ifStatement2.ReplaceNode(lastIf, newLastIf);
+                IfStatementSyntax newLastIf = lastIf.WithElse(elseClause);
+
+                newIfStatement = ifStatement.ReplaceNode(lastIf, newLastIf);
             }
 
             SyntaxList<StatementSyntax> newStatements = selectedStatements.UnderlyingList
-                .Replace(selectedStatements.First(), ifStatement.WithFormatterAnnotation())
+                .Replace(selectedStatements.First(), newIfStatement.WithFormatterAnnotation())
                 .RemoveRange(selectedStatements.FirstIndex + 1, selectedStatements.Count - 1);
 
             return document.ReplaceStatementsAsync(SyntaxInfo.StatementListInfo(selectedStatements), newStatements, cancellationToken);
