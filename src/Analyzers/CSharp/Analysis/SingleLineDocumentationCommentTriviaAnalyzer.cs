@@ -21,7 +21,7 @@ namespace Roslynator.CSharp.Analysis
             DiagnosticDescriptors.AddParamElementToDocumentationComment,
             DiagnosticDescriptors.AddTypeParamElementToDocumentationComment,
             DiagnosticDescriptors.UnusedElementInDocumentationComment,
-            DiagnosticDescriptors.ReorderElementsInDocumentationComment);
+            DiagnosticDescriptors.OrderElementsInDocumentationComment);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -137,12 +137,12 @@ namespace Roslynator.CSharp.Analysis
             SyntaxNode parent = documentationComment.ParentTrivia.Token.Parent;
 
             bool unusedElement = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.UnusedElementInDocumentationComment);
-            bool reorderParams = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.ReorderElementsInDocumentationComment);
+            bool orderParams = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.OrderElementsInDocumentationComment);
             bool addParam = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddParamElementToDocumentationComment);
             bool addTypeParam = !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AddTypeParamElementToDocumentationComment);
 
             if (addParam
-                || reorderParams
+                || orderParams
                 || unusedElement)
             {
                 SeparatedSyntaxList<ParameterSyntax> parameters = ParameterListInfo.Create(parent).Parameters;
@@ -160,14 +160,14 @@ namespace Roslynator.CSharp.Analysis
                     }
                 }
 
-                if (reorderParams || unusedElement)
+                if (orderParams || unusedElement)
                 {
                     Analyze(context, documentationComment.Content, parameters, XmlElementKind.Param, (nodes, name) => nodes.IndexOf(name));
                 }
             }
 
             if (addTypeParam
-                || reorderParams
+                || orderParams
                 || unusedElement)
             {
                 SeparatedSyntaxList<TypeParameterSyntax> typeParameters = TypeParameterListInfo.Create(parent).Parameters;
@@ -185,7 +185,7 @@ namespace Roslynator.CSharp.Analysis
                     }
                 }
 
-                if (reorderParams || unusedElement)
+                if (orderParams || unusedElement)
                 {
                     Analyze(context, documentationComment.Content, typeParameters, XmlElementKind.TypeParam, (nodes, name) => nodes.IndexOf(name));
                 }
@@ -284,7 +284,7 @@ namespace Roslynator.CSharp.Analysis
                 }
                 else if (index < firstIndex)
                 {
-                    ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.ReorderElementsInDocumentationComment, firstElement);
+                    ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.OrderElementsInDocumentationComment, firstElement);
                     return;
                 }
                 else

@@ -74,7 +74,7 @@ namespace Roslynator.CSharp.Refactorings
 
             StructDeclarationSyntax enumeratorDeclaration = StructDeclaration(
                 Modifiers.Public(),
-                Identifier("Enumerator").WithNavigationAnnotation(),
+                Identifier("Enumerator").WithRenameAnnotation(),
                 CreateEnumeratorMembers(type, elementType, identifier, identifierWithUnderscore).ToSyntaxList());
 
             ClassDeclarationSyntax enumeratorImplDeclaration = ClassDeclaration(

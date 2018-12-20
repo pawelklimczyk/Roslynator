@@ -2545,16 +2545,16 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.MakeParameterRefReadOnly}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCSX005</summary>
-        public static readonly DiagnosticDescriptor ReorderElementsInDocumentationComment = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.ReorderElementsInDocumentationComment, 
-            title:              "Reorder elements in documentation comment.", 
-            messageFormat:      "Reorder elements in documentation comment.", 
+        /// <summary>RCS1232</summary>
+        public static readonly DiagnosticDescriptor OrderElementsInDocumentationComment = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.OrderElementsInDocumentationComment, 
+            title:              "Order elements in documentation comment.", 
+            messageFormat:      "Order elements in documentation comment.", 
             category:           DiagnosticCategories.Readability, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ReorderElementsInDocumentationComment}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCSX006</summary>

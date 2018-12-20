@@ -263,7 +263,8 @@ namespace Roslynator.CSharp
                 || typeSymbol.TypeKind == TypeKind.Enum;
         }
 
-        public static bool IsReadOnlyStruct(this ITypeSymbol type)
+        //TODO: make public
+        internal static bool IsReadOnlyStruct(this ITypeSymbol type)
         {
             return type.TypeKind == TypeKind.Struct
                 && type
