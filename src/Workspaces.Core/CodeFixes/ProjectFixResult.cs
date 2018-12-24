@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslynator.CodeFixes
 {
-    public class ProjectFixResult
+    internal class ProjectFixResult
     {
         internal static ProjectFixResult Skipped { get; } = new ProjectFixResult(ProjectFixKind.Skipped);
 

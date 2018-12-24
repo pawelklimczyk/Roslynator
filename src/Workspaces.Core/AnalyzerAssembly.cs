@@ -12,7 +12,7 @@ using static Roslynator.Logger;
 namespace Roslynator
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public sealed class AnalyzerAssembly : IEquatable<AnalyzerAssembly>
+    internal sealed class AnalyzerAssembly : IEquatable<AnalyzerAssembly>
     {
         private AnalyzerAssembly(
             Assembly assembly,

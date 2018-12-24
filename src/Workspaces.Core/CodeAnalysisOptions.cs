@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator
 {
-    public abstract class CodeAnalysisOptions
+    internal abstract class CodeAnalysisOptions
     {
         internal CodeAnalysisOptions(
             DiagnosticSeverity severityLevel = DiagnosticSeverity.Info,

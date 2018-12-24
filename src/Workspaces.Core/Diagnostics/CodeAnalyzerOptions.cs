@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Diagnostics
 {
-    public class CodeAnalyzerOptions : CodeAnalysisOptions
+    internal class CodeAnalyzerOptions : CodeAnalysisOptions
     {
         public static CodeAnalyzerOptions Default { get; } = new CodeAnalyzerOptions();
 

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
 namespace Roslynator.Diagnostics
 {
-    public class ProjectAnalysisResult
+    internal class ProjectAnalysisResult
     {
         internal ProjectAnalysisResult(
             ProjectId projectId,

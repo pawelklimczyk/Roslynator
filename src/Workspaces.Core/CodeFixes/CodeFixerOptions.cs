@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslynator.CodeFixes
 {
-    public class CodeFixerOptions : CodeAnalysisOptions
+    internal class CodeFixerOptions : CodeAnalysisOptions
     {
         private ImmutableArray<string> _fileBannerLines;
 

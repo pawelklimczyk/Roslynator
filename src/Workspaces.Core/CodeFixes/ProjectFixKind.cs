@@ -2,7 +2,7 @@
 
 namespace Roslynator.CodeFixes
 {
-    public enum ProjectFixKind
+    internal enum ProjectFixKind
     {
         Success = 0,
         NoAnalyzers = 1,
