@@ -9,18 +9,6 @@ namespace Roslynator.CSharp
 {
     public static partial class DiagnosticDescriptors
     {
-        /// <summary>RCS0002</summary>
-        public static readonly DiagnosticDescriptor AddCommaAfterLastItemInList = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.AddCommaAfterLastItemInList, 
-            title:              "Add comma after last item in list.", 
-            messageFormat:      "Add comma after last item in list.", 
-            category:           DiagnosticCategories.Maintainability, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: false, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AddCommaAfterLastItemInList}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS1001</summary>
         public static readonly DiagnosticDescriptor AddBracesWhenExpressionSpansOverMultipleLines = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.AddBracesWhenExpressionSpansOverMultipleLines, 

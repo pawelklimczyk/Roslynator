@@ -16,7 +16,7 @@ using static Roslynator.Logger;
 
 namespace Roslynator.Diagnostics
 {
-    public class CodeAnalyzer
+    internal class CodeAnalyzer
     {
         private readonly AnalyzerAssemblyList _analyzerAssemblies = new AnalyzerAssemblyList();
 

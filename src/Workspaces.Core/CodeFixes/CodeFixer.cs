@@ -19,7 +19,7 @@ using static Roslynator.Logger;
 
 namespace Roslynator.CodeFixes
 {
-    public class CodeFixer
+    internal class CodeFixer
     {
         private readonly AnalyzerAssemblyList _analyzerAssemblies = new AnalyzerAssemblyList();
 

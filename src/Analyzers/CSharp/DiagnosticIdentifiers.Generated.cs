@@ -8,7 +8,6 @@ namespace Roslynator.CSharp
 {
     public static partial class DiagnosticIdentifiers
     {
-        public const string AddCommaAfterLastItemInList = "RCS0002";
         public const string AddBracesWhenExpressionSpansOverMultipleLines = "RCS1001";
         public const string RemoveBraces = "RCS1002";
         public const string AddBracesToIfElseWhenExpressionSpansOverMultipleLines = "RCS1003";

@@ -18,7 +18,6 @@ namespace Roslynator.VisualStudio
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddCommaAfterLastItemInList, "Add comma after last item in list.", !IsEnabled(DiagnosticIdentifiers.AddCommaAfterLastItemInList)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddBracesWhenExpressionSpansOverMultipleLines, "Add braces (when expression spans over multiple lines).", !IsEnabled(DiagnosticIdentifiers.AddBracesWhenExpressionSpansOverMultipleLines)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveBraces, "Remove braces.", !IsEnabled(DiagnosticIdentifiers.RemoveBraces)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddBracesToIfElseWhenExpressionSpansOverMultipleLines, "Add braces to if-else (when expression spans over multiple lines).", !IsEnabled(DiagnosticIdentifiers.AddBracesToIfElseWhenExpressionSpansOverMultipleLines)));
