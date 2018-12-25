@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Analyzers>
+  <Analyzer Identifier="AvoidNestedConditionalExpressions" IsDevelopment="true">
+    <Id>RCS1235Dev</Id>
+    <Title>Avoid nested conditional expressions.</Title>
+    <MessageFormat>Avoid nested conditional expressions.</MessageFormat>
+    <Category>Readability</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[string s = (x) ? "a" : (y) ? "b" : "c";]]></Before>
+        <After><![CDATA[string s;
+if (x)
+{
+    s = "a";
+}
+else if (y)
+{
+    s = "b";
+}
+else
+{
+    s = "c";
+}]]></After>
+      </Sample>
+    </Samples>
+    <Remarks></Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
+  </Analyzer>
+</Analyzers>

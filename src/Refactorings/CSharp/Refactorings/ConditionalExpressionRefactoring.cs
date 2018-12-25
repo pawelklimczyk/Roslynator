@@ -2,12 +2,16 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Roslynator.CSharp.Refactorings
 {
     internal static class ConditionalExpressionRefactoring
     {
+        internal static readonly string ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey = EquivalenceKey.Join(RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse, "Recursive");
+
         public static async Task ComputeRefactoringsAsync(RefactoringContext context, ConditionalExpressionSyntax conditionalExpression)
         {
             if (context.Span.IsEmptyAndContainedInSpanOrBetweenSpans(conditionalExpression))
@@ -31,7 +35,23 @@ namespace Roslynator.CSharp.Refactorings
                 }
 
                 if (context.IsRefactoringEnabled(RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse))
-                    await ReplaceConditionalExpressionWithIfElseRefactoring.ComputeRefactoringAsync(context, conditionalExpression).ConfigureAwait(false);
+                {
+                    SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                    (CodeAction codeAction, CodeAction recursiveCodeAction) = ReplaceConditionalExpressionWithIfElseRefactoring.ComputeRefactoring(
+                        context.Document,
+                        conditionalExpression,
+                        RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse,
+                        ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey,
+                        semanticModel,
+                        context.CancellationToken);
+
+                    if (codeAction != null)
+                        context.RegisterRefactoring(codeAction);
+
+                    if (recursiveCodeAction != null)
+                        context.RegisterRefactoring(recursiveCodeAction);
+                }
             }
 
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.InvertConditionalExpression)

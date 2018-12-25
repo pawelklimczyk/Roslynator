@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CSharp.Syntax;
@@ -18,12 +19,17 @@ namespace Roslynator.CSharp.Refactorings
 
         private const string RecursiveTitle = Title + " (recursively)";
 
-        internal const string EquivalenceKey = RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse;
-
-        internal static readonly string RecursiveEquivalenceKey = Roslynator.EquivalenceKey.Join(RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse, "Recursive");
-
-        public static async Task ComputeRefactoringAsync(RefactoringContext context, ConditionalExpressionSyntax conditionalExpression)
+        public static (CodeAction codeAction, CodeAction recursiveCodeAction) ComputeRefactoring(
+            Document document,
+            ConditionalExpressionSyntax conditionalExpression,
+            string equivalenceKey,
+            string recursiveEquivalenceKey,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken = default)
         {
+            CodeAction codeAction = null;
+            CodeAction recursiveCodeAction = null;
+
             ExpressionSyntax expression = conditionalExpression.WalkUpParentheses();
 
             SyntaxNode parent = expression.Parent;
@@ -32,19 +38,21 @@ namespace Roslynator.CSharp.Refactorings
             {
                 var statement = (StatementSyntax)parent;
 
-                RegisterRefactoring(context, conditionalExpression, statement);
+                if (equivalenceKey != null)
+                    codeAction = CreateCodeAction(document, conditionalExpression, statement, equivalenceKey);
 
-                if (IsRecursive())
-                    RegisterRefactoring(context, conditionalExpression, statement, recursive: true);
+                if (recursiveEquivalenceKey != null && IsRecursive())
+                    recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, recursiveEquivalenceKey, recursive: true);
             }
             else if (parent is AssignmentExpressionSyntax assignment)
             {
                 if (assignment.Parent is ExpressionStatementSyntax expressionStatement)
                 {
-                    RegisterRefactoring(context, conditionalExpression, expressionStatement);
+                    if (equivalenceKey != null)
+                        codeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, equivalenceKey);
 
-                    if (IsRecursive())
-                        RegisterRefactoring(context, conditionalExpression, expressionStatement, recursive: true);
+                    if (recursiveEquivalenceKey != null && IsRecursive())
+                        recursiveCodeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, recursiveEquivalenceKey, recursive: true);
                 }
             }
             else
@@ -55,57 +63,54 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     TypeSyntax type = localDeclarationInfo.Type;
 
-                    SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
-
                     if (!type.IsVar
-                        || semanticModel.GetTypeSymbol(type, context.CancellationToken)?.SupportsExplicitDeclaration() == true)
+                        || semanticModel.GetTypeSymbol(type, cancellationToken)?.SupportsExplicitDeclaration() == true)
                     {
                         LocalDeclarationStatementSyntax statement = localDeclarationInfo.Statement;
 
-                        RegisterRefactoring(context, conditionalExpression, statement, semanticModel);
+                        if (equivalenceKey != null)
+                            codeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, equivalenceKey);
 
-                        if (IsRecursive())
-                            RegisterRefactoring(context, conditionalExpression, statement, semanticModel, recursive: true);
+                        if (recursiveEquivalenceKey != null && IsRecursive())
+                            recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, recursiveEquivalenceKey, recursive: true);
                     }
                 }
             }
 
+            return (codeAction, recursiveCodeAction);
+
             bool IsRecursive()
             {
-                return conditionalExpression
-                    .WhenFalse
-                    .WalkDownParentheses()
-                    .IsKind(SyntaxKind.ConditionalExpression);
+                return conditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression)
+                    || conditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression);
             }
         }
 
-        private static void RegisterRefactoring(
-            RefactoringContext context,
+        private static CodeAction CreateCodeAction(
+            Document document,
             ConditionalExpressionSyntax conditionalExpression,
             StatementSyntax statement,
+            string equivalenceKey,
             bool recursive = false)
         {
-            Document document = context.Document;
-
-            context.RegisterRefactoring(
+            return CodeAction.Create(
                 (recursive) ? RecursiveTitle : Title,
                 ct => RefactorAsync(document, conditionalExpression, statement, recursive: recursive, cancellationToken: ct),
-                (recursive) ? RecursiveEquivalenceKey : EquivalenceKey);
+                equivalenceKey);
         }
 
-        private static void RegisterRefactoring(
-            RefactoringContext context,
+        private static CodeAction CreateCodeAction(
+            Document document,
             ConditionalExpressionSyntax conditionalExpression,
             LocalDeclarationStatementSyntax localDeclaration,
             SemanticModel semanticModel,
+            string equivalenceKey,
             bool recursive = false)
         {
-            Document document = context.Document;
-
-            context.RegisterRefactoring(
+            return CodeAction.Create(
                 (recursive) ? RecursiveTitle : Title,
                 ct => RefactorAsync(document, conditionalExpression, localDeclaration, semanticModel, recursive: recursive, cancellationToken: ct),
-                (recursive) ? RecursiveEquivalenceKey : EquivalenceKey);
+                equivalenceKey);
         }
 
         private static Task<Document> RefactorAsync(
@@ -199,27 +204,35 @@ namespace Roslynator.CSharp.Refactorings
             Func<ExpressionSyntax, StatementSyntax> createStatement,
             bool recursive = false)
         {
-            StatementSyntax whenTrue = createStatement(conditionalExpression.WhenTrue.WithoutTrivia());
+            StatementSyntax statement = null;
+
+            if (recursive
+                && conditionalExpression.WhenTrue.WalkDownParentheses() is ConditionalExpressionSyntax whenTrue)
+            {
+                statement = ConvertConditionalExpressionToIfElse(whenTrue, createStatement, recursive: true);
+            }
+            else
+            {
+                statement = createStatement(conditionalExpression.WhenTrue.WithoutTrivia());
+            }
 
             ElseClauseSyntax elseClause;
 
             if (recursive
-                && conditionalExpression.WhenFalse.WalkDownParentheses() is ConditionalExpressionSyntax nestedConditionalExpression)
+                && conditionalExpression.WhenFalse.WalkDownParentheses() is ConditionalExpressionSyntax whenFalse)
             {
-                IfStatementSyntax ifElseStatement = ConvertConditionalExpressionToIfElse(nestedConditionalExpression, createStatement, recursive: true);
+                IfStatementSyntax ifElseStatement = ConvertConditionalExpressionToIfElse(whenFalse, createStatement, recursive: true);
 
                 elseClause = ElseClause(ifElseStatement);
             }
             else
             {
-                StatementSyntax whenFalse = createStatement(conditionalExpression.WhenFalse.WithoutTrivia());
-
-                elseClause = ElseClause(Block(whenFalse));
+                elseClause = ElseClause(Block(createStatement(conditionalExpression.WhenFalse.WithoutTrivia())));
             }
 
             return IfStatement(
                 conditionalExpression.Condition.WalkDownParentheses().WithoutTrivia(),
-                Block(whenTrue),
+                Block(statement),
                 elseClause);
         }
     }

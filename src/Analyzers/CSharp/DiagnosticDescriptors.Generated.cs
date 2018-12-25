@@ -2545,5 +2545,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1235Dev</summary>
+        public static readonly DiagnosticDescriptor AvoidNestedConditionalExpressions = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.AvoidNestedConditionalExpressions, 
+            title:              "Avoid nested conditional expressions.", 
+            messageFormat:      "Avoid nested conditional expressions.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
+            customTags:         Array.Empty<string>());
+
     }
 }

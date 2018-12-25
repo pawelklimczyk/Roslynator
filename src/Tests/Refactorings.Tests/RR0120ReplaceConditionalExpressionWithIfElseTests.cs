@@ -79,6 +79,43 @@ class C
 {
     void M(bool f, bool f2, string x, string y, string z)
     {
+        string s = [||](f) ? ((f2) ? y : z) : x;
+    }
+}
+", @"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
+        string s;
+        if (f)
+        {
+            if (f2)
+            {
+                s = y;
+            }
+            else
+            {
+                s = z;
+            }
+        }
+        else
+        {
+            s = x;
+        }
+    }
+}
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
+        public async Task Test_LocalDeclaration_Recursive2()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
         string s = [||](f) ? x : ((f2) ? y : z);
     }
 }
@@ -102,7 +139,7 @@ class C
         }
     }
 }
-", equivalenceKey: ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveEquivalenceKey);
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
@@ -178,7 +215,45 @@ class C
     void M(bool f, bool f2, string x, string y, string z)
     {
         string s = null;
-        s = [||](f) ? x : ((f2) ? y :z);
+        s = [||](f) ? ((f2) ? y : z) : x;
+    }
+}
+", @"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
+        string s = null;
+        if (f)
+        {
+            if (f2)
+            {
+                s = y;
+            }
+            else
+            {
+                s = z;
+            }
+        }
+        else
+        {
+            s = x;
+        }
+    }
+}
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
+        public async Task Test_SimpleAssignment_Recursive2()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M(bool f, bool f2, string x, string y, string z)
+    {
+        string s = null;
+        s = [||](f) ? x : ((f2) ? y : z);
     }
 }
 ", @"
@@ -201,7 +276,7 @@ class C
         }
     }
 }
-", equivalenceKey: ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveEquivalenceKey);
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
@@ -272,6 +347,46 @@ class C
 {
     string M(bool f, bool f2, bool f3)
     {
+        return [||](f) ? ""a"" : ((f2) ? (f3) ? ""c"" : ""d"" : ""b"");
+    }
+}
+", @"
+class C
+{
+    string M(bool f, bool f2, bool f3)
+    {
+        if (f)
+        {
+            return ""a"";
+        }
+        else if (f2)
+        {
+            if (f3)
+            {
+                return ""c"";
+            }
+            else
+            {
+                return ""d"";
+            }
+        }
+        else
+        {
+            return ""b"";
+        }
+    }
+}
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
+        public async Task Test_ReturnStatement_Recursive2()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    string M(bool f, bool f2, bool f3)
+    {
         return [||](f) ? ""a"" : ((f2) ? ""b"" : (f3) ? ""c"" : ""d"");
     }
 }
@@ -298,7 +413,7 @@ class C
         }
     }
 }
-", equivalenceKey: ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveEquivalenceKey);
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
@@ -379,6 +494,50 @@ class C
 {
     IEnumerable<string> M(bool f, bool f2, bool f3)
     {
+        yield return [||](f) ? ""a"" : ((f2) ? (f3) ? ""c"" : ""d"" : ""b"");
+    }
+}
+", @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<string> M(bool f, bool f2, bool f3)
+    {
+        if (f)
+        {
+            yield return ""a"";
+        }
+        else if (f2)
+        {
+            if (f3)
+            {
+                yield return ""c"";
+            }
+            else
+            {
+                yield return ""d"";
+            }
+        }
+        else
+        {
+            yield return ""b"";
+        }
+    }
+}
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse)]
+        public async Task Test_YieldReturnStatement_Recursive2()
+        {
+            await VerifyRefactoringAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<string> M(bool f, bool f2, bool f3)
+    {
         yield return [||](f) ? ""a"" : ((f2) ? ""b"" : (f3) ? ""c"" : ""d"");
     }
 }
@@ -407,7 +566,7 @@ class C
         }
     }
 }
-", equivalenceKey: ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveEquivalenceKey);
+", equivalenceKey: ConditionalExpressionRefactoring.ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey);
         }
     }
 }
