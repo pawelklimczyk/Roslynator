@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCSX006RemoveUnnecessaryNewLineTests : AbstractCSharpCodeFixVerifier
+    public class RCS1234RemoveUnnecessaryNewLineTests : AbstractCSharpCodeFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.RemoveUnnecessaryNewLine;
 

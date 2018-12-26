@@ -2545,7 +2545,7 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCSX006</summary>
+        /// <summary>RCS1234Dev</summary>
         public static readonly DiagnosticDescriptor RemoveUnnecessaryNewLine = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.RemoveUnnecessaryNewLine, 
             title:              "Remove unnecessary new line.", 
