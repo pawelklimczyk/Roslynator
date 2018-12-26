@@ -89,6 +89,47 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNestedConditionalExpressions)]
+        public async Task Test_LocalDeclaration3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        string s = [|(f) ? ((f2) ? a : b) : ((f3) ? c : d)|];
+    }
+}
+", @"
+class C
+{
+    void M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        string s;
+        if (f)
+        {
+            if (f2)
+            {
+                s = a;
+            }
+            else
+            {
+                s = b;
+            }
+        }
+        else if (f3)
+        {
+            s = c;
+        }
+        else
+        {
+            s = d;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNestedConditionalExpressions)]
         public async Task Test_SimpleAssignment()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -155,6 +196,48 @@ class C
         else
         {
             s = z;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNestedConditionalExpressions)]
+        public async Task Test_SimpleAssignment3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        string s = null;
+        s = [|(f) ? ((f2) ? a : b) : ((f3) ? c : d)|];
+    }
+}
+", @"
+class C
+{
+    void M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        string s = null;
+        if (f)
+        {
+            if (f2)
+            {
+                s = a;
+            }
+            else
+            {
+                s = b;
+            }
+        }
+        else if (f3)
+        {
+            s = c;
+        }
+        else
+        {
+            s = d;
         }
     }
 }
@@ -232,6 +315,46 @@ class C
         else
         {
             return ""d"";
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNestedConditionalExpressions)]
+        public async Task Test_ReturnStatement3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    string M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        return [|(f) ? ((f2) ? a : b) : ((f3) ? c : d)|];
+    }
+}
+", @"
+class C
+{
+    string M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        if (f)
+        {
+            if (f2)
+            {
+                return a;
+            }
+            else
+            {
+                return b;
+            }
+        }
+        else if (f3)
+        {
+            return c;
+        }
+        else
+        {
+            return d;
         }
     }
 }
@@ -317,6 +440,50 @@ class C
         else
         {
             yield return ""d"";
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNestedConditionalExpressions)]
+        public async Task Test_YieldReturnStatement3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<string> M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        yield return [|(f) ? ((f2) ? a : b) : ((f3) ? c : d)|];
+    }
+}
+", @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<string> M(bool f, bool f2, bool f3, string a, string b, string c, string d)
+    {
+        if (f)
+        {
+            if (f2)
+            {
+                yield return a;
+            }
+            else
+            {
+                yield return b;
+            }
+        }
+        else if (f3)
+        {
+            yield return c;
+        }
+        else
+        {
+            yield return d;
         }
     }
 }
