@@ -2545,18 +2545,6 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1234Dev</summary>
-        public static readonly DiagnosticDescriptor RemoveUnnecessaryNewLine = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.RemoveUnnecessaryNewLine, 
-            title:              "Remove unnecessary new line.", 
-            messageFormat:      "Remove unnecessary new line.", 
-            category:           DiagnosticCategories.Formatting, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RemoveUnnecessaryNewLine}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS1233Dev</summary>
         public static readonly DiagnosticDescriptor DuplicateEnumValue = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.DuplicateEnumValue, 
@@ -2567,6 +2555,18 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1234Dev</summary>
+        public static readonly DiagnosticDescriptor RemoveUnnecessaryNewLine = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.RemoveUnnecessaryNewLine, 
+            title:              "Remove unnecessary new line.", 
+            messageFormat:      "Remove unnecessary new line.", 
+            category:           DiagnosticCategories.Formatting, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RemoveUnnecessaryNewLine}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1235Dev</summary>
@@ -2580,5 +2580,6 @@ namespace Roslynator.CSharp
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
             customTags:         Array.Empty<string>());
+
     }
 }

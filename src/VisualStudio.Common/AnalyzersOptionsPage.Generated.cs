@@ -14,7 +14,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.RemoveUnnecessaryNewLine;
+        = DiagnosticIdentifiers.AvoidNestedConditionalExpressions;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
@@ -225,7 +225,9 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator, "Unnecessary usage of enumerator.", !IsEnabled(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.MakeParameterRefReadOnly, "Make parameter ref read-only.", !IsEnabled(DiagnosticIdentifiers.MakeParameterRefReadOnly)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderElementsInDocumentationComment, "Order elements in documentation comment.", !IsEnabled(DiagnosticIdentifiers.OrderElementsInDocumentationComment)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.DuplicateEnumValue, "Duplicate enum value.", !IsEnabled(DiagnosticIdentifiers.DuplicateEnumValue)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveUnnecessaryNewLine, "Remove unnecessary new line.", !IsEnabled(DiagnosticIdentifiers.RemoveUnnecessaryNewLine)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidNestedConditionalExpressions, "Avoid nested conditional expressions.", !IsEnabled(DiagnosticIdentifiers.AvoidNestedConditionalExpressions)));
         }
     }
 }
