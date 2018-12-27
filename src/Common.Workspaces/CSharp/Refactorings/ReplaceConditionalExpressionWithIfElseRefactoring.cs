@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslynator.CodeActions;
 using Roslynator.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
@@ -15,15 +16,15 @@ namespace Roslynator.CSharp.Refactorings
 {
     internal static class ReplaceConditionalExpressionWithIfElseRefactoring
     {
-        private const string Title = "Replace ?: with if-else";
+        public const string Title = "Replace ?: with if-else";
 
-        private const string RecursiveTitle = Title + " (recursively)";
+        public const string RecursiveTitle = Title + " (recursively)";
 
         public static (CodeAction codeAction, CodeAction recursiveCodeAction) ComputeRefactoring(
             Document document,
             ConditionalExpressionSyntax conditionalExpression,
-            string equivalenceKey,
-            string recursiveEquivalenceKey,
+            in CodeActionData data,
+            in CodeActionData recursiveData,
             SemanticModel semanticModel,
             CancellationToken cancellationToken = default)
         {
@@ -38,21 +39,21 @@ namespace Roslynator.CSharp.Refactorings
             {
                 var statement = (StatementSyntax)parent;
 
-                if (equivalenceKey != null)
-                    codeAction = CreateCodeAction(document, conditionalExpression, statement, equivalenceKey);
+                if (!data.IsDefault)
+                    codeAction = CreateCodeAction(document, conditionalExpression, statement, data);
 
-                if (recursiveEquivalenceKey != null && IsRecursive())
-                    recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, recursiveEquivalenceKey, recursive: true);
+                if (!recursiveData.IsDefault && IsRecursive())
+                    recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, recursiveData, recursive: true);
             }
             else if (parent is AssignmentExpressionSyntax assignment)
             {
                 if (assignment.Parent is ExpressionStatementSyntax expressionStatement)
                 {
-                    if (equivalenceKey != null)
-                        codeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, equivalenceKey);
+                    if (!data.IsDefault)
+                        codeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, data);
 
-                    if (recursiveEquivalenceKey != null && IsRecursive())
-                        recursiveCodeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, recursiveEquivalenceKey, recursive: true);
+                    if (!recursiveData.IsDefault && IsRecursive())
+                        recursiveCodeAction = CreateCodeAction(document, conditionalExpression, expressionStatement, recursiveData, recursive: true);
                 }
             }
             else
@@ -68,11 +69,11 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         LocalDeclarationStatementSyntax statement = localDeclarationInfo.Statement;
 
-                        if (equivalenceKey != null)
-                            codeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, equivalenceKey);
+                        if (!data.IsDefault)
+                            codeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, data);
 
-                        if (recursiveEquivalenceKey != null && IsRecursive())
-                            recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, recursiveEquivalenceKey, recursive: true);
+                        if (!recursiveData.IsDefault && IsRecursive())
+                            recursiveCodeAction = CreateCodeAction(document, conditionalExpression, statement, semanticModel, recursiveData, recursive: true);
                     }
                 }
             }
@@ -90,13 +91,10 @@ namespace Roslynator.CSharp.Refactorings
             Document document,
             ConditionalExpressionSyntax conditionalExpression,
             StatementSyntax statement,
-            string equivalenceKey,
+            in CodeActionData data,
             bool recursive = false)
         {
-            return CodeAction.Create(
-                (recursive) ? RecursiveTitle : Title,
-                ct => RefactorAsync(document, conditionalExpression, statement, recursive: recursive, cancellationToken: ct),
-                equivalenceKey);
+            return data.ToCodeAction(ct => RefactorAsync(document, conditionalExpression, statement, recursive: recursive, cancellationToken: ct));
         }
 
         private static CodeAction CreateCodeAction(
@@ -104,13 +102,10 @@ namespace Roslynator.CSharp.Refactorings
             ConditionalExpressionSyntax conditionalExpression,
             LocalDeclarationStatementSyntax localDeclaration,
             SemanticModel semanticModel,
-            string equivalenceKey,
+            in CodeActionData data,
             bool recursive = false)
         {
-            return CodeAction.Create(
-                (recursive) ? RecursiveTitle : Title,
-                ct => RefactorAsync(document, conditionalExpression, localDeclaration, semanticModel, recursive: recursive, cancellationToken: ct),
-                equivalenceKey);
+            return data.ToCodeAction(ct => RefactorAsync(document, conditionalExpression, localDeclaration, semanticModel, recursive: recursive, cancellationToken: ct));
         }
 
         private static Task<Document> RefactorAsync(

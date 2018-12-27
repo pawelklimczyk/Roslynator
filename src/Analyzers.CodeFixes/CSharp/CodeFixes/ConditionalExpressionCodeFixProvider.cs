@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslynator.CodeActions;
 using Roslynator.CodeFixes;
 using Roslynator.CSharp.Refactorings;
 
@@ -124,8 +125,8 @@ namespace Roslynator.CSharp.CodeFixes
                             (CodeAction codeAction, CodeAction recursiveCodeAction) = ReplaceConditionalExpressionWithIfElseRefactoring.ComputeRefactoring(
                                 document,
                                 conditionalExpression,
-                                equivalenceKey: null,
-                                recursiveEquivalenceKey: GetEquivalenceKey(diagnostic),
+                                data: default,
+                                recursiveData: new CodeActionData(ReplaceConditionalExpressionWithIfElseRefactoring.Title, GetEquivalenceKey(diagnostic)),
                                 semanticModel,
                                 context.CancellationToken);
 

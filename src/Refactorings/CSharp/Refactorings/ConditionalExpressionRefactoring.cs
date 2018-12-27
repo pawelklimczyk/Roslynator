@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslynator.CodeActions;
 
 namespace Roslynator.CSharp.Refactorings
 {
@@ -41,8 +42,8 @@ namespace Roslynator.CSharp.Refactorings
                     (CodeAction codeAction, CodeAction recursiveCodeAction) = ReplaceConditionalExpressionWithIfElseRefactoring.ComputeRefactoring(
                         context.Document,
                         conditionalExpression,
-                        RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse,
-                        ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey,
+                        new CodeActionData(ReplaceConditionalExpressionWithIfElseRefactoring.Title, RefactoringIdentifiers.ReplaceConditionalExpressionWithIfElse),
+                        new CodeActionData(ReplaceConditionalExpressionWithIfElseRefactoring.RecursiveTitle, ReplaceConditionalExpressionWithIfElseRecursiveEquivalenceKey),
                         semanticModel,
                         context.CancellationToken);
 
