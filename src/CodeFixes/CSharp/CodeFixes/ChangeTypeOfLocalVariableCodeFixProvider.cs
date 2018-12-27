@@ -102,9 +102,9 @@ namespace Roslynator.CSharp.CodeFixes
                         INamedTypeSymbol typeSymbol = ConstructActionOrFunc(returnType, parameters, semanticModel);
 
                         CodeAction codeAction = CodeAction.Create(
-                            $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, variableDeclarator.SpanStart, SymbolDisplayFormats.Default)}'",
+                            $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, variableDeclarator.SpanStart)}'",
                             cancellationToken => RefactorAsync(context.Document, (VariableDeclarationSyntax)variableDeclarator.Parent, typeSymbol, semanticModel, cancellationToken),
-                            GetEquivalenceKey(diagnostic, SymbolDisplay.ToDisplayString(typeSymbol, SymbolDisplayFormats.Default)));
+                            GetEquivalenceKey(diagnostic, SymbolDisplay.ToDisplayString(typeSymbol)));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
                     }

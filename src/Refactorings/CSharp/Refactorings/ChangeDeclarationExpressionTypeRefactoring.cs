@@ -27,16 +27,7 @@ namespace Roslynator.CSharp.Refactorings
                     if (analysis.SupportsImplicit
                         && context.IsRefactoringEnabled(RefactoringIdentifiers.ChangeExplicitTypeToVar))
                     {
-                        context.RegisterRefactoring(
-                            "Change type to 'var'",
-                            cancellationToken =>
-                            {
-                                return ChangeTypeRefactoring.ChangeTypeToVarAsync(
-                                    context.Document,
-                                    declarationExpression.Type,
-                                    cancellationToken);
-                            },
-                            RefactoringIdentifiers.ChangeExplicitTypeToVar);
+                        ChangeTypeRegistrator.ChangeExplicitTypeToVar(context, declarationExpression.Type);
                     }
                 }
                 else if (analysis.SupportsExplicit
@@ -44,14 +35,11 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     TypeSyntax type = declarationExpression.Type;
 
-                    var localSymbol = semanticModel.GetDeclaredSymbol(declarationExpression.Designation, context.CancellationToken) as ILocalSymbol;
+                    var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarationExpression.Designation, context.CancellationToken);
 
                     ITypeSymbol typeSymbol = localSymbol.Type;
 
-                    context.RegisterRefactoring(
-                        $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, type.SpanStart, SymbolDisplayFormats.Default)}'",
-                        cancellationToken => ChangeTypeRefactoring.ChangeTypeAsync(context.Document, type, typeSymbol, cancellationToken),
-                        RefactoringIdentifiers.ChangeVarToExplicitType);
+                    ChangeTypeRegistrator.ChangeVarToExplicitType(context, type, typeSymbol, semanticModel);
                 }
             }
         }
