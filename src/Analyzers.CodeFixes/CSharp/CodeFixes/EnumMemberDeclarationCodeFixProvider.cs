@@ -67,7 +67,7 @@ namespace Roslynator.CSharp.CodeFixes
                             string valueText = FindMemberByValue(enumDeclaration, enumFieldSymbolInfo, semanticModel, context.CancellationToken).Identifier.ValueText;
 
                             CodeAction codeAction = CodeAction.Create(
-                                $"Change value to '{valueText}'",
+                                $"Change enum value to '{valueText}'",
                                 ct => ChangeEnumValueAsync(document, enumMemberDeclaration, valueText, ct),
                                 GetEquivalenceKey(diagnostic));
 
