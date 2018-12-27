@@ -27,7 +27,7 @@ namespace Roslynator.CSharp.Refactorings
                     if (analysis.SupportsImplicit
                         && context.IsRefactoringEnabled(RefactoringIdentifiers.ChangeExplicitTypeToVar))
                     {
-                        ChangeTypeRegistrator.ChangeExplicitTypeToVar(context, declarationExpression.Type);
+                        context.RegisterRefactoring(CodeActionFactory.ChangeTypeToVar(context.Document, declarationExpression.Type, equivalenceKey: RefactoringIdentifiers.ChangeExplicitTypeToVar));
                     }
                 }
                 else if (analysis.SupportsExplicit
@@ -39,7 +39,7 @@ namespace Roslynator.CSharp.Refactorings
 
                     ITypeSymbol typeSymbol = localSymbol.Type;
 
-                    ChangeTypeRegistrator.ChangeVarToExplicitType(context, type, typeSymbol, semanticModel);
+                    context.RegisterRefactoring(CodeActionFactory.ChangeType(context.Document, type, typeSymbol, semanticModel, equivalenceKey: RefactoringIdentifiers.ChangeVarToExplicitType));
                 }
             }
         }
