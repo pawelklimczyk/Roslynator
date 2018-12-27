@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,90 +15,181 @@ namespace Roslynator.CSharp.Refactorings
 {
     internal static class GenerateSwitchSectionsRefactoring
     {
-        public static bool CanRefactor(
+        public static void ComputeRefactoring(
+            RefactoringContext context,
+            SwitchStatementSyntax switchStatement,
+            SemanticModel semanticModel)
+        {
+            ExpressionSyntax expression = switchStatement.Expression;
+
+            if (expression?.IsMissing != false)
+                return;
+
+            SyntaxList<SwitchSectionSyntax> sections = switchStatement.Sections;
+
+            ISymbol symbol = semanticModel.GetSymbol(expression, context.CancellationToken);
+
+            if (symbol?.IsErrorType() != false)
+                return;
+
+            ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(expression, context.CancellationToken);
+
+            if (typeSymbol?.TypeKind != TypeKind.Enum)
+                return;
+
+            if (!typeSymbol.ContainsMember<IFieldSymbol>())
+                return;
+
+            if (sections.Any() && !ContainsOnlyDefaultSection(sections))
+            {
+                if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateMissingSwitchSections)
+                    && context.Span.IsEmptyAndContainedInSpan(switchStatement.SwitchKeyword))
+                {
+                    ImmutableArray<ISymbol> members = typeSymbol.GetMembers();
+
+                    if (members.Length == 0)
+                        return;
+
+                    var fieldsToValue = new Dictionary<object, IFieldSymbol>(members.Length);
+
+                    foreach (ISymbol member in members)
+                    {
+                        if (member.Kind == SymbolKind.Field)
+                        {
+                            var fieldSymbol = (IFieldSymbol)member;
+
+                            if (fieldSymbol.HasConstantValue)
+                                fieldsToValue.Add(fieldSymbol.ConstantValue, fieldSymbol);
+                        }
+                    }
+
+                    foreach (SwitchSectionSyntax section in sections)
+                    {
+                        foreach (SwitchLabelSyntax label in section.Labels)
+                        {
+                            if (label.IsKind(SyntaxKind.CaseSwitchLabel))
+                            {
+                                var caseLabel = (CaseSwitchLabelSyntax)label;
+
+                                ExpressionSyntax value = caseLabel.Value.WalkDownParentheses();
+
+                                if (value?.IsMissing == false)
+                                {
+                                    Optional<object> optional = semanticModel.GetConstantValue(value, context.CancellationToken);
+
+                                    if (optional.HasValue
+                                        && fieldsToValue.Remove(optional.Value)
+                                        && fieldsToValue.Count == 0)
+                                    {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Document document = context.Document;
+
+                    context.RegisterRefactoring(
+                        "Generate missing sections",
+                        ct => GenerateMissingSectionsAsync(document, switchStatement, fieldsToValue.Select(f => f.Value), ct),
+                        RefactoringIdentifiers.GenerateMissingSwitchSections);
+                }
+            }
+            else if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateSwitchSections))
+            {
+                Document document = context.Document;
+
+                context.RegisterRefactoring(
+                    "Generate sections",
+                    ct => GenerateSectionsAsync(document, switchStatement, semanticModel, ct),
+                    RefactoringIdentifiers.GenerateSwitchSections);
+            }
+        }
+
+        private static Task<Document> GenerateSectionsAsync(
+            Document document,
             SwitchStatementSyntax switchStatement,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            ExpressionSyntax expression = switchStatement.Expression;
+            var enumTypeSymbol = semanticModel.GetTypeInfo(switchStatement.Expression, cancellationToken).ConvertedType as INamedTypeSymbol;
 
-            if (expression == null)
-                return false;
+            TypeSyntax enumType = enumTypeSymbol.ToMinimalTypeSyntax(semanticModel, switchStatement.OpenBraceToken.FullSpan.End);
 
-            if (!IsEmptyOrContainsOnlyDefaultSection(switchStatement))
-                return false;
+            cancellationToken.ThrowIfCancellationRequested();
 
-            ISymbol symbol = semanticModel.GetSymbol(expression, cancellationToken);
+            SyntaxList<StatementSyntax> statements = SingletonList<StatementSyntax>(BreakStatement());
 
-            if (symbol?.IsErrorType() != false)
-                return false;
+            ImmutableArray<ISymbol> members = enumTypeSymbol.GetMembers();
 
-            ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(expression, cancellationToken);
+            var newSections = new List<SwitchSectionSyntax>(members.Length);
 
-            return typeSymbol?.TypeKind == TypeKind.Enum
-                && typeSymbol.ContainsMember<IFieldSymbol>();
+            foreach (ISymbol memberSymbol in members)
+            {
+                if (memberSymbol.Kind == SymbolKind.Field)
+                    CreateSwitchSection(memberSymbol, enumType, statements);
+            }
+
+            newSections.Add(SwitchSection(
+                SingletonList<SwitchLabelSyntax>(DefaultSwitchLabel()),
+                statements));
+
+            SwitchStatementSyntax newSwitchStatement = switchStatement
+                .WithSections(newSections.ToSyntaxList())
+                .WithFormatterAnnotation();
+
+            return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
         }
 
-        private static bool IsEmptyOrContainsOnlyDefaultSection(SwitchStatementSyntax switchStatement)
+        private static Task<Document> GenerateMissingSectionsAsync(
+            Document document,
+            SwitchStatementSyntax switchStatement,
+            IEnumerable<IFieldSymbol> fieldSymbols,
+            CancellationToken cancellationToken)
         {
             SyntaxList<SwitchSectionSyntax> sections = switchStatement.Sections;
 
-            if (!sections.Any())
-                return true;
+            TypeSyntax enumType = fieldSymbols.First().ContainingType.ToTypeSyntax().WithSimplifierAnnotation();
 
+            SyntaxList<StatementSyntax> statements = SingletonList<StatementSyntax>(BreakStatement());
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SyntaxList<SwitchSectionSyntax> newSections = fieldSymbols
+                .Select(fieldSymbol => CreateSwitchSection(fieldSymbol, enumType, statements))
+                .ToSyntaxList();
+
+            int insertIndex = sections.Count;
+
+            if (sections.Last().ContainsDefaultLabel())
+                insertIndex--;
+
+            SwitchStatementSyntax newSwitchStatement = switchStatement
+                .WithSections(sections.InsertRange(insertIndex, newSections))
+                .WithFormatterAnnotation();
+
+            return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
+        }
+
+        private static SwitchSectionSyntax CreateSwitchSection(ISymbol symbol, TypeSyntax enumType, SyntaxList<StatementSyntax> statements)
+        {
+            return SwitchSection(
+                SingletonList<SwitchLabelSyntax>(
+                    CaseSwitchLabel(
+                        SimpleMemberAccessExpression(
+                            enumType,
+                            IdentifierName(symbol.Name)))),
+                statements);
+        }
+
+        private static bool ContainsOnlyDefaultSection(SyntaxList<SwitchSectionSyntax> sections)
+        {
             return sections
                 .SingleOrDefault(shouldThrow: false)?
                 .Labels
                 .SingleOrDefault(shouldThrow: false)?
                 .Kind() == SyntaxKind.DefaultSwitchLabel;
-        }
-
-        public static async Task<Document> RefactorAsync(
-            Document document,
-            SwitchStatementSyntax switchStatement,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var enumTypeSymbol = semanticModel.GetTypeInfo(switchStatement.Expression, cancellationToken).ConvertedType as INamedTypeSymbol;
-
-            TypeSyntax enumType = enumTypeSymbol.ToMinimalTypeSyntax(semanticModel, switchStatement.OpenBraceToken.FullSpan.End);
-
-            SwitchStatementSyntax newNode = switchStatement
-                .WithSections(List(CreateSwitchSections(enumTypeSymbol, enumType)))
-                .WithFormatterAnnotation();
-
-            return await document.ReplaceNodeAsync(switchStatement, newNode, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static List<SwitchSectionSyntax> CreateSwitchSections(INamedTypeSymbol enumTypeSymbol, TypeSyntax enumType)
-        {
-            SyntaxList<StatementSyntax> statements = SingletonList<StatementSyntax>(BreakStatement());
-
-            ImmutableArray<ISymbol> members = enumTypeSymbol.GetMembers();
-
-            var sections = new List<SwitchSectionSyntax>(members.Length);
-
-            foreach (ISymbol memberSymbol in members)
-            {
-                if (memberSymbol.Kind == SymbolKind.Field)
-                {
-                    sections.Add(
-                        SwitchSection(
-                            SingletonList<SwitchLabelSyntax>(
-                                CaseSwitchLabel(
-                                    SimpleMemberAccessExpression(
-                                        enumType,
-                                        IdentifierName(memberSymbol.Name)))),
-                            statements));
-                }
-            }
-
-            sections.Add(SwitchSection(
-                SingletonList<SwitchLabelSyntax>(DefaultSwitchLabel()),
-                statements));
-
-            return sections;
         }
     }
 }

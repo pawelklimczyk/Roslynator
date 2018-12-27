@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactorings>
+  <Refactoring Id="RR0211Dev" Identifier="GenerateMissingSwitchSections" Title="Generate missing switch sections" IsDevelopment="true">
+    <Syntaxes>
+      <Syntax>switch statement</Syntax>
+    </Syntaxes>
+    <Span>switch keyword</Span>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[switch (dayOfWeek)
+{
+    case DayOfWeek.Sunday:
+        break;
+    case DayOfWeek.Monday:
+        break;
+    case DayOfWeek.Tuesday:
+        break;
+    case DayOfWeek.Wednesday:
+        break;
+    case DayOfWeek.Thursday:
+        break;
+}
+]]></Before>
+        <After><![CDATA[switch (dayOfWeek)
+{
+    case DayOfWeek.Sunday:
+        break;
+    case DayOfWeek.Monday:
+        break;
+    case DayOfWeek.Tuesday:
+        break;
+    case DayOfWeek.Wednesday:
+        break;
+    case DayOfWeek.Thursday:
+        break;
+    case DayOfWeek.Friday:
+        break;
+    case DayOfWeek.Saturday:
+        break;
+}]]></After>
+      </Sample>
+    </Samples>
+  </Refactoring>
+</Refactorings>
