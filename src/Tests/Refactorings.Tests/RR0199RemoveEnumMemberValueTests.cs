@@ -147,7 +147,7 @@ enum E
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.WrapInElement)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.RemoveEnumMemberValue)]
         public async Task TestNoRefactoring_InvalidSpan()
         {
             await VerifyNoRefactoringAsync(@"
@@ -166,7 +166,7 @@ class C
     void M2()
     {
     }
-}", equivalenceKey: RefactoringIdentifiers.WrapInElement);
+}", equivalenceKey: RefactoringIdentifiers.RemoveEnumMemberValue);
         }
     }
 }

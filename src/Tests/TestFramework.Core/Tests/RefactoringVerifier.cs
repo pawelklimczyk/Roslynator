@@ -237,7 +237,7 @@ namespace Roslynator.Tests
 
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
-            VerifyCompilerDiagnostics(compilerDiagnostics, options);
+                VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
                 using (IEnumerator<TextSpan> en = spans.GetEnumerator())
                 {

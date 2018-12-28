@@ -164,7 +164,6 @@ namespace Roslynator.CSharp.Analysis
             if (accessor.AttributeLists.Any())
                 return;
 
-
             bool isGetter = accessor.IsKind(SyntaxKind.GetAccessorDeclaration);
 
             ExpressionSyntax expression = (isGetter)

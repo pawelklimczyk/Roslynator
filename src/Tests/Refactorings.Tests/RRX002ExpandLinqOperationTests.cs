@@ -44,7 +44,7 @@ class C
     }
 }
 ", equivalenceKey: RefactoringId);
-    }
+        }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ExpandLinqMethodOperation)]
         public async Task Test_Where_SimpleLambda()
