@@ -38,15 +38,6 @@ namespace Roslynator.CSharp.Refactorings
             return document.ReplaceNodeAsync(type, newType, cancellationToken);
         }
 
-        public static Task<Document> ChangeTypeAsync(
-            Document document,
-            TypeSyntax type,
-            TypeSyntax newType,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return document.ReplaceNodeAsync(type, newType.WithTriviaFrom(type), cancellationToken);
-        }
-
         public static Task<Document> ChangeTypeToVarAsync(
             Document document,
             TypeSyntax type,
