@@ -10,17 +10,13 @@ namespace Roslynator.CSharp.Refactorings
     {
         public static async Task ComputeRefactoringsAsync(RefactoringContext context, SwitchStatementSyntax switchStatement)
         {
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateSwitchSections))
+            if (context.IsAnyRefactoringEnabled(
+                RefactoringIdentifiers.GenerateSwitchSections,
+                RefactoringIdentifiers.GenerateMissingSwitchSections))
             {
                 SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
-                if (GenerateSwitchSectionsRefactoring.CanRefactor(switchStatement, semanticModel, context.CancellationToken))
-                {
-                    context.RegisterRefactoring(
-                        "Generate sections",
-                        cancellationToken => GenerateSwitchSectionsRefactoring.RefactorAsync(context.Document, switchStatement, cancellationToken),
-                        RefactoringIdentifiers.GenerateSwitchSections);
-                }
+                GenerateSwitchSectionsRefactoring.ComputeRefactoring(context, switchStatement, semanticModel);
             }
 
             SelectedSwitchSectionsRefactoring.ComputeRefactorings(context, switchStatement);
