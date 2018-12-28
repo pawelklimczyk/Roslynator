@@ -216,6 +216,7 @@ namespace Roslynator.CSharp
         public const string MakeParameterRefReadOnly = "RCS1231";
         public const string OrderElementsInDocumentationComment = "RCS1232";
         public const string DuplicateEnumValue = "RCS1233Dev";
+        public const string ImplementNonGenericInterface = "RCS1237Dev";
         public const string UseShortCircuitingOperator = "RCS1236Dev";
         public const string RemoveUnnecessaryNewLine = "RCS1234Dev";
         public const string AvoidNestedConditionalExpressions = "RCS1235Dev";
