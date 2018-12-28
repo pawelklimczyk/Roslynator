@@ -2545,5 +2545,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1237Dev</summary>
+        public static readonly DiagnosticDescriptor ImplementNonGenericInterface = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.ImplementNonGenericInterface, 
+            title:              "Implement non-generic interface.", 
+            messageFormat:      "Implement non-generic interface.", 
+            category:           DiagnosticCategories.Design, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ImplementNonGenericInterface}", 
+            customTags:         Array.Empty<string>());
+
     }
 }

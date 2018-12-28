@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Analyzers>
+  <Analyzer Identifier="ImplementNonGenericInterface" IsDevelopment="true">
+    <Id>RCS1237Dev</Id>
+    <Title>Implement non-generic interface.</Title>
+    <MessageFormat>Implement {0} interface.</MessageFormat>
+    <Category>Design</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
+    <Remarks>Publicly visible type that implements IEqualityComparer&lt;T&gt;, IComparer&lt;T&gt; or IComparable&lt;T&gt; should implement their non-generic counterpart.</Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
+  </Analyzer>
+</Analyzers>
