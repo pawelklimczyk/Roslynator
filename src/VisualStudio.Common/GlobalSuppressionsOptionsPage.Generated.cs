@@ -7,14 +7,14 @@ using Roslynator.CSharp;
 
 namespace Roslynator.VisualStudio
 {
-    public partial class AnalyzersOptionsPage
+    public partial class GlobalSuppressionsOptionsPage
     {
         protected override string MaxId
         {
             get;
         }
 
-        = DiagnosticIdentifiers.AvoidNestedConditionalExpressions;
+        = DiagnosticIdentifiers.OrderElementsInDocumentationComment;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
