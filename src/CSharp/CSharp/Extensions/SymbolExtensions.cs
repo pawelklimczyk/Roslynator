@@ -18,8 +18,7 @@ namespace Roslynator.CSharp
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes
-                | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         private static SymbolDisplayFormat IsReadOnlyStructSymbolDisplayFormat { get; } = new SymbolDisplayFormat(kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
 

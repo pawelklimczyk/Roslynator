@@ -245,22 +245,60 @@ public int GetHashCode(object obj)
                     }
             }
 
+            SimpleBaseTypeSyntax baseType = SyntaxFactory.SimpleBaseType(interfaceType);
+
             SyntaxKind kind = newTypeDeclaration.Kind();
 
             if (kind == SyntaxKind.ClassDeclaration)
             {
                 var classDeclaration = (ClassDeclarationSyntax)newTypeDeclaration;
 
-                newTypeDeclaration = classDeclaration.AddBaseListTypes(SyntaxFactory.SimpleBaseType(interfaceType));
+                BaseListSyntax baseList = classDeclaration.BaseList;
+
+                SeparatedSyntaxList<BaseTypeSyntax> baseTypes = baseList.Types;
+
+                baseTypes = AddBaseType(baseTypes, baseType);
+
+                newTypeDeclaration = classDeclaration.WithBaseList(baseList.WithTypes(baseTypes));
             }
             else if (kind == SyntaxKind.StructDeclaration)
             {
                 var structDeclaration = (StructDeclarationSyntax)newTypeDeclaration;
 
-                newTypeDeclaration = structDeclaration.AddBaseListTypes(SyntaxFactory.SimpleBaseType(interfaceType));
+                BaseListSyntax baseList = structDeclaration.BaseList;
+
+                SeparatedSyntaxList<BaseTypeSyntax> baseTypes = baseList.Types;
+
+                baseTypes = AddBaseType(baseTypes, baseType);
+
+                newTypeDeclaration = structDeclaration.WithBaseList(baseList.WithTypes(baseTypes));
             }
 
             return await document.ReplaceNodeAsync(typeDeclaration, newTypeDeclaration, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static SeparatedSyntaxList<BaseTypeSyntax> AddBaseType(SeparatedSyntaxList<BaseTypeSyntax> baseTypes, SimpleBaseTypeSyntax baseType)
+        {
+            SyntaxTriviaList trailingTrivia = default;
+
+            SyntaxToken trailingSeparator = baseTypes.GetTrailingSeparator();
+
+            if (trailingSeparator.IsKind(SyntaxKind.CommaToken))
+            {
+                baseTypes = baseTypes.ReplaceSeparator(trailingSeparator, trailingSeparator.WithoutTrailingTrivia());
+
+                trailingTrivia = trailingSeparator.TrailingTrivia;
+            }
+            else
+            {
+                BaseTypeSyntax last = baseTypes.Last();
+
+                baseTypes = baseTypes.Replace(last, last.WithoutTrailingTrivia());
+
+                trailingTrivia = last.GetTrailingTrivia();
+            }
+
+            return baseTypes.Add(baseType.WithTrailingTrivia(trailingTrivia));
         }
 
         private class AddSimplifierAnnotationRewriter : CSharpSyntaxRewriter
