@@ -25,26 +25,26 @@ namespace Roslynator.CSharp
         public static CodeAction ChangeType(
             Document document,
             TypeSyntax type,
-            ITypeSymbol typeSymbol,
+            ITypeSymbol newTypeSymbol,
             SemanticModel semanticModel,
             string title = null,
             string equivalenceKey = null)
         {
-            title = title ?? $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, type.SpanStart)}'";
+            title = title ?? $"Change type to '{SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart)}'";
 
-            return ChangeType(document, type, typeSymbol, title, equivalenceKey);
+            return ChangeType(document, type, newTypeSymbol, title, equivalenceKey);
         }
 
         public static CodeAction ChangeType(
             Document document,
             TypeSyntax type,
-            ITypeSymbol typeSymbol,
+            ITypeSymbol newTypeSymbol,
             string title,
             string equivalenceKey = null)
         {
             return CodeAction.Create(
                 title,
-                ct => ChangeTypeRefactoring.ChangeTypeAsync(document, type, typeSymbol, ct),
+                ct => ChangeTypeRefactoring.ChangeTypeAsync(document, type, newTypeSymbol, ct),
                 equivalenceKey);
         }
     }
