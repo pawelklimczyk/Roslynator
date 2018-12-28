@@ -20,7 +20,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = RefactoringIdentifiers.GenerateMissingSwitchSections;
+        = RefactoringIdentifiers.JoinIfStatements;
         internal static void SetRefactoringsDisabledByDefault(RefactoringSettings settings)
         {
             settings.Disable(RefactoringIdentifiers.AddIdentifierToParameter);
@@ -235,8 +235,8 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.AddTagToDocumentationComment, "Add tag to documentation comment", IsEnabled(RefactoringIdentifiers.AddTagToDocumentationComment)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.RemoveAsyncAwait, "Remove async/await", IsEnabled(RefactoringIdentifiers.RemoveAsyncAwait)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ImplementCustomEnumerator, "Implement custom enumerator", IsEnabled(RefactoringIdentifiers.ImplementCustomEnumerator)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.ExpandLinqMethodOperation, "Expand LINQ method operation", IsEnabled(RefactoringIdentifiers.ExpandLinqMethodOperation)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateMissingSwitchSections, "Generate missing switch sections", IsEnabled(RefactoringIdentifiers.GenerateMissingSwitchSections)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.ExpandLinqMethodOperation, "Expand LINQ method operation", IsEnabled(RefactoringIdentifiers.ExpandLinqMethodOperation)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateStructFromTuple, "Generate struct from tuple", IsEnabled(RefactoringIdentifiers.GenerateStructFromTuple)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ReplaceWhileWithIfAndDo, "Replace while statement with if statement and do statement", IsEnabled(RefactoringIdentifiers.ReplaceWhileWithIfAndDo)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.MoveLocalFunction, "Move local function after other statements", IsEnabled(RefactoringIdentifiers.MoveLocalFunction)));
