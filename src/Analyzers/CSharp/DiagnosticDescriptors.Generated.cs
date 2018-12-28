@@ -2581,5 +2581,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1236Dev</summary>
+        public static readonly DiagnosticDescriptor UseShortCircuitingOperator = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseShortCircuitingOperator, 
+            title:              "Use short-circuiting operator.", 
+            messageFormat:      "Use short-circuiting operator.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseShortCircuitingOperator}", 
+            customTags:         Array.Empty<string>());
+
     }
 }
