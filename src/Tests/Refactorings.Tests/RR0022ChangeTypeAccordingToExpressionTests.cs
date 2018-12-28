@@ -66,5 +66,21 @@ class C
 }
 ", equivalenceKey: RefactoringId);
         }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.ChangeVarToExplicitType)]
+        public async Task Test_NoRefactoring_NullLiteral()
+        {
+            await VerifyNoRefactoringAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        [||]List<string> items = null;
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
     }
 }

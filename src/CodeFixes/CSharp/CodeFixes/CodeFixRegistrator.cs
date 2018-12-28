@@ -22,21 +22,7 @@ namespace Roslynator.CSharp.CodeFixes
             SemanticModel semanticModel,
             string additionalKey = null)
         {
-            string typeName = SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart, SymbolDisplayFormats.Default);
-
-            string title = $"Change type to '{typeName}'";
-
-            Document document = context.Document;
-
-            CodeAction codeAction = CodeAction.Create(
-                title,
-                cancellationToken =>
-                {
-                    TypeSyntax newType = newTypeSymbol.ToMinimalTypeSyntax(semanticModel, type.SpanStart).WithTriviaFrom(type);
-
-                    return document.ReplaceNodeAsync(type, newType, cancellationToken);
-                },
-                EquivalenceKey.Create(diagnostic, additionalKey));
+            CodeAction codeAction = CodeActionFactory.ChangeType(context.Document, type, newTypeSymbol, semanticModel, equivalenceKey: EquivalenceKey.Create(diagnostic, additionalKey));
 
             context.RegisterCodeFix(codeAction, diagnostic);
 
@@ -49,17 +35,7 @@ namespace Roslynator.CSharp.CodeFixes
             TypeSyntax type,
             string additionalKey = null)
         {
-            Document document = context.Document;
-
-            CodeAction codeAction = CodeAction.Create(
-                "Change type to 'var'",
-                cancellationToken =>
-                {
-                    TypeSyntax newType = CSharpFactory.VarType().WithTriviaFrom(type);
-
-                    return document.ReplaceNodeAsync(type, newType, cancellationToken);
-                },
-                EquivalenceKey.Create(diagnostic, additionalKey));
+            CodeAction codeAction = CodeActionFactory.ChangeTypeToVar(context.Document, type, equivalenceKey: EquivalenceKey.Create(diagnostic, additionalKey));
 
             context.RegisterCodeFix(codeAction, diagnostic);
 

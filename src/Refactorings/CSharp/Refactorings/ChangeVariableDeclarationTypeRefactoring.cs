@@ -88,6 +88,9 @@ namespace Roslynator.CSharp.Refactorings
 
             ITypeSymbol newTypeSymbol = semanticModel.GetTypeSymbol(variableDeclaration.Variables.First().Initializer.Value, context.CancellationToken);
 
+            if (newTypeSymbol == null)
+                return;
+
             context.RegisterRefactoring(CodeActionFactory.ChangeType(context.Document, variableDeclaration.Type, newTypeSymbol, semanticModel, equivalenceKey: RefactoringIdentifiers.ChangeTypeAccordingToExpression));
         }
 
