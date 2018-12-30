@@ -187,7 +187,7 @@ namespace Roslynator.CSharp.CodeFixes
 
             Task<Document> RefactorAsync(CancellationToken cancellationToken)
             {
-                TypeSyntax newType = typeSymbol.ToMinimalTypeSyntax(semanticModel, memberDeclaration.SpanStart);
+                TypeSyntax newType = typeSymbol.ToTypeSyntax().WithSimplifierAnnotation();
 
                 switch (memberDeclaration.Kind())
                 {
@@ -259,7 +259,7 @@ namespace Roslynator.CSharp.CodeFixes
                 $"Change return type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, localFunction.SpanStart, SymbolDisplayFormats.Default)}'",
                 cancellationToken =>
                 {
-                    TypeSyntax newType = typeSymbol.ToMinimalTypeSyntax(semanticModel, localFunction.SpanStart);
+                    TypeSyntax newType = typeSymbol.ToTypeSyntax().WithSimplifierAnnotation();
 
                     LocalFunctionStatementSyntax newNode = localFunction.WithReturnType(newType.WithTriviaFrom(localFunction.ReturnType));
 
