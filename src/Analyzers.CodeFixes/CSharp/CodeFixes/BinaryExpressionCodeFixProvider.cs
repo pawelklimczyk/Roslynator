@@ -219,29 +219,34 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case DiagnosticIdentifiers.UseShortCircuitingOperator:
                         {
+                            SyntaxToken operatorToken = binaryExpression.OperatorToken;
+
+                            SyntaxKind kind = binaryExpression.Kind();
+
+                            SyntaxToken newToken = default;
+
+                            if (kind == SyntaxKind.BitwiseAndExpression)
+                            {
+                                newToken = SyntaxFactory.Token(operatorToken.LeadingTrivia, SyntaxKind.AmpersandAmpersandToken, operatorToken.TrailingTrivia);
+                            }
+                            else if (kind == SyntaxKind.BitwiseOrExpression)
+                            {
+                                newToken = SyntaxFactory.Token(operatorToken.LeadingTrivia, SyntaxKind.BarBarToken, operatorToken.TrailingTrivia);
+                            }
+
                             CodeAction codeAction = CodeAction.Create(
-                                $"Use {binaryExpression.OperatorToken.ToString()} operator",
+                                $"Use {newToken.ToString()} operator",
                                 ct =>
                                 {
-                                    SyntaxToken operatorToken = binaryExpression.OperatorToken;
-
-                                    SyntaxKind kind = binaryExpression.Kind();
-
                                     BinaryExpressionSyntax newBinaryExpression = null;
 
                                     if (kind == SyntaxKind.BitwiseAndExpression)
                                     {
-                                        newBinaryExpression = LogicalAndExpression(
-                                            binaryExpression.Left,
-                                            SyntaxFactory.Token(operatorToken.LeadingTrivia, SyntaxKind.AmpersandAmpersandToken, operatorToken.TrailingTrivia),
-                                            binaryExpression.Right);
+                                        newBinaryExpression = LogicalAndExpression(binaryExpression.Left, newToken, binaryExpression.Right);
                                     }
                                     else if (kind == SyntaxKind.BitwiseOrExpression)
                                     {
-                                        newBinaryExpression = LogicalOrExpression(
-                                            binaryExpression.Left,
-                                            SyntaxFactory.Token(operatorToken.LeadingTrivia, SyntaxKind.BarBarToken, operatorToken.TrailingTrivia),
-                                            binaryExpression.Right);
+                                        newBinaryExpression = LogicalOrExpression(binaryExpression.Left, newToken, binaryExpression.Right);
                                     }
 
                                     return document.ReplaceNodeAsync(binaryExpression, newBinaryExpression, ct);
