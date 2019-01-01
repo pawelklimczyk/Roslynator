@@ -2545,5 +2545,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1238Dev</summary>
+        public static readonly DiagnosticDescriptor OptimizeMethodCall = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.OptimizeMethodCall, 
+            title:              "Optimize method call.", 
+            messageFormat:      "Optimize '{0}' call.", 
+            category:           DiagnosticCategories.Performance, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OptimizeMethodCall}", 
+            customTags:         Array.Empty<string>());
+
     }
 }

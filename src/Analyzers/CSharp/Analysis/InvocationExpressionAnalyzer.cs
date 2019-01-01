@@ -39,7 +39,8 @@ namespace Roslynator.CSharp.Analysis
                     DiagnosticDescriptors.RemoveRedundantCast,
                     DiagnosticDescriptors.SimplifyLogicalNegation,
                     DiagnosticDescriptors.CallStringConcatInsteadOfStringJoin,
-                    DiagnosticDescriptors.UseCoalesceExpression);
+                    DiagnosticDescriptors.UseCoalesceExpression,
+                    DiagnosticDescriptors.OptimizeMethodCall);
             }
         }
 
@@ -328,6 +329,13 @@ namespace Roslynator.CSharp.Analysis
                                 {
                                     if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.CallThenByInsteadOfOrderBy))
                                         CallThenByInsteadOfOrderByAnalysis.Analyze(context, invocationInfo);
+
+                                    break;
+                                }
+                            case "Compare":
+                                {
+                                    if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall))
+                                        OptimizeMethodCallAnalysis.OptimizeStringCompareCall(context, invocationInfo);
 
                                     break;
                                 }
