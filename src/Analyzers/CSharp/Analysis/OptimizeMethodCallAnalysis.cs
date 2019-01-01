@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -60,6 +62,87 @@ namespace Roslynator.CSharp.Analysis
             context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationExpression);
         }
 
+        public static void CallDebugFailInsteadOfDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        {
+            InvocationExpressionSyntax invocation = invocationInfo.InvocationExpression;
+
+            ExpressionSyntax expression = invocation.Expression;
+
+            if (expression == null)
+                return;
+
+            if (invocation.SpanContainsDirectives())
+                return;
+
+            ArgumentListSyntax argumentList = invocation.ArgumentList;
+
+            if (argumentList == null)
+                return;
+
+            SeparatedSyntaxList<ArgumentSyntax> arguments = argumentList.Arguments;
+
+            if (arguments.Count < 1 || arguments.Count > 3)
+                return;
+
+            if (arguments[0].Expression?.Kind() != SyntaxKind.FalseLiteralExpression)
+                return;
+
+            IMethodSymbol methodSymbol = context.SemanticModel.GetMethodSymbol(invocation, context.CancellationToken);
+
+            if (!SymbolUtility.IsPublicStaticNonGeneric(methodSymbol, "Assert"))
+                return;
+
+            if (methodSymbol.ContainingType?.HasMetadataName(MetadataNames.System_Diagnostics_Debug) != true)
+                return;
+
+            if (!methodSymbol.ReturnsVoid)
+                return;
+
+            ImmutableArray<IParameterSymbol> assertParameters = methodSymbol.Parameters;
+
+            int length = assertParameters.Length;
+
+            if (assertParameters[0].Type.SpecialType != SpecialType.System_Boolean)
+                return;
+
+            for (int i = 1; i < length; i++)
+            {
+                if (assertParameters[i].Type.SpecialType != SpecialType.System_String)
+                    return;
+            }
+
+            if (!ContainsFailMethod())
+                return;
+
+            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                expression = ((MemberAccessExpressionSyntax)expression).Name;
+
+            Debug.Assert(expression.Kind() == SyntaxKind.IdentifierName, expression.Kind().ToString());
+
+            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, expression);
+
+            bool ContainsFailMethod()
+            {
+                foreach (ISymbol symbol in methodSymbol.ContainingType.GetMembers("Fail"))
+                {
+                    if (symbol is IMethodSymbol failMethodSymbol
+                        && SymbolUtility.IsPublicStaticNonGeneric(failMethodSymbol)
+                        && failMethodSymbol.ReturnsVoid)
+                    {
+                        ImmutableArray<IParameterSymbol> failParameters = failMethodSymbol.Parameters;
+
+                        if (failParameters.Length == ((length == 1) ? 1 : length - 1)
+                            && failParameters.All(f => f.Type.SpecialType == SpecialType.System_String))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
         public static void CallStringConcatInsteadOfStringJoin(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
             InvocationExpressionSyntax invocation = invocationInfo.InvocationExpression;
@@ -110,7 +193,7 @@ namespace Roslynator.CSharp.Analysis
             if (!CSharpUtility.IsEmptyStringExpression(firstArgument.Expression, semanticModel, cancellationToken))
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.CallStringConcatInsteadOfStringJoin, invocationInfo.Name);
+            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
         }
     }
 }

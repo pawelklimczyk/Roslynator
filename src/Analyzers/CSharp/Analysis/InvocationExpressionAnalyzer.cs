@@ -38,7 +38,6 @@ namespace Roslynator.CSharp.Analysis
                     DiagnosticDescriptors.UseNameOfOperator,
                     DiagnosticDescriptors.RemoveRedundantCast,
                     DiagnosticDescriptors.SimplifyLogicalNegation,
-                    DiagnosticDescriptors.CallStringConcatInsteadOfStringJoin,
                     DiagnosticDescriptors.UseCoalesceExpression,
                     DiagnosticDescriptors.OptimizeMethodCall);
             }
@@ -389,6 +388,16 @@ namespace Roslynator.CSharp.Analysis
                     {
                         if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeStringBuilderAppendCall))
                             OptimizeStringBuilderAppendCallAnalysis.Analyze(context, invocationInfo);
+
+                        break;
+                    }
+                case "Debug":
+                    {
+                        if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall)
+                            && (argumentCount < 1 || argumentCount > 3))
+                        {
+                            OptimizeMethodCallAnalysis.CallStringConcatInsteadOfStringJoin(context, invocationInfo);
+                        }
 
                         break;
                     }

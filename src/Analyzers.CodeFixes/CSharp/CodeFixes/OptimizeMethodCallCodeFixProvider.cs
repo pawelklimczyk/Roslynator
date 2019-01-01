@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CodeFixes;
 using Roslynator.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.CodeFixes
 {
@@ -64,6 +66,16 @@ namespace Roslynator.CSharp.CodeFixes
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     break;
                                 }
+                            case "Assert":
+                                {
+                                    CodeAction codeAction = CodeAction.Create(
+                                        "Call 'Fail' instead of 'Assert'",
+                                        ct => CallDebugFailInsteadOfDebugAssertAsync(context.Document, invocationExpression, ct),
+                                        GetEquivalenceKey(diagnostic));
+
+                                    context.RegisterCodeFix(codeAction, diagnostic);
+                                    break;
+                                }
                         }
 
                         break;
@@ -92,7 +104,7 @@ namespace Roslynator.CSharp.CodeFixes
 
             MemberAccessExpressionSyntax memberAccessExpression = invocationInfo.MemberAccessExpression;
 
-            MemberAccessExpressionSyntax newMemberAccessExpression = memberAccessExpression.WithName(SyntaxFactory.IdentifierName("CompareOrdinal").WithTriviaFrom(memberAccessExpression.Name));
+            MemberAccessExpressionSyntax newMemberAccessExpression = memberAccessExpression.WithName(IdentifierName("CompareOrdinal").WithTriviaFrom(memberAccessExpression.Name));
 
             ArgumentListSyntax argumentList = invocationExpression.ArgumentList;
 
@@ -125,7 +137,7 @@ namespace Roslynator.CSharp.CodeFixes
         {
             var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
 
-            MemberAccessExpressionSyntax newMemberAccess = memberAccess.WithName(SyntaxFactory.IdentifierName("Concat").WithTriviaFrom(memberAccess.Name));
+            MemberAccessExpressionSyntax newMemberAccess = memberAccess.WithName(IdentifierName("Concat").WithTriviaFrom(memberAccess.Name));
 
             ArgumentListSyntax argumentList = invocation.ArgumentList;
             SeparatedSyntaxList<ArgumentSyntax> arguments = argumentList.Arguments;
@@ -137,6 +149,31 @@ namespace Roslynator.CSharp.CodeFixes
             InvocationExpressionSyntax newInvocation = invocation
                 .WithExpression(newMemberAccess)
                 .WithArgumentList(newArgumentList);
+
+            return document.ReplaceNodeAsync(invocation, newInvocation, cancellationToken);
+        }
+
+        private static Task<Document> CallDebugFailInsteadOfDebugAssertAsync(
+            Document document,
+            InvocationExpressionSyntax invocation,
+            CancellationToken cancellationToken)
+        {
+            ArgumentListSyntax argumentList = invocation.ArgumentList;
+            SeparatedSyntaxList<ArgumentSyntax> arguments = argumentList.Arguments;
+
+            if (arguments.Count == 1)
+            {
+                ArgumentSyntax argument = arguments[0];
+                arguments = arguments.ReplaceAt(0, argument.WithExpression(StringLiteralExpression("").WithTriviaFrom(argument.Expression)));
+            }
+            else
+            {
+                arguments = arguments.RemoveAt(0);
+            }
+
+            InvocationExpressionSyntax newInvocation = RefactoringUtility.ChangeInvokedMethodName(invocation, "Fail")
+                .WithArgumentList(argumentList.WithArguments(arguments))
+                .WithFormatterAnnotation();
 
             return document.ReplaceNodeAsync(invocation, newInvocation, cancellationToken);
         }

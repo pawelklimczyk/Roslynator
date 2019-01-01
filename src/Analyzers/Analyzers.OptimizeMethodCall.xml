@@ -23,6 +23,10 @@
         <Before><![CDATA[string.Join("", x, z, y) // [|Id|]]]></Before>
         <After><![CDATA[string.Concat(x, y, z)]]></After>
       </Sample>
+      <Sample>
+        <Before><![CDATA[Debug.Assert(false, "message"); // [|Id|]]]></Before>
+        <After><![CDATA[Debug.Fail("message");]]></After>
+      </Sample>
     </Samples>
     <Remarks></Remarks>
     <Links>

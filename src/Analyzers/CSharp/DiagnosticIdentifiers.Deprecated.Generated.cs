@@ -58,5 +58,7 @@ namespace Roslynator.CSharp
         public const string MemberTypeMustMatchOverriddenMemberType = "RCS1152";
         [Obsolete("", error: true)]
         public const string OverridingMemberCannotChangeAccessModifiers = "RCS1167";
+        [Obsolete("", error: true)]
+        public const string CallDebugFailInsteadOfDebugAssert = "RCS1178";
     }
 }

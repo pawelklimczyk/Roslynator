@@ -1865,18 +1865,6 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseVarInsteadOfExplicitTypeInForEach}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1178</summary>
-        public static readonly DiagnosticDescriptor CallDebugFailInsteadOfDebugAssert = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.CallDebugFailInsteadOfDebugAssert, 
-            title:              "Call Debug.Fail instead of Debug.Assert.", 
-            messageFormat:      "Call Debug.Fail instead of Debug.Assert.", 
-            category:           DiagnosticCategories.Usage, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.CallDebugFailInsteadOfDebugAssert}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS1179</summary>
         public static readonly DiagnosticDescriptor UseReturnInsteadOfAssignment = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.UseReturnInsteadOfAssignment, 
