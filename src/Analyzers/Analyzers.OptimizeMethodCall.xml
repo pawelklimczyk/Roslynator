@@ -12,8 +12,16 @@
     <Summary></Summary>
     <Samples>
       <Sample>
-        <Before><![CDATA[]]></Before>
-        <After><![CDATA[]]></After>
+        <Before><![CDATA[string.Compare(x, y, StringComparison.Ordinal) // [|Id|]]]></Before>
+        <After><![CDATA[string.CompareOrdinal(x, y)]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[string.Compare(x, y, StringComparison.CurrentCulture) == 0 // [|Id|]]]></Before>
+        <After><![CDATA[string.Equals(x, y, StringComparison.CurrentCulture)]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[string.Join("", x, z, y) // [|Id|]]]></Before>
+        <After><![CDATA[string.Concat(x, y, z)]]></After>
       </Sample>
     </Samples>
     <Remarks></Remarks>

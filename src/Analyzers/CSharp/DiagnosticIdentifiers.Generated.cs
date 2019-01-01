@@ -134,7 +134,6 @@ namespace Roslynator.CSharp
         public const string SimplifyCoalesceExpression = "RCS1143";
         public const string RemoveRedundantAsOperator = "RCS1145";
         public const string UseConditionalAccess = "RCS1146";
-        public const string CallStringConcatInsteadOfStringJoin = "RCS1150";
         public const string RemoveRedundantCast = "RCS1151";
         public const string AddEmptyLineAfterClosingBrace = "RCS1153";
         public const string SortEnumMembers = "RCS1154";

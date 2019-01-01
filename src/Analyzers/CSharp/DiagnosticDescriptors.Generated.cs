@@ -1563,18 +1563,6 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseConditionalAccess}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1150</summary>
-        public static readonly DiagnosticDescriptor CallStringConcatInsteadOfStringJoin = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin, 
-            title:              "Call string.Concat instead of string.Join.", 
-            messageFormat:      "Call string.Concat instead of string.Join.", 
-            category:           DiagnosticCategories.Simplification, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS1151</summary>
         public static readonly DiagnosticDescriptor RemoveRedundantCast = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.RemoveRedundantCast, 

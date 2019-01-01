@@ -30,6 +30,8 @@ namespace Roslynator.CSharp.CodeFixes
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.EqualsExpression)))
                 return;
 
+            Document document = context.Document;
+
             Diagnostic diagnostic = context.Diagnostics[0];
 
             switch (node.Kind())
@@ -40,12 +42,30 @@ namespace Roslynator.CSharp.CodeFixes
 
                         SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(invocationExpression);
 
-                        CodeAction codeAction = CodeAction.Create(
-                            "Call 'CompareOrdinal' instead of 'Compare'",
-                            ct => CallCompareOrdinalInsteadOfCompareAsync(context.Document, invocationInfo, ct),
-                            GetEquivalenceKey(diagnostic));
+                        switch (invocationInfo.NameText)
+                        {
+                            case "Compare":
+                                {
+                                    CodeAction codeAction = CodeAction.Create(
+                                        "Call 'CompareOrdinal' instead of 'Compare'",
+                                        ct => CallCompareOrdinalInsteadOfCompareAsync(document, invocationInfo, ct),
+                                        base.GetEquivalenceKey(diagnostic));
 
-                        context.RegisterCodeFix(codeAction, diagnostic);
+                                    context.RegisterCodeFix(codeAction, diagnostic);
+                                    break;
+                                }
+                            case "Join":
+                                {
+                                    CodeAction codeAction = CodeAction.Create(
+                                        "Call 'Concat' instead of 'Join'",
+                                        cancellationToken => CallStringConcatInsteadOfStringJoinAsync(document, invocationExpression, cancellationToken),
+                                        base.GetEquivalenceKey(diagnostic));
+
+                                    context.RegisterCodeFix(codeAction, diagnostic);
+                                    break;
+                                }
+                        }
+
                         break;
                     }
                 case SyntaxKind.EqualsExpression:
@@ -54,8 +74,8 @@ namespace Roslynator.CSharp.CodeFixes
 
                         CodeAction codeAction = CodeAction.Create(
                             "Call 'Equals' instead of 'Compare'",
-                            ct => CallEqualsInsteadOfCompareAsync(context.Document, equalsExpression, ct),
-                            GetEquivalenceKey(diagnostic));
+                            ct => CallEqualsInsteadOfCompareAsync(document, equalsExpression, ct),
+                            base.GetEquivalenceKey(diagnostic));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
                         break;
@@ -96,6 +116,29 @@ namespace Roslynator.CSharp.CodeFixes
             newInvocationExpression = newInvocationExpression.WithTriviaFrom(equalsExpression);
 
             return document.ReplaceNodeAsync(equalsExpression, newInvocationExpression, cancellationToken);
+        }
+
+        private static Task<Document> CallStringConcatInsteadOfStringJoinAsync(
+            Document document,
+            InvocationExpressionSyntax invocation,
+            CancellationToken cancellationToken)
+        {
+            var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
+
+            MemberAccessExpressionSyntax newMemberAccess = memberAccess.WithName(SyntaxFactory.IdentifierName("Concat").WithTriviaFrom(memberAccess.Name));
+
+            ArgumentListSyntax argumentList = invocation.ArgumentList;
+            SeparatedSyntaxList<ArgumentSyntax> arguments = argumentList.Arguments;
+
+            ArgumentListSyntax newArgumentList = argumentList
+                .WithArguments(arguments.RemoveAt(0))
+                .WithOpenParenToken(argumentList.OpenParenToken.AppendToTrailingTrivia(arguments[0].GetLeadingAndTrailingTrivia()));
+
+            InvocationExpressionSyntax newInvocation = invocation
+                .WithExpression(newMemberAccess)
+                .WithArgumentList(newArgumentList);
+
+            return document.ReplaceNodeAsync(invocation, newInvocation, cancellationToken);
         }
     }
 }

@@ -3150,7 +3150,7 @@ string s2 = s as string; // [|Id|]]]></Before>
     <SupportsFadeOut>true</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
   </Analyzer>
-  <Analyzer Identifier="CallStringConcatInsteadOfStringJoin">
+  <Analyzer Identifier="CallStringConcatInsteadOfStringJoin" IsObsolete="true">
     <Id>RCS1150</Id>
     <Title>Call string.Concat instead of string.Join.</Title>
     <MessageFormat>Call string.Concat instead of string.Join.</MessageFormat>

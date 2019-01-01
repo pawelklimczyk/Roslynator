@@ -286,6 +286,18 @@ namespace Roslynator.CSharp
             customTags:         WellKnownDiagnosticTags.Unnecessary);
 
         [Obsolete("", error: true)]
+        public static readonly DiagnosticDescriptor CallStringConcatInsteadOfStringJoin = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin, 
+            title:              "Call string.Concat instead of string.Join.", 
+            messageFormat:      "Call string.Concat instead of string.Join.", 
+            category:           DiagnosticCategories.Simplification, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin}", 
+            customTags:         Array.Empty<string>());
+
+        [Obsolete("", error: true)]
         public static readonly DiagnosticDescriptor MemberTypeMustMatchOverriddenMemberType = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.MemberTypeMustMatchOverriddenMemberType, 
             title:              "Member type must match overriden member type.", 

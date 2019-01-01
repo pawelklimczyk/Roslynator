@@ -394,10 +394,10 @@ namespace Roslynator.CSharp.Analysis
                     }
                 case "Join":
                     {
-                        if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.CallStringConcatInsteadOfStringJoin)
+                        if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall)
                             && argumentCount >= 2)
                         {
-                            CallStringConcatInsteadOfStringJoinAnalysis.Analyze(context, invocationInfo);
+                            OptimizeMethodCallAnalysis.CallStringConcatInsteadOfStringJoin(context, invocationInfo);
                         }
 
                         break;

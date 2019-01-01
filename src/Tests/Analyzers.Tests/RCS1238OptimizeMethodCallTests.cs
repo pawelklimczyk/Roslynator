@@ -18,7 +18,7 @@ namespace Roslynator.CSharp.Analysis.Tests
         public override CodeFixProvider FixProvider { get; } = new OptimizeMethodCallCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
-        public async Task Test_ReplaceCompareWithCompareOrdinal()
+        public async Task Test_CallCompareOrdinalInsteadOfCompare()
         {
             await VerifyDiagnosticAndFixAsync(@"
 using System;
@@ -50,7 +50,7 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
-        public async Task Test_ReplaceCompareWithEquals()
+        public async Task Test_CallEqualsInsteadOfCompare()
         {
             await VerifyDiagnosticAndFixAsync(@"
 using System;
@@ -80,6 +80,117 @@ class C
         if (string.Equals(x, y, StringComparison.Ordinal))
         {
         }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallStringConcatInsteadOfStringJoin_EmptyStringLiteral()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string s = string.[|Join|]("""", default(object), default(object));
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = string.Concat(default(object), default(object));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallStringConcatInsteadOfStringJoin_EmptyStringLiteral2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string s = string.[|Join|]("""", ""a"", ""b"");
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = string.Concat(""a"", ""b"");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallStringConcatInsteadOfStringJoin_StringEmpty()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string s = string.[|Join|](string.Empty, new string[] { """" });
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = string.Concat(new string[] { """" });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallStringConcatInsteadOfStringJoin_EmptyStringConstant()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    const string EmptyString = """";
+
+    void M()
+    {
+        string s = string.[|Join|](EmptyString, new object[] { """" });
+    }
+}
+", @"
+class C
+{
+    const string EmptyString = """";
+
+    void M()
+    {
+        string s = string.Concat(new object[] { """" });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task TestNoDiagnostic_CallStringConcatInsteadOfStringJoin()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        string s = string.Join(""x"", new object[] { """" });
     }
 }
 ");
