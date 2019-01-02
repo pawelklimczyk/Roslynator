@@ -178,6 +178,84 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallDebugFailInsteadOfDebugAssert()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.[|Assert|](false);
+    }
+}
+", @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.Fail("""");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallDebugFailInsteadOfDebugAssert2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.[|Assert|](false, ""x"");
+    }
+}
+", @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.Fail(""x"");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallDebugFailInsteadOfDebugAssert3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.[|Assert|](false, ""x"", ""y"");
+    }
+}
+", @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        Debug.Fail(""x"", ""y"");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
         public async Task TestNoDiagnostic_CallStringConcatInsteadOfStringJoin()
         {
             await VerifyNoDiagnosticAsync(@"

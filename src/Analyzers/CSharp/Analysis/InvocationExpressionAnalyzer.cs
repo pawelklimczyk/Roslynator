@@ -391,12 +391,12 @@ namespace Roslynator.CSharp.Analysis
 
                         break;
                     }
-                case "Debug":
+                case "Assert":
                     {
                         if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall)
-                            && (argumentCount < 1 || argumentCount > 3))
+                            && (argumentCount >= 1 && argumentCount <= 3))
                         {
-                            OptimizeMethodCallAnalysis.CallStringConcatInsteadOfStringJoin(context, invocationInfo);
+                            OptimizeMethodCallAnalysis.CallDebugFailInsteadOfDebugAssert(context, invocationInfo);
                         }
 
                         break;

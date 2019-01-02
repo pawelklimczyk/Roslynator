@@ -28,6 +28,9 @@ namespace Roslynator.CSharp.Analysis
 
             var methodSymbol = (IMethodSymbol)symbol;
 
+            if (!SymbolUtility.IsPublicStaticNonGeneric(methodSymbol, "Compare"))
+                return;
+
             ImmutableArray<IParameterSymbol> parameters = methodSymbol.Parameters;
 
             if (parameters.Length != 3)
@@ -64,22 +67,12 @@ namespace Roslynator.CSharp.Analysis
 
         public static void CallDebugFailInsteadOfDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
-            InvocationExpressionSyntax invocation = invocationInfo.InvocationExpression;
+            InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
 
-            ExpressionSyntax expression = invocation.Expression;
-
-            if (expression == null)
+            if (invocationExpression.SpanContainsDirectives())
                 return;
 
-            if (invocation.SpanContainsDirectives())
-                return;
-
-            ArgumentListSyntax argumentList = invocation.ArgumentList;
-
-            if (argumentList == null)
-                return;
-
-            SeparatedSyntaxList<ArgumentSyntax> arguments = argumentList.Arguments;
+            SeparatedSyntaxList<ArgumentSyntax> arguments = invocationInfo.Arguments;
 
             if (arguments.Count < 1 || arguments.Count > 3)
                 return;
@@ -87,7 +80,7 @@ namespace Roslynator.CSharp.Analysis
             if (arguments[0].Expression?.Kind() != SyntaxKind.FalseLiteralExpression)
                 return;
 
-            IMethodSymbol methodSymbol = context.SemanticModel.GetMethodSymbol(invocation, context.CancellationToken);
+            IMethodSymbol methodSymbol = context.SemanticModel.GetMethodSymbol(invocationExpression, context.CancellationToken);
 
             if (!SymbolUtility.IsPublicStaticNonGeneric(methodSymbol, "Assert"))
                 return;
@@ -100,10 +93,10 @@ namespace Roslynator.CSharp.Analysis
 
             ImmutableArray<IParameterSymbol> assertParameters = methodSymbol.Parameters;
 
-            int length = assertParameters.Length;
-
             if (assertParameters[0].Type.SpecialType != SpecialType.System_Boolean)
                 return;
+
+            int length = assertParameters.Length;
 
             for (int i = 1; i < length; i++)
             {
@@ -114,12 +107,7 @@ namespace Roslynator.CSharp.Analysis
             if (!ContainsFailMethod())
                 return;
 
-            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                expression = ((MemberAccessExpressionSyntax)expression).Name;
-
-            Debug.Assert(expression.Kind() == SyntaxKind.IdentifierName, expression.Kind().ToString());
-
-            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, expression);
+            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
 
             bool ContainsFailMethod()
             {
