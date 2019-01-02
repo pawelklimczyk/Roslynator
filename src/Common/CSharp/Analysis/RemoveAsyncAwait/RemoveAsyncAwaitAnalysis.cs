@@ -14,13 +14,13 @@ namespace Roslynator.CSharp.Analysis.RemoveAsyncAwait
 {
     internal readonly struct RemoveAsyncAwaitAnalysis
     {
-        public RemoveAsyncAwaitAnalysis(RemoveAsyncAwaitWalker walker)
+        private RemoveAsyncAwaitAnalysis(RemoveAsyncAwaitWalker walker)
         {
             Walker = walker;
             AwaitExpression = null;
         }
 
-        public RemoveAsyncAwaitAnalysis(AwaitExpressionSyntax awaitExpression)
+        private RemoveAsyncAwaitAnalysis(AwaitExpressionSyntax awaitExpression)
         {
             AwaitExpression = awaitExpression;
             Walker = null;
