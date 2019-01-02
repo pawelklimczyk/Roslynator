@@ -37,7 +37,7 @@ namespace Roslynator.CSharp.Analysis
                 if (conditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression)
                     || conditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression))
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.AvoidNestedConditionalExpressions, conditionalExpression);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AvoidNestedConditionalExpressions, conditionalExpression);
                 }
             }
         }

@@ -515,7 +515,7 @@ namespace Roslynator.CSharp.Analysis
                     return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.RemoveUnnecessaryNewLine, token);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.RemoveUnnecessaryNewLine, token);
         }
     }
 }

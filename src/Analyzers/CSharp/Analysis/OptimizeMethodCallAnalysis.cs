@@ -57,12 +57,12 @@ namespace Roslynator.CSharp.Analysis
 
                 if (other.WalkDownParentheses().IsNumericLiteralExpression("0"))
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, equalsExpression);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, equalsExpression);
                     return;
                 }
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationExpression);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression);
         }
 
         public static void CallDebugFailInsteadOfDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
@@ -107,7 +107,7 @@ namespace Roslynator.CSharp.Analysis
             if (!ContainsFailMethod())
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
 
             bool ContainsFailMethod()
             {
@@ -181,7 +181,7 @@ namespace Roslynator.CSharp.Analysis
             if (!CSharpUtility.IsEmptyStringExpression(firstArgument.Expression, semanticModel, cancellationToken))
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
         }
     }
 }

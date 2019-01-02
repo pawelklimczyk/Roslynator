@@ -250,7 +250,7 @@ namespace Roslynator.CSharp.Analysis
 
         private static void ReportDuplicateValue(SymbolAnalysisContext context, SyntaxNode node)
         {
-            context.ReportDiagnostic(DiagnosticDescriptors.DuplicateEnumValue, node);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.DuplicateEnumValue, node);
         }
     }
 }
