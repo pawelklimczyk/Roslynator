@@ -3155,7 +3155,7 @@ string s2 = s as string; // [|Id|]]]></Before>
     <SupportsFadeOut>true</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
   </Analyzer>
-  <Analyzer Identifier="CallStringConcatInsteadOfStringJoin">
+  <Analyzer Identifier="CallStringConcatInsteadOfStringJoin" IsObsolete="true">
     <Id>RCS1150</Id>
     <Title>Call string.Concat instead of string.Join.</Title>
     <MessageFormat>Call string.Concat instead of string.Join.</MessageFormat>
@@ -3747,7 +3747,7 @@ else
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="CallDebugFailInsteadOfDebugAssert">
+  <Analyzer Identifier="CallDebugFailInsteadOfDebugAssert" IsObsolete="true">
     <Id>RCS1178</Id>
     <Title>Call Debug.Fail instead of Debug.Assert.</Title>
     <MessageFormat>Call Debug.Fail instead of Debug.Assert.</MessageFormat>

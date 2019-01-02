@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Analyzers>
+  <Analyzer Identifier="OptimizeMethodCall" IsDevelopment="true">
+    <Id>RCS1238Dev</Id>
+    <Title>Optimize method call.</Title>
+    <MessageFormat>Optimize '{0}' call.</MessageFormat>
+    <Category>Performance</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[string.Compare(x, y, StringComparison.Ordinal) // [|Id|]]]></Before>
+        <After><![CDATA[string.CompareOrdinal(x, y)]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[string.Compare(x, y, StringComparison.CurrentCulture) == 0 // [|Id|]]]></Before>
+        <After><![CDATA[string.Equals(x, y, StringComparison.CurrentCulture)]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[string.Join("", x, z, y) // [|Id|]]]></Before>
+        <After><![CDATA[string.Concat(x, y, z)]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[Debug.Assert(false, "message"); // [|Id|]]]></Before>
+        <After><![CDATA[Debug.Fail("message");]]></After>
+      </Sample>
+    </Samples>
+    <Remarks></Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
+  </Analyzer>
+</Analyzers>
