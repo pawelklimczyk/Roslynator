@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslynator.CSharp.Refactorings;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Roslynator.CSharp
@@ -19,7 +18,7 @@ namespace Roslynator.CSharp
         {
             return CodeAction.Create(
                 title ?? "Change type to 'var'",
-                ct => ChangeTypeRefactoring.ChangeTypeToVarAsync(document, type, ct),
+                ct => DocumentRefactorings.ChangeTypeToVarAsync(document, type, ct),
                 equivalenceKey);
         }
 
@@ -58,7 +57,7 @@ namespace Roslynator.CSharp
         {
             return CodeAction.Create(
                 title,
-                ct => ChangeTypeRefactoring.ChangeTypeAsync(document, type, newTypeSymbol, ct),
+                ct => DocumentRefactorings.ChangeTypeAsync(document, type, newTypeSymbol, ct),
                 equivalenceKey);
         }
 
@@ -76,7 +75,7 @@ namespace Roslynator.CSharp
 
             return CodeAction.Create(
                 title ?? $"Cast to '{typeName}'",
-                ct => AddCastExpressionRefactoring.RefactorAsync(document, expression, newType, ct),
+                ct => DocumentRefactorings.AddCastExpressionAsync(document, expression, newType, ct),
                 equivalenceKey);
         }
 
@@ -121,6 +120,18 @@ namespace Roslynator.CSharp
 
                     return document.ReplaceNodeAsync(expression, defaultValue, ct);
                 },
+                equivalenceKey);
+        }
+
+        public static CodeAction RemoveAsyncAwait(
+            Document document,
+            SyntaxToken asyncKeyword,
+            string title = null,
+            string equivalenceKey = null)
+        {
+            return CodeAction.Create(
+                title ?? "Remove async/await",
+                ct => DocumentRefactorings.RemoveAsyncAwaitAsync(document, asyncKeyword, ct),
                 equivalenceKey);
         }
     }
