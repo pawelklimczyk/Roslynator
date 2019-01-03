@@ -141,7 +141,8 @@ namespace Roslynator.CSharp.Analysis
                 identifier = structDeclaration.Identifier;
             }
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.ImplementNonGenericInterface,
                 identifier.GetLocation(),
                 ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("InterfaceName", interfaceName) }),
