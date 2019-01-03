@@ -1,1 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Roslynator.Analyzers.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010027004e802c1a5eb763f904a7446ff4b19754f33b9e8ae0046fe19e2c3405b4743c55d38de3f6b61c7dae04b814d01171f2b722a7f5a12d5060506aaf173c40f8ccf81878d1468a722172cb05f4099d8891f1214670d60bc4a6235b66ec04a53f93d8c390d187796eee172535e1a9ed946ce48fff537c1435f7e1aea5e89a31bb")]

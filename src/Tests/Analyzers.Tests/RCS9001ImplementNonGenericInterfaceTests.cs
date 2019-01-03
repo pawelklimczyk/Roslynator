@@ -11,11 +11,13 @@ namespace Roslynator.CSharp.Analysis.Tests
 {
     public class RCS9001ImplementNonGenericInterfaceTests : AbstractCSharpCodeFixVerifier
     {
+        private static readonly ImplementNonGenericInterfaceCodeFixProvider _fixProvider = new ImplementNonGenericInterfaceCodeFixProvider();
+
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.ImplementNonGenericInterface;
 
         public override DiagnosticAnalyzer Analyzer { get; } = new NamedTypeSymbolAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; } = new ImplementNonGenericInterfaceCodeFixProvider();
+        public override CodeFixProvider FixProvider { get; } = _fixProvider;
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
         public async Task Test_IComparable()
@@ -56,10 +58,55 @@ public abstract class Comparable : IComparable<C>, IComparable
             return CompareTo(x);
         }
 
-        throw new ArgumentException($""An argument must be '{nameof(C)}'."", nameof(obj));
+        throw new ArgumentException("""", nameof(obj));
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
+        public async Task Test_IComparable_Explicit()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class [|Comparable|] : IComparable<C>
+{
+    public abstract int CompareTo(C other);
+}
+", @"
+using System;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class Comparable : IComparable<C>, IComparable
+{
+    public abstract int CompareTo(C other);
+
+    int IComparable.CompareTo(object obj)
+    {
+        if (obj == null)
+        {
+            return 1;
+        }
+
+        if (obj is C x)
+        {
+            return CompareTo(x);
+        }
+
+        throw new ArgumentException("""", nameof(obj));
+    }
+}
+", equivalenceKey: _fixProvider.ExplicitEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
@@ -114,15 +161,68 @@ public abstract class Comparer : IComparer<C>, IComparer
             return Compare(a, b);
         }
 
-        if (x is IComparable ic)
-        {
-            return ic.CompareTo(y);
-        }
-
-        throw new ArgumentException(""An object must implement IComparable."", nameof(x));
+        throw new ArgumentException("""", nameof(x));
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
+        public async Task Test_IComparer_Explicit()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class [|Comparer|] : IComparer<C>
+{
+    public abstract int Compare(C x, C y);
+}
+", @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class Comparer : IComparer<C>, IComparer
+{
+    public abstract int Compare(C x, C y);
+
+    int IComparer.Compare(object x, object y)
+    {
+        if (x == y)
+        {
+            return 0;
+        }
+
+        if (x == null)
+        {
+            return -1;
+        }
+
+        if (y == null)
+        {
+            return 1;
+        }
+
+        if (x is global::C a
+            && y is global::C b)
+        {
+            return Compare(a, b);
+        }
+
+        throw new ArgumentException("""", nameof(x));
+    }
+}
+", equivalenceKey: _fixProvider.ExplicitEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
@@ -176,14 +276,14 @@ public abstract class EqualityComparer : IEqualityComparer<C>, IEqualityComparer
             return Equals(a, b);
         }
 
-        return x.Equals(y);
+        throw new ArgumentException("""", nameof(x));
     }
 
     public int GetHashCode(object obj)
     {
         if (obj == null)
         {
-            throw new ArgumentNullException(nameof(obj));
+            return 0;
         }
 
         if (obj is C x)
@@ -191,10 +291,82 @@ public abstract class EqualityComparer : IEqualityComparer<C>, IEqualityComparer
             return GetHashCode(x);
         }
 
-        return obj.GetHashCode();
+        throw new ArgumentException("""", nameof(obj));
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.ImplementNonGenericInterface)]
+        public async Task Test_IEqualityComparer_Explicit()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class [|EqualityComparer|] : IEqualityComparer<C>
+{
+    public abstract bool Equals(C x, C y);
+
+    public abstract int GetHashCode(C obj);
+}
+", @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C
+{
+}
+
+public abstract class EqualityComparer : IEqualityComparer<C>, IEqualityComparer
+{
+    public abstract bool Equals(C x, C y);
+
+    public abstract int GetHashCode(C obj);
+
+    bool IEqualityComparer.Equals(object x, object y)
+    {
+        if (x == y)
+        {
+            return true;
+        }
+
+        if (x == null || y == null)
+        {
+            return false;
+        }
+
+        if (x is global::C a
+            && y is global::C b)
+        {
+            return Equals(a, b);
+        }
+
+        throw new ArgumentException("""", nameof(x));
+    }
+
+    int IEqualityComparer.GetHashCode(object obj)
+    {
+        if (obj == null)
+        {
+            return 0;
+        }
+
+        if (obj is C x)
+        {
+            return GetHashCode(x);
+        }
+
+        throw new ArgumentException("""", nameof(obj));
+    }
+}
+", equivalenceKey: _fixProvider.ExplicitEquivalenceKey);
         }
     }
 }
