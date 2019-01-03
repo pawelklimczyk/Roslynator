@@ -132,16 +132,18 @@
       <Syntax>local function</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0022" Identifier="ChangeTypeAccordingToExpression" Title="Change type according to expression" IsObsolete="true">
+  <Refactoring Id="RR0022" Identifier="ChangeTypeAccordingToExpression" Title="Change type according to expression">
     <Syntaxes>
       <Syntax>variable declaration</Syntax>
       <Syntax>foreach statement</Syntax>
     </Syntaxes>
     <Span>type</Span>
-    <Images>
-      <Image>ChangeTypeAccordingToExpression</Image>
-      <Image>ChangeForEachTypeAccordingToExpression</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[IEnumerable<object> items = new List<object>();]]></Before>
+        <After><![CDATA[List<object> items = new List<object>();]]></After>
+      </Sample>
+    </Samples>
   </Refactoring>
   <Refactoring Id="RR0023" Identifier="ChangeVarToExplicitType" Title="Change 'var' to explicit type">
     <Syntaxes>
@@ -456,10 +458,45 @@ if (y)
     </Syntaxes>
     <Span>identifier</Span>
   </Refactoring>
-  <Refactoring Id="RR0059" Identifier="GenerateSwitchSections" Title="Generate switch sections">
+  <Refactoring Id="RR0059" Identifier="AddMissingCases" Title="Add missing cases to switch statement">
     <Syntaxes>
-      <Syntax>switch statement (that is empty or contains only default section)</Syntax>
+      <Syntax>switch statement</Syntax>
     </Syntaxes>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[switch (dayOfWeek)
+{
+    case DayOfWeek.Sunday:
+        break;
+    case DayOfWeek.Monday:
+        break;
+    case DayOfWeek.Tuesday:
+        break;
+    case DayOfWeek.Wednesday:
+        break;
+    case DayOfWeek.Thursday:
+        break;
+}
+]]></Before>
+        <After><![CDATA[switch (dayOfWeek)
+{
+    case DayOfWeek.Sunday:
+        break;
+    case DayOfWeek.Monday:
+        break;
+    case DayOfWeek.Tuesday:
+        break;
+    case DayOfWeek.Wednesday:
+        break;
+    case DayOfWeek.Thursday:
+        break;
+    case DayOfWeek.Friday:
+        break;
+    case DayOfWeek.Saturday:
+        break;
+}]]></After>
+      </Sample>
+    </Samples>
   </Refactoring>
   <Refactoring Id="RR0060" Identifier="InitializeLocalWithDefaultValue" Title="Initialize local with default value">
     <Syntaxes>

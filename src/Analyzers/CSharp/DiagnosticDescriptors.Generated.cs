@@ -2545,11 +2545,35 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1237Dev</summary>
+        /// <summary>RCS1233</summary>
+        public static readonly DiagnosticDescriptor UseShortCircuitingOperator = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseShortCircuitingOperator, 
+            title:              "Use short-circuiting operator.", 
+            messageFormat:      "Use short-circuiting operator.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseShortCircuitingOperator}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1234</summary>
+        public static readonly DiagnosticDescriptor DuplicateEnumValue = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.DuplicateEnumValue, 
+            title:              "Duplicate enum value.", 
+            messageFormat:      "Duplicate enum value.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS9001</summary>
         public static readonly DiagnosticDescriptor ImplementNonGenericInterface = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.ImplementNonGenericInterface, 
             title:              "Implement non-generic interface.", 
-            messageFormat:      "Implement non-generic interface.", 
+            messageFormat:      "Implement {0} interface.", 
             category:           DiagnosticCategories.Design, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: true, 

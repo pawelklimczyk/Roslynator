@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1237ImplementNonGenericInterfaceTests : AbstractCSharpCodeFixVerifier
+    public class RCS9001ImplementNonGenericInterfaceTests : AbstractCSharpCodeFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.ImplementNonGenericInterface;
 
