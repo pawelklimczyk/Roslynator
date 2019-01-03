@@ -19,8 +19,15 @@ namespace Roslynator.CSharp.CodeFixes
     [Shared]
     public class ImplementNonGenericInterfaceCodeFixProvider : BaseCodeFixProvider
     {
+        public ImplementNonGenericInterfaceCodeFixProvider()
+        {
+            ExplicitEquivalenceKey = GetEquivalenceKey(DiagnosticIdentifiers.ImplementNonGenericInterface, "Explicit");
+        }
+
+        internal readonly string ExplicitEquivalenceKey;
+
         private const string IComparableCompareText = @"
-public int CompareTo(object obj)
+public int global::System.IComparable.CompareTo(object obj)
 {
     if (obj == null)
     {
@@ -32,12 +39,12 @@ public int CompareTo(object obj)
         return CompareTo(x);
     }
 
-    throw new global::System.ArgumentException($""An argument must be '{nameof(T)}'."", nameof(obj));
+    throw new global::System.ArgumentException("""", nameof(obj));
 }
 ";
 
         private const string IComparerCompareText = @"
-public int Compare(object x, object y)
+public int global::System.Collections.IComparer.Compare(object x, object y)
 {
     if (x == y)
     {
@@ -60,17 +67,12 @@ public int Compare(object x, object y)
         return Compare(a, b);
     }
 
-    if (x is global::System.IComparable ic)
-    {
-        return ic.CompareTo(y);
-    }
-
-    throw new global::System.ArgumentException(""An object must implement IComparable."", nameof(x));
+    throw new global::System.ArgumentException("""", nameof(x));
 }
 ";
 
         private const string IEqualityComparerEqualsText = @"
-new public bool Equals(object x, object y)
+new public bool global::System.Collections.IEqualityComparer.Equals(object x, object y)
 {
     if (x == y)
     {
@@ -88,16 +90,16 @@ new public bool Equals(object x, object y)
         return Equals(a, b);
     }
 
-    return x.Equals(y);
+    throw new global::System.ArgumentException("""", nameof(x));
 }
 ";
 
         private const string IEqualityComparerGetHashCodeText = @"
-public int GetHashCode(object obj)
+public int global::System.Collections.IEqualityComparer.GetHashCode(object obj)
 {
     if (obj == null)
     {
-        throw new global::System.ArgumentNullException(nameof(obj));
+        return 0;
     }
 
     if (obj is T x)
@@ -105,30 +107,19 @@ public int GetHashCode(object obj)
         return GetHashCode(x);
     }
 
-    return obj.GetHashCode();
+    throw new global::System.ArgumentException("""", nameof(obj));
 }
 ";
 
-        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparableCompare = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparableCompareText));
-        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparerCompare = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparerCompareText));
-        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerEquals = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerEqualsText));
-        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerGetHashCode = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerGetHashCodeText));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparableCompare = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparableCompareText, explicitInterfaceImplementation: false));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparerCompare = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparerCompareText, explicitInterfaceImplementation: false));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerEquals = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerEqualsText, explicitInterfaceImplementation: false));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerGetHashCode = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerGetHashCodeText, explicitInterfaceImplementation: false));
 
-        private static MethodDeclarationSyntax CreateMethodDeclaration(string text)
-        {
-            CompilationUnitSyntax compilationUnit = SyntaxFactory.ParseCompilationUnit($@"class C<T>
-{{
-    {text}
-}}");
-
-            var classDeclaration = (ClassDeclarationSyntax)compilationUnit.Members[0];
-
-            var methodDeclaration = (MethodDeclarationSyntax)classDeclaration.Members[0];
-
-            methodDeclaration = (MethodDeclarationSyntax)AddSimplifierAnnotationRewriter.Instance.VisitMethodDeclaration(methodDeclaration);
-
-            return methodDeclaration.WithFormatterAnnotation();
-        }
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparableCompareExplicit = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparableCompareText, explicitInterfaceImplementation: true));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIComparerCompareExplicit = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IComparerCompareText, explicitInterfaceImplementation: true));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerEqualsExplicit = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerEqualsText, explicitInterfaceImplementation: true));
+        private static readonly Lazy<MethodDeclarationSyntax> _lazyIEqualityComparerGetHashCodeExplicit = new Lazy<MethodDeclarationSyntax>(() => CreateMethodDeclaration(IEqualityComparerGetHashCodeText, explicitInterfaceImplementation: true));
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -150,16 +141,53 @@ public int GetHashCode(object obj)
 
             CodeAction codeAction = CodeAction.Create(
                 $"Implement {interfaceName}",
-                ct => RefactorAsync(document, typeDeclaration, interfaceName, ct),
+                ct => RefactorAsync(document, typeDeclaration, interfaceName, explicitImplementation: false, ct),
                 GetEquivalenceKey(diagnostic));
 
             context.RegisterCodeFix(codeAction, diagnostic);
+
+            codeAction = CodeAction.Create(
+                $"Implement {interfaceName} explicitly",
+                ct => RefactorAsync(document, typeDeclaration, interfaceName, explicitImplementation: true, ct),
+                GetEquivalenceKey(diagnostic, "Explicit"));
+
+            context.RegisterCodeFix(codeAction, diagnostic);
+        }
+
+        private static MethodDeclarationSyntax CreateMethodDeclaration(string text, bool explicitInterfaceImplementation)
+        {
+            CompilationUnitSyntax compilationUnit = SyntaxFactory.ParseCompilationUnit($@"class C<T>
+{{
+    {text}
+}}");
+
+            var classDeclaration = (ClassDeclarationSyntax)compilationUnit.Members[0];
+
+            var methodDeclaration = (MethodDeclarationSyntax)classDeclaration.Members[0];
+
+            MethodDeclarationSyntax newMethodDeclaration = methodDeclaration;
+
+            if (explicitInterfaceImplementation)
+            {
+                newMethodDeclaration = newMethodDeclaration
+                    .WithModifiers(default)
+                    .WithLeadingTrivia(methodDeclaration.GetLeadingTrivia());
+            }
+            else
+            {
+                newMethodDeclaration = newMethodDeclaration.WithExplicitInterfaceSpecifier(null);
+            }
+
+            newMethodDeclaration = (MethodDeclarationSyntax)AddSimplifierAnnotationRewriter.Instance.VisitMethodDeclaration(newMethodDeclaration);
+
+            return newMethodDeclaration.WithFormatterAnnotation();
         }
 
         private static async Task<Document> RefactorAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
             string interfaceName,
+            bool explicitImplementation,
             CancellationToken cancellationToken)
         {
             SemanticModel semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
@@ -184,7 +212,7 @@ public int GetHashCode(object obj)
 
                         var rewriter = new AddTypeNameRewriter(type);
 
-                        MethodDeclarationSyntax methodDeclaration = _lazyIComparableCompare.Value;
+                        MethodDeclarationSyntax methodDeclaration = (explicitImplementation) ? _lazyIComparableCompareExplicit.Value : _lazyIComparableCompare.Value;
 
                         methodDeclaration = (MethodDeclarationSyntax)rewriter.VisitMethodDeclaration(methodDeclaration);
 
@@ -204,7 +232,7 @@ public int GetHashCode(object obj)
 
                         var rewriter = new AddTypeNameRewriter(type);
 
-                        MethodDeclarationSyntax methodDeclaration = _lazyIComparerCompare.Value;
+                        MethodDeclarationSyntax methodDeclaration = (explicitImplementation) ? _lazyIComparerCompareExplicit.Value : _lazyIComparerCompare.Value;
 
                         methodDeclaration = (MethodDeclarationSyntax)rewriter.VisitMethodDeclaration(methodDeclaration);
 
@@ -224,13 +252,13 @@ public int GetHashCode(object obj)
 
                         var rewriter = new AddTypeNameRewriter(type);
 
-                        MethodDeclarationSyntax equalsMethod = _lazyIEqualityComparerEquals.Value;
+                        MethodDeclarationSyntax equalsMethod = (explicitImplementation) ? _lazyIEqualityComparerEqualsExplicit.Value : _lazyIEqualityComparerEquals.Value;
 
                         equalsMethod = (MethodDeclarationSyntax)rewriter.VisitMethodDeclaration(equalsMethod);
 
                         newTypeDeclaration = MemberDeclarationInserter.Default.Insert(typeDeclaration, equalsMethod);
 
-                        MethodDeclarationSyntax getHashCodeMethod = _lazyIEqualityComparerGetHashCode.Value;
+                        MethodDeclarationSyntax getHashCodeMethod = (explicitImplementation) ? _lazyIEqualityComparerGetHashCodeExplicit.Value : _lazyIEqualityComparerGetHashCode.Value;
 
                         getHashCodeMethod = (MethodDeclarationSyntax)rewriter.VisitMethodDeclaration(getHashCodeMethod);
 
@@ -302,6 +330,16 @@ public int GetHashCode(object obj)
         }
 
         private class AddSimplifierAnnotationRewriter : CSharpSyntaxRewriter
+        {
+            public static AddSimplifierAnnotationRewriter Instance { get; } = new AddSimplifierAnnotationRewriter();
+
+            public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
+            {
+                return node.WithSimplifierAnnotation();
+            }
+        }
+
+        private class RemoveExplicitInterfaceSpecifierAddSimplifierAnnotationRewriter : CSharpSyntaxRewriter
         {
             public static AddSimplifierAnnotationRewriter Instance { get; } = new AddSimplifierAnnotationRewriter();
 

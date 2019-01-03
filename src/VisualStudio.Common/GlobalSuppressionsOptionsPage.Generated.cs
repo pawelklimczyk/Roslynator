@@ -14,7 +14,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.OptimizeMethodCall;
+        = DiagnosticIdentifiers.ImplementNonGenericInterface;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
@@ -227,8 +227,8 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.DuplicateEnumValue, "Duplicate enum value.", !IsEnabled(DiagnosticIdentifiers.DuplicateEnumValue)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveUnnecessaryNewLine, "Remove unnecessary new line.", !IsEnabled(DiagnosticIdentifiers.RemoveUnnecessaryNewLine)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidNestedConditionalExpressions, "Avoid nested conditional expressions.", !IsEnabled(DiagnosticIdentifiers.AvoidNestedConditionalExpressions)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ImplementNonGenericInterface, "Implement non-generic interface.", !IsEnabled(DiagnosticIdentifiers.ImplementNonGenericInterface)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.OptimizeMethodCall, "Optimize method call.", !IsEnabled(DiagnosticIdentifiers.OptimizeMethodCall)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.ImplementNonGenericInterface, "Implement non-generic interface.", !IsEnabled(DiagnosticIdentifiers.ImplementNonGenericInterface)));
         }
     }
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Analyzers>
   <Analyzer Identifier="ImplementNonGenericInterface" IsDevelopment="true">
-    <Id>RCS1237Dev</Id>
+    <Id>RCS9001</Id>
     <Title>Implement non-generic interface.</Title>
-    <MessageFormat>Implement {0} interface.</MessageFormat>
+    <MessageFormat>Implement {0} when implementing {0}&lt;T&gt;.</MessageFormat>
     <Category>Design</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>

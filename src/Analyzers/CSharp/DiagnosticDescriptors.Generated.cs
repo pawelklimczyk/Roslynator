@@ -2569,18 +2569,6 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1237Dev</summary>
-        public static readonly DiagnosticDescriptor ImplementNonGenericInterface = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.ImplementNonGenericInterface, 
-            title:              "Implement non-generic interface.", 
-            messageFormat:      "Implement {0} interface.", 
-            category:           DiagnosticCategories.Design, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ImplementNonGenericInterface}", 
-            customTags:         Array.Empty<string>());
-
         /// <summary>RCS1238Dev</summary>
         public static readonly DiagnosticDescriptor OptimizeMethodCall = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.OptimizeMethodCall, 
@@ -2591,6 +2579,18 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OptimizeMethodCall}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS9001</summary>
+        public static readonly DiagnosticDescriptor ImplementNonGenericInterface = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.ImplementNonGenericInterface, 
+            title:              "Implement non-generic interface.", 
+            messageFormat:      "Implement {0} when implementing {0}<T>.", 
+            category:           DiagnosticCategories.Design, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.ImplementNonGenericInterface}", 
             customTags:         Array.Empty<string>());
 
     }
