@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Refactorings>
-  <Refactoring Id="RRX007" Identifier="JoinIfStatements" Title="Join if statements" IsDevelopment="true">
+  <Refactoring Id="RR9001" Identifier="ConvertStatementsToIfElse" Title="Convert statements to if-else" IsDevelopment="true">
     <Syntaxes>
-      <Syntax>selected if statements</Syntax>
+      <Syntax>selected statements (first statement must be 'if' statement)</Syntax>
     </Syntaxes>
     <Span></Span>
     <Samples>

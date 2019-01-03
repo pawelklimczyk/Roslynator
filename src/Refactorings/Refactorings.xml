@@ -1353,7 +1353,7 @@ i--;]]></After>
       <Syntax>selected statements</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0173" Identifier="WrapInElseClause" Title="Wrap in else clause">
+  <Refactoring Id="RR0173" Identifier="WrapInElseClause" Title="Wrap in else clause" IsObsolete="true">
     <Syntaxes>
       <Syntax>statement</Syntax>
     </Syntaxes>
