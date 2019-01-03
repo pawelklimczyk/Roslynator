@@ -22,7 +22,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = RefactoringIdentifiers.GenerateMissingSwitchSections;
+        = RefactoringIdentifiers.ImplementCustomEnumerator;
         internal static void SetRefactoringsDisabledByDefault(RefactoringSettings settings)
         {
             settings.DisableRefactoring(RefactoringIdentifiers.AddIdentifierToParameter);
@@ -89,7 +89,7 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateEnumMember, "Generate enum member", IsEnabled(RefactoringIdentifiers.GenerateEnumMember)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateEnumValues, "Generate enum values", IsEnabled(RefactoringIdentifiers.GenerateEnumValues)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateEventInvokingMethod, "Generate event invoking method", IsEnabled(RefactoringIdentifiers.GenerateEventInvokingMethod)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateSwitchSections, "Generate switch sections", IsEnabled(RefactoringIdentifiers.GenerateSwitchSections)));
+            refactorings.Add(new BaseModel(RefactoringIdentifiers.AddMissingCases, "Add missing cases to switch statement", IsEnabled(RefactoringIdentifiers.AddMissingCases)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.InitializeLocalWithDefaultValue, "Initialize local with default value", IsEnabled(RefactoringIdentifiers.InitializeLocalWithDefaultValue)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.InlineAliasExpression, "Inline alias expression", IsEnabled(RefactoringIdentifiers.InlineAliasExpression)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.InlineMethod, "Inline method", IsEnabled(RefactoringIdentifiers.InlineMethod)));
@@ -236,7 +236,6 @@ namespace Roslynator.VisualStudio
             refactorings.Add(new BaseModel(RefactoringIdentifiers.AddTagToDocumentationComment, "Add tag to documentation comment", IsEnabled(RefactoringIdentifiers.AddTagToDocumentationComment)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.RemoveAsyncAwait, "Remove async/await", IsEnabled(RefactoringIdentifiers.RemoveAsyncAwait)));
             refactorings.Add(new BaseModel(RefactoringIdentifiers.ImplementCustomEnumerator, "Implement custom enumerator", IsEnabled(RefactoringIdentifiers.ImplementCustomEnumerator)));
-            refactorings.Add(new BaseModel(RefactoringIdentifiers.GenerateMissingSwitchSections, "Generate missing switch sections", IsEnabled(RefactoringIdentifiers.GenerateMissingSwitchSections)));
         }
     }
 }

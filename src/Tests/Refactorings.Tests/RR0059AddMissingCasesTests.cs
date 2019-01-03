@@ -6,13 +6,13 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RR0211GenerateMissingSwitchSectionsTests : AbstractCSharpCodeRefactoringVerifier
+    public class RR0059AddMissingCasesTests : AbstractCSharpCodeRefactoringVerifier
     {
-        public override string RefactoringId { get; } = RefactoringIdentifiers.GenerateMissingSwitchSections;
+        public override string RefactoringId { get; } = RefactoringIdentifiers.AddMissingCases;
 
         public override CodeVerificationOptions Options => base.Options.AddAllowedCompilerDiagnosticId(CompilerDiagnosticIdentifiers.EmptySwitchBlock);
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateMissingSwitchSections)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
         public async Task Test()
         {
             await VerifyRefactoringAsync(@"
@@ -70,7 +70,7 @@ class C
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateMissingSwitchSections)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
         public async Task Test_Flags()
         {
             await VerifyRefactoringAsync(@"
@@ -150,7 +150,7 @@ class C
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateMissingSwitchSections)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
         public async Task TestNoRefactoring_Empty()
         {
             await VerifyNoRefactoringAsync(@"
@@ -170,7 +170,7 @@ class C
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateMissingSwitchSections)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
         public async Task TestNoRefactoring_ContainsOnlyDefaultSection()
         {
             await VerifyNoRefactoringAsync(@"
@@ -192,7 +192,7 @@ class C
 ", equivalenceKey: RefactoringId);
         }
 
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.GenerateMissingSwitchSections)]
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
         public async Task TestNoRefactoring()
         {
             await VerifyNoRefactoringAsync(@"

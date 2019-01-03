@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslynator;
 using Roslynator.CSharp;
 using Roslynator.CSharp.Syntax;
+using System.Text.RegularExpressions;
 #endregion usings
 
 #pragma warning disable RCS1018, RCS1213, CA1822
@@ -25,6 +26,11 @@ namespace Roslynator.Tests
     {
         void M()
         {
+            RegexOptions options = RegexOptions.None;
+
+            switch (options)
+            {
+            }
         }
     }
 }

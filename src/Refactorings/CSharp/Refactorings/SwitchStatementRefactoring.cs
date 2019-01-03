@@ -10,13 +10,11 @@ namespace Roslynator.CSharp.Refactorings
     {
         public static async Task ComputeRefactoringsAsync(RefactoringContext context, SwitchStatementSyntax switchStatement)
         {
-            if (context.IsAnyRefactoringEnabled(
-                RefactoringIdentifiers.GenerateSwitchSections,
-                RefactoringIdentifiers.GenerateMissingSwitchSections))
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.AddMissingCases))
             {
                 SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
-                GenerateSwitchSectionsRefactoring.ComputeRefactoring(context, switchStatement, semanticModel);
+                AddMissingCasesRefactoring.ComputeRefactoring(context, switchStatement, semanticModel);
             }
 
             SelectedSwitchSectionsRefactoring.ComputeRefactorings(context, switchStatement);

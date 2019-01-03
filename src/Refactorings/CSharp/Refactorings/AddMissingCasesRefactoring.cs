@@ -13,8 +13,10 @@ using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.Refactorings
 {
-    internal static class GenerateSwitchSectionsRefactoring
+    internal static class AddMissingCasesRefactoring
     {
+        private const string Title = "Add missing cases";
+
         public static void ComputeRefactoring(
             RefactoringContext context,
             SwitchStatementSyntax switchStatement,
@@ -42,8 +44,7 @@ namespace Roslynator.CSharp.Refactorings
 
             if (sections.Any() && !ContainsOnlyDefaultSection(sections))
             {
-                if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateMissingSwitchSections)
-                    && context.Span.IsEmptyAndContainedInSpan(switchStatement.SwitchKeyword))
+                if (context.Span.IsEmptyAndContainedInSpan(switchStatement.SwitchKeyword))
                 {
                     ImmutableArray<ISymbol> members = typeSymbol.GetMembers();
 
@@ -91,23 +92,23 @@ namespace Roslynator.CSharp.Refactorings
                     Document document = context.Document;
 
                     context.RegisterRefactoring(
-                        "Generate missing sections",
-                        ct => GenerateMissingSectionsAsync(document, switchStatement, fieldsToValue.Select(f => f.Value), ct),
-                        RefactoringIdentifiers.GenerateMissingSwitchSections);
+                        Title,
+                        ct => AddCasesAsync(document, switchStatement, fieldsToValue.Select(f => f.Value), ct),
+                        RefactoringIdentifiers.AddMissingCases);
                 }
             }
-            else if (context.IsRefactoringEnabled(RefactoringIdentifiers.GenerateSwitchSections))
+            else if (context.IsRefactoringEnabled(RefactoringIdentifiers.AddMissingCases))
             {
                 Document document = context.Document;
 
                 context.RegisterRefactoring(
-                    "Generate sections",
-                    ct => GenerateSectionsAsync(document, switchStatement, semanticModel, ct),
-                    RefactoringIdentifiers.GenerateSwitchSections);
+                    Title,
+                    ct => AddCasesAsync(document, switchStatement, semanticModel, ct),
+                    RefactoringIdentifiers.AddMissingCases);
             }
         }
 
-        private static Task<Document> GenerateSectionsAsync(
+        private static Task<Document> AddCasesAsync(
             Document document,
             SwitchStatementSyntax switchStatement,
             SemanticModel semanticModel,
@@ -128,7 +129,7 @@ namespace Roslynator.CSharp.Refactorings
             foreach (ISymbol memberSymbol in members)
             {
                 if (memberSymbol.Kind == SymbolKind.Field)
-                    CreateSwitchSection(memberSymbol, enumType, statements);
+                    newSections.Add(CreateSwitchSection(memberSymbol, enumType, statements));
             }
 
             newSections.Add(SwitchSection(
@@ -142,7 +143,7 @@ namespace Roslynator.CSharp.Refactorings
             return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
         }
 
-        private static Task<Document> GenerateMissingSectionsAsync(
+        private static Task<Document> AddCasesAsync(
             Document document,
             SwitchStatementSyntax switchStatement,
             IEnumerable<IFieldSymbol> fieldSymbols,
