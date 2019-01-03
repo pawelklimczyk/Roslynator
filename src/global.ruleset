@@ -252,7 +252,7 @@
     <Rule Id="IDE1006" Action="Info" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Features" RuleNamespace="Microsoft.CodeAnalysis.Features">
-    <Rule Id="IDE0010" Action="None" />
+    <Rule Id="IDE0010" Action="Warning" />
     <Rule Id="IDE0010WithoutSuggestion" Action="None" />
     <Rule Id="IDE0033" Action="Info" />
   </Rules>
@@ -332,7 +332,6 @@
     <Rule Id="RCS1088" Action="Info" />
     <Rule Id="RCS1091" Action="Info" />
     <Rule Id="RCS1092" Action="Info" />
-    <Rule Id="RCS1094" Action="None" />
     <Rule Id="RCS1096" Action="Warning" />
     <Rule Id="RCS1101" Action="Info" />
     <Rule Id="RCS1111" Action="Info" />
