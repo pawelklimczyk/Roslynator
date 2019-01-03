@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Roslynator.CodeGeneration.CSharp;
 using Roslynator.CodeGeneration.Markdown;
 using Roslynator.CodeGeneration.Xml;
 using Roslynator.Metadata;

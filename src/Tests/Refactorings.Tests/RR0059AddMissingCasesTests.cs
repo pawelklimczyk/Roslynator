@@ -13,7 +13,111 @@ namespace Roslynator.CSharp.Refactorings.Tests
         public override CodeVerificationOptions Options => base.Options.AddAllowedCompilerDiagnosticId(CompilerDiagnosticIdentifiers.EmptySwitchBlock);
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
-        public async Task Test()
+        public async Task Test_Empty()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DayOfWeek dayOfWeek = DayOfWeek.Monday;
+
+        [||]switch (dayOfWeek)
+        {
+        }
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M()
+    {
+        DayOfWeek dayOfWeek = DayOfWeek.Monday;
+
+        switch (dayOfWeek)
+        {
+            case DayOfWeek.Sunday:
+                break;
+            case DayOfWeek.Monday:
+                break;
+            case DayOfWeek.Tuesday:
+                break;
+            case DayOfWeek.Wednesday:
+                break;
+            case DayOfWeek.Thursday:
+                break;
+            case DayOfWeek.Friday:
+                break;
+            case DayOfWeek.Saturday:
+                break;
+            default:
+                break;
+        }
+    }
+}
+",
+equivalenceKey: RefactoringId);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
+        public async Task Test_Default()
+        {
+            await VerifyRefactoringAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        DayOfWeek dayOfWeek = DayOfWeek.Monday;
+
+        [||]switch (dayOfWeek)
+        {
+            default:
+                break;
+        }
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M()
+    {
+        DayOfWeek dayOfWeek = DayOfWeek.Monday;
+
+        switch (dayOfWeek)
+        {
+            case DayOfWeek.Sunday:
+                break;
+            case DayOfWeek.Monday:
+                break;
+            case DayOfWeek.Tuesday:
+                break;
+            case DayOfWeek.Wednesday:
+                break;
+            case DayOfWeek.Thursday:
+                break;
+            case DayOfWeek.Friday:
+                break;
+            case DayOfWeek.Saturday:
+                break;
+            default:
+                break;
+        }
+    }
+}
+",
+equivalenceKey: RefactoringId);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
+        public async Task Test2()
         {
             await VerifyRefactoringAsync(@"
 using System;
@@ -142,48 +246,6 @@ class C
                 break;
             case RegexOptions.CultureInvariant:
                 break;
-            default:
-                break;
-        }
-    }
-}
-", equivalenceKey: RefactoringId);
-        }
-
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
-        public async Task TestNoRefactoring_Empty()
-        {
-            await VerifyNoRefactoringAsync(@"
-using System;
-
-class C
-{
-    void M()
-    {
-        DayOfWeek dayOfWeek = DayOfWeek.Monday;
-
-        [||]switch (dayOfWeek)
-        {
-        }
-    }
-}
-", equivalenceKey: RefactoringId);
-        }
-
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddMissingCases)]
-        public async Task TestNoRefactoring_ContainsOnlyDefaultSection()
-        {
-            await VerifyNoRefactoringAsync(@"
-using System;
-
-class C
-{
-    void M()
-    {
-        DayOfWeek dayOfWeek = DayOfWeek.Monday;
-
-        [||]switch (dayOfWeek)
-        {
             default:
                 break;
         }
