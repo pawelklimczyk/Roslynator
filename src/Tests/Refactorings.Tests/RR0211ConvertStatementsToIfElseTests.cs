@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RR9001ConvertStatementsToIfElseTests : AbstractCSharpCodeRefactoringVerifier
+    public class RR0211ConvertStatementsToIfElseTests : AbstractCSharpCodeRefactoringVerifier
     {
         public override string RefactoringId { get; } = RefactoringIdentifiers.ConvertStatementsToIfElse;
 
@@ -47,7 +47,9 @@ class C
         bool f1 = false, f2 = false, f3 = false, f4 = false;
 
         if (f1)
+        {
             return 1;
+        }
         else if (f2)
         {
             return 2;
@@ -102,7 +104,9 @@ class C
         bool f1 = false, f2 = false, f3 = false;
 
         if (f1)
+        {
             return 1;
+        }
         else if (f2)
         {
             return 2;

@@ -82,7 +82,7 @@ namespace Roslynator.CSharp.Refactorings
                 if (!forEachStatement.ContainsDiagnostics
                     && context.IsRefactoringEnabled(RefactoringIdentifiers.ChangeTypeAccordingToExpression))
                 {
-                    ChangeTypeAcccordingToExpression(context, forEachStatement, semanticModel);
+                    ChangeTypeAccordingToExpression(context, forEachStatement, semanticModel);
                 }
             }
             else if (analysis.SupportsExplicit
@@ -94,7 +94,7 @@ namespace Roslynator.CSharp.Refactorings
             }
         }
 
-        private static void ChangeTypeAcccordingToExpression(
+        private static void ChangeTypeAccordingToExpression(
             RefactoringContext context,
             ForEachStatementSyntax forEachStatement,
             SemanticModel semanticModel)

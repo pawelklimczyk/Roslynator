@@ -97,10 +97,17 @@ namespace Roslynator.CSharp.Refactorings
 
                 StatementSyntax newStatement = lastIf.Statement;
 
-                if (elseStatement.IsKind(SyntaxKind.Block)
-                    && !newStatement.IsKind(SyntaxKind.Block))
+                if (!newStatement.IsKind(SyntaxKind.Block))
                 {
-                    newStatement = Block(newStatement);
+                    if (elseStatement.IsKind(SyntaxKind.Block))
+                    {
+                        newStatement = Block(newStatement);
+                    }
+                    else if (elseStatement.IsKind(SyntaxKind.IfStatement)
+                        && ((IfStatementSyntax)elseStatement).AsCascade().All(f => f.Statement.IsKind(SyntaxKind.Block)))
+                    {
+                        newStatement = Block(newStatement);
+                    }
                 }
 
                 IfStatementSyntax newLastIf = lastIf.Update(

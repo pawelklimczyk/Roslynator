@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1233DuplicateEnumValueTests : AbstractCSharpCodeFixVerifier
+    public class RCS1234DuplicateEnumValueTests : AbstractCSharpCodeFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.DuplicateEnumValue;
 

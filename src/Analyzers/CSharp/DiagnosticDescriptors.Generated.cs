@@ -2521,12 +2521,24 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1233Dev</summary>
+        /// <summary>RCS1233</summary>
+        public static readonly DiagnosticDescriptor UseShortCircuitingOperator = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseShortCircuitingOperator, 
+            title:              "Use short-circuiting operator.", 
+            messageFormat:      "Use short-circuiting operator.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseShortCircuitingOperator}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1234</summary>
         public static readonly DiagnosticDescriptor DuplicateEnumValue = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.DuplicateEnumValue, 
             title:              "Duplicate enum value.", 
             messageFormat:      "Duplicate enum value.", 
-            category:           DiagnosticCategories.General, 
+            category:           DiagnosticCategories.Readability, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: true, 
             description:        null, 
@@ -2555,18 +2567,6 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
-            customTags:         Array.Empty<string>());
-
-        /// <summary>RCS1236Dev</summary>
-        public static readonly DiagnosticDescriptor UseShortCircuitingOperator = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.UseShortCircuitingOperator, 
-            title:              "Use short-circuiting operator.", 
-            messageFormat:      "Use short-circuiting operator.", 
-            category:           DiagnosticCategories.Usage, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
-            description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseShortCircuitingOperator}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1237Dev</summary>

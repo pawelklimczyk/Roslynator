@@ -223,10 +223,10 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator, "Unnecessary usage of enumerator.", !IsEnabled(DiagnosticIdentifiers.UnnecessaryUsageOfEnumerator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.MakeParameterRefReadOnly, "Make parameter ref read-only.", !IsEnabled(DiagnosticIdentifiers.MakeParameterRefReadOnly)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderElementsInDocumentationComment, "Order elements in documentation comment.", !IsEnabled(DiagnosticIdentifiers.OrderElementsInDocumentationComment)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseShortCircuitingOperator, "Use short-circuiting operator.", !IsEnabled(DiagnosticIdentifiers.UseShortCircuitingOperator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.DuplicateEnumValue, "Duplicate enum value.", !IsEnabled(DiagnosticIdentifiers.DuplicateEnumValue)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveUnnecessaryNewLine, "Remove unnecessary new line.", !IsEnabled(DiagnosticIdentifiers.RemoveUnnecessaryNewLine)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AvoidNestedConditionalExpressions, "Avoid nested conditional expressions.", !IsEnabled(DiagnosticIdentifiers.AvoidNestedConditionalExpressions)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseShortCircuitingOperator, "Use short-circuiting operator.", !IsEnabled(DiagnosticIdentifiers.UseShortCircuitingOperator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ImplementNonGenericInterface, "Implement non-generic interface.", !IsEnabled(DiagnosticIdentifiers.ImplementNonGenericInterface)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.OptimizeMethodCall, "Optimize method call.", !IsEnabled(DiagnosticIdentifiers.OptimizeMethodCall)));
         }
