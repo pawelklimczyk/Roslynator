@@ -7,7 +7,7 @@
   <PropertyGroup>
     <Version>2.0.2.0</Version>
     <AssemblyName>Roslynator.CodeAnalysis.Analyzers</AssemblyName>
-    <RootNamespace>Roslynator</RootNamespace>
+    <RootNamespace>Roslynator.CodeAnalysis</RootNamespace>
     <CodeAnalysisRuleSet>..\global.ruleset</CodeAnalysisRuleSet>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>CodeAnalysis.Analyzers.snk</AssemblyOriginatorKeyFile>
@@ -24,10 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\CSharp\CSharp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="CSharp\Analysis\" />
   </ItemGroup>
 
 </Project>

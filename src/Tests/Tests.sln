@@ -49,6 +49,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{91
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestFramework.VisualBasic", "TestFramework.VisualBasic\TestFramework.VisualBasic.csproj", "{EF87F7EF-FBB6-4B4E-AC28-3B83008B5B31}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyzers.CodeAnalysis.Tests", "Analyzers.CodeAnalysis.Tests\Analyzers.CodeAnalysis.Tests.csproj", "{FCCEC782-83A2-42E3-AAD1-34E71575D4A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +134,10 @@ Global
 		{EF87F7EF-FBB6-4B4E-AC28-3B83008B5B31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF87F7EF-FBB6-4B4E-AC28-3B83008B5B31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF87F7EF-FBB6-4B4E-AC28-3B83008B5B31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCCEC782-83A2-42E3-AAD1-34E71575D4A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCCEC782-83A2-42E3-AAD1-34E71575D4A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCCEC782-83A2-42E3-AAD1-34E71575D4A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCCEC782-83A2-42E3-AAD1-34E71575D4A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -7,6 +7,7 @@ set _msbuildPath="C:\Program Files\Microsoft Visual Studio\2017\Community\MSBuil
 "..\src\CommandLine\bin\Debug\net461\roslynator" fix "..\src\Roslynator.sln" ^
  --msbuild-path %_msbuildPath% ^
  --use-roslynator-analyzers ^
+ --analyzer-assemblies "..\src\CodeAnalysis.Analyzers.CodeFixes\bin\Debug\netstandard1.3" ^
  --format ^
  --verbosity d ^
  --file-log "roslynator.log" ^
