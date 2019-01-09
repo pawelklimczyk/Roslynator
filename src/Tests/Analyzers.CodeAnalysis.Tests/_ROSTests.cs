@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CodeAnalysis.CSharp.Tests
 {
-    public class RCSTests : AbstractCSharpCodeFixVerifier
+    public class ROSTests : AbstractCSharpCodeFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UsePropertySpanStart;
 
