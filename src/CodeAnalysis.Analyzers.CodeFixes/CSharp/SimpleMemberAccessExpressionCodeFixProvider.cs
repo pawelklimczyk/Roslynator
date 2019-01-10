@@ -18,7 +18,7 @@ namespace Roslynator.CodeAnalysis.CSharp
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.UsePropertySpanStart); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -32,10 +32,10 @@ namespace Roslynator.CodeAnalysis.CSharp
             {
                 switch (diagnostic.Id)
                 {
-                    case DiagnosticIdentifiers.UsePropertySpanStart:
+                    case DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart:
                         {
                             CodeAction codeAction = CodeAction.Create(
-                                "Use property 'SpanStart",
+                                "Use property 'SpanStart'",
                                 ct => UsePropertySpanStartAsync(context.Document, memberAccess, ct),
                                 GetEquivalenceKey(diagnostic));
 

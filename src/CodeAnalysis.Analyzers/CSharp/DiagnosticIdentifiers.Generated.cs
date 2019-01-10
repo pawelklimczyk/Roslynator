@@ -8,6 +8,6 @@ namespace Roslynator.CodeAnalysis.CSharp
 {
     public static partial class DiagnosticIdentifiers
     {
-        public const string UsePropertySpanStart = "ROS0001";
+        public const string UsePropertySyntaxNodeSpanStart = "ROS0001";
     }
 }

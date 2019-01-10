@@ -15,7 +15,7 @@ namespace Roslynator.CodeAnalysis.CSharp
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DiagnosticDescriptors.UsePropertySpanStart); }
+            get { return ImmutableArray.Create(DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart); }
         }
 
         public override void Initialize(AnalysisContext context)
@@ -77,7 +77,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                                     if (!symbol2.ContainingType.HasMetadataName(RoslynMetadataNames.Microsoft_CodeAnalysis_SyntaxNode))
                                         break;
 
-                                    context.ReportDiagnostic(DiagnosticDescriptors.UsePropertySpanStart, memberAccess);
+                                    context.ReportDiagnostic(DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart, memberAccess);
                                     break;
                                 }
                         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Analyzers>
-  <Analyzer Identifier="UsePropertySpanStart">
+  <Analyzer Identifier="UsePropertySyntaxNodeSpanStart">
     <Id>ROS0001</Id>
     <Title>Use property SyntaxNode.SpanStart.</Title>
     <MessageFormat>Use property SyntaxNode.SpanStart.</MessageFormat>
@@ -11,7 +11,7 @@
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[node.Span.Start]]></Before>
+        <Before><![CDATA[node.Span.Start [|Id|]]]></Before>
         <After><![CDATA[node.SpanStart]]></After>
       </Sample>
     </Samples>

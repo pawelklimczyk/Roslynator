@@ -10,15 +10,15 @@ namespace Roslynator.CodeAnalysis.CSharp
     public static partial class DiagnosticDescriptors
     {
         /// <summary>ROS0001</summary>
-        public static readonly DiagnosticDescriptor UsePropertySpanStart = new DiagnosticDescriptor(
-            id:                 DiagnosticIdentifiers.UsePropertySpanStart, 
+        public static readonly DiagnosticDescriptor UsePropertySyntaxNodeSpanStart = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart, 
             title:              "Use property SyntaxNode.SpanStart.", 
             messageFormat:      "Use property SyntaxNode.SpanStart.", 
             category:           DiagnosticCategories.Performance, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePropertySpanStart}", 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart}", 
             customTags:         Array.Empty<string>());
 
     }

@@ -8,15 +8,15 @@ using Xunit;
 
 namespace Roslynator.CodeAnalysis.CSharp.Tests
 {
-    public class ROS0001UsePropertySpanStartTests : AbstractCSharpCodeFixVerifier
+    public class ROS0001UsePropertySyntaxNodeSpanStartTests : AbstractCSharpCodeFixVerifier
     {
-        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UsePropertySpanStart;
+        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart;
 
         public override DiagnosticAnalyzer Analyzer { get; } = new SimpleMemberAccessExpressionAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new SimpleMemberAccessExpressionCodeFixProvider();
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySpanStart)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart)]
         public async Task Test()
         {
             await VerifyDiagnosticAndFixAsync(@"
