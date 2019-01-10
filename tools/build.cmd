@@ -66,6 +66,13 @@ if errorlevel 1 (
  exit
 )
 
+dotnet test -c Release --no-build "..\src\Tests\CodeAnalysis.Analyzers.Tests\CodeAnalysis.Analyzers.Tests.csproj"
+
+if errorlevel 1 (
+ pause
+ exit
+)
+
 dotnet test -c Release --no-build "..\src\Tests\CodeFixes.Tests\CodeFixes.Tests.csproj"
 
 if errorlevel 1 (
