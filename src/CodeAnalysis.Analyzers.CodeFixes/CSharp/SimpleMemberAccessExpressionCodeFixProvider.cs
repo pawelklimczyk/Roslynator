@@ -36,7 +36,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Use property 'SpanStart'",
-                                ct => UsePropertySpanStartAsync(context.Document, memberAccess, ct),
+                                ct => UsePropertySyntaxNodeSpanStartAsync(context.Document, memberAccess, ct),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -46,7 +46,7 @@ namespace Roslynator.CodeAnalysis.CSharp
             }
         }
 
-        private static Task<Document> UsePropertySpanStartAsync(
+        private static Task<Document> UsePropertySyntaxNodeSpanStartAsync(
             Document document,
             MemberAccessExpressionSyntax memberAccess,
             CancellationToken cancellationToken)

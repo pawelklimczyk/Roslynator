@@ -16,4 +16,24 @@
       </Sample>
     </Samples>
   </Analyzer>
+  <Analyzer Identifier="UsePropertySyntaxNodeRawKind">
+    <Id>ROS0002</Id>
+    <Title>Use property SyntaxNode.RawKind.</Title>
+    <MessageFormat>Use property SyntaxNode.RawKind.</MessageFormat>
+    <Category>Performance</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[node1.Kind() == node2.Kind() [|Id|]]]></Before>
+        <After><![CDATA[node1.RawKind == node2.RawKind]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[node1.IsKind(node2.Kind()) [|Id|]]]></Before>
+        <After><![CDATA[node1?.RawKind == node2.RawKind]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
 </Analyzers>

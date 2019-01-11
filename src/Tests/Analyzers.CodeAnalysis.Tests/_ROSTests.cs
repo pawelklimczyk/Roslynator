@@ -11,13 +11,13 @@ namespace Roslynator.CodeAnalysis.CSharp.Tests
 {
     public class ROSTests : AbstractCSharpCodeFixVerifier
     {
-        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UsePropertySpanStart;
+        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart;
 
         public override DiagnosticAnalyzer Analyzer { get; }
 
         public override CodeFixProvider FixProvider { get; }
 
-        //[Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySpanStart)]
+        //[Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart)]
         public async Task Test()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -39,7 +39,7 @@ class C
 ");
         }
 
-        //[Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySpanStart)]
+        //[Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart)]
         //[InlineData("", "")]
         public async Task Test2(string fromData, string toData)
         {
@@ -61,7 +61,7 @@ class C
 ", fromData, toData);
         }
 
-        //[Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySpanStart)]
+        //[Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -82,7 +82,7 @@ class C
 ");
         }
 
-        //[Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySpanStart)]
+        //[Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeSpanStart)]
         //[InlineData("")]
         public async Task TestNoDiagnostic2(string fromData)
         {
