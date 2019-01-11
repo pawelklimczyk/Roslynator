@@ -10,5 +10,6 @@ namespace Roslynator.CodeAnalysis.CSharp
     {
         public const string UsePropertySyntaxNodeSpanStart = "ROS0001";
         public const string UsePropertySyntaxNodeRawKind = "ROS0002";
+        public const string RedundantConditionalAccess = "ROS0003";
     }
 }

@@ -33,5 +33,19 @@ namespace Roslynator.CodeAnalysis.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>ROS0003</summary>
+        public static readonly DiagnosticDescriptor RedundantConditionalAccess = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.RedundantConditionalAccess, 
+            title:              "Redundant conditional access.", 
+            messageFormat:      "Redundant conditional access.", 
+            category:           DiagnosticCategories.Performance, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.RedundantConditionalAccess}", 
+            customTags:         WellKnownDiagnosticTags.Unnecessary);
+
+        public static readonly DiagnosticDescriptor RedundantConditionalAccessFadeOut = RedundantConditionalAccess.CreateFadeOut();
+
     }
 }

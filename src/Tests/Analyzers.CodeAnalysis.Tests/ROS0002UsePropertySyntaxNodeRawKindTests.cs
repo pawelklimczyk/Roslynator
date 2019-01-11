@@ -14,7 +14,7 @@ namespace Roslynator.CodeAnalysis.CSharp.Tests
 
         public override DiagnosticAnalyzer Analyzer { get; } = new UsePropertySyntaxNodeRawKindAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; } = new EqualsExpressionCodeFixProvider();
+        public override CodeFixProvider FixProvider { get; } = new BinaryExpressionCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind)]
         public async Task Test_EqualsExpression()

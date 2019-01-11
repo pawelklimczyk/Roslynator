@@ -36,4 +36,20 @@
       </Sample>
     </Samples>
   </Analyzer>
+  <Analyzer Identifier="RedundantConditionalAccess">
+    <Id>ROS0003</Id>
+    <Title>Redundant conditional access.</Title>
+    <MessageFormat>Redundant conditional access.</MessageFormat>
+    <Category>Performance</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>true</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[node?.IsKind(kind) == true [|Id|]]]></Before>
+        <After><![CDATA[node.IsKind(kind)]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
 </Analyzers>

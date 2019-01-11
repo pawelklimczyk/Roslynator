@@ -14,9 +14,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Roslynator.CodeAnalysis.CSharp
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(EqualsExpressionCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(BinaryExpressionCodeFixProvider))]
     [Shared]
-    public class EqualsExpressionCodeFixProvider : BaseCodeFixProvider
+    public class BinaryExpressionCodeFixProvider : BaseCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
