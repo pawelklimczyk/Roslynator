@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,6 +17,11 @@ namespace Roslynator.CSharp.Analysis
         public static void OptimizeStringCompare(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
+
+            SeparatedSyntaxList<ArgumentSyntax> arguments = invocationInfo.Arguments;
+
+            if (arguments.Count != 3)
+                return;
 
             ISymbol symbol = context.SemanticModel.GetSymbol(invocationExpression, context.CancellationToken);
 
@@ -61,7 +67,14 @@ namespace Roslynator.CSharp.Analysis
                 }
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "string.Compare");
+            Optional<object> optional = context.SemanticModel.GetConstantValue(invocationInfo.Arguments[2].Expression, context.CancellationToken);
+
+            if (optional.HasValue
+                && optional.Value is int value
+                && value == (int)StringComparison.Ordinal)
+            {
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "string.Compare");
+            }
         }
 
         public static void OptimizeDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)

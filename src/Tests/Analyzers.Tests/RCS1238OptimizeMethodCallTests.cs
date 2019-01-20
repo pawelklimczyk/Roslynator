@@ -256,6 +256,25 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task TestNoDiagnostic_CallCompareOrdinalInsteadOfCompare_NotStringComparisonOrdinal()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string x = null;
+        string y = null;
+
+        var result = string.Compare(x, y, StringComparison.CurrentCulture);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
         public async Task TestNoDiagnostic_CallStringConcatInsteadOfStringJoin()
         {
             await VerifyNoDiagnosticAsync(@"
