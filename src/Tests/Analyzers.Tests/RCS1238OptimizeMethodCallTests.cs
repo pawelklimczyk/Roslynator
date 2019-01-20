@@ -93,7 +93,7 @@ class C
 {
     void M()
     {
-        string s = string.[|Join|]("""", default(object), default(object));
+        string s = [|string.Join("""", default(object), default(object))|];
     }
 }
 ", @"
@@ -115,7 +115,7 @@ class C
 {
     void M()
     {
-        string s = string.[|Join|]("""", ""a"", ""b"");
+        string s = [|string.Join("""", ""a"", ""b"")|];
     }
 }
 ", @"
@@ -137,7 +137,7 @@ class C
 {
     void M()
     {
-        string s = string.[|Join|](string.Empty, new string[] { """" });
+        string s = [|string.Join(string.Empty, new string[] { """" })|];
     }
 }
 ", @"
@@ -161,7 +161,7 @@ class C
 
     void M()
     {
-        string s = string.[|Join|](EmptyString, new object[] { """" });
+        string s = [|string.Join(EmptyString, new object[] { """" })|];
     }
 }
 ", @"
@@ -187,7 +187,7 @@ class C
 {
     void M()
     {
-        Debug.[|Assert|](false);
+        [|Debug.Assert(false)|];
     }
 }
 ", @"
@@ -213,7 +213,7 @@ class C
 {
     void M()
     {
-        Debug.[|Assert|](false, ""x"");
+        [|Debug.Assert(false, ""x"")|];
     }
 }
 ", @"
@@ -239,7 +239,7 @@ class C
 {
     void M()
     {
-        Debug.[|Assert|](false, ""x"", ""y"");
+        [|Debug.Assert(false, ""x"", ""y"")|];
     }
 }
 ", @"

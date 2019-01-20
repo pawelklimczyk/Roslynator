@@ -14,7 +14,7 @@ namespace Roslynator.VisualStudio
             get;
         }
 
-        = DiagnosticIdentifiers.DuplicateEnumValue;
+        = DiagnosticIdentifiers.OptimizeMethodCall;
         protected override void Fill(ICollection<BaseModel> analyzers)
         {
             analyzers.Clear();
@@ -144,7 +144,6 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.SimplifyCoalesceExpression, "Simplify coalesce expression.", !IsEnabled(DiagnosticIdentifiers.SimplifyCoalesceExpression)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveRedundantAsOperator, "Remove redundant 'as' operator.", !IsEnabled(DiagnosticIdentifiers.RemoveRedundantAsOperator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseConditionalAccess, "Use conditional access.", !IsEnabled(DiagnosticIdentifiers.UseConditionalAccess)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin, "Call string.Concat instead of string.Join.", !IsEnabled(DiagnosticIdentifiers.CallStringConcatInsteadOfStringJoin)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.RemoveRedundantCast, "Remove redundant cast.", !IsEnabled(DiagnosticIdentifiers.RemoveRedundantCast)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.AddEmptyLineAfterClosingBrace, "Add empty line after closing brace.", !IsEnabled(DiagnosticIdentifiers.AddEmptyLineAfterClosingBrace)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.SortEnumMembers, "Sort enum members.", !IsEnabled(DiagnosticIdentifiers.SortEnumMembers)));
@@ -170,7 +169,6 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UnusedThisParameter, "Unused this parameter.", !IsEnabled(DiagnosticIdentifiers.UnusedThisParameter)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseVarInsteadOfExplicitTypeWhenTypeIsNotObvious, "Use 'var' instead of explicit type (when the type is not obvious).", !IsEnabled(DiagnosticIdentifiers.UseVarInsteadOfExplicitTypeWhenTypeIsNotObvious)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseVarInsteadOfExplicitTypeInForEach, "Use 'var' instead of explicit type (in foreach).", !IsEnabled(DiagnosticIdentifiers.UseVarInsteadOfExplicitTypeInForEach)));
-            analyzers.Add(new BaseModel(DiagnosticIdentifiers.CallDebugFailInsteadOfDebugAssert, "Call Debug.Fail instead of Debug.Assert.", !IsEnabled(DiagnosticIdentifiers.CallDebugFailInsteadOfDebugAssert)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseReturnInsteadOfAssignment, "Use return instead of assignment.", !IsEnabled(DiagnosticIdentifiers.UseReturnInsteadOfAssignment)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.InlineLazyInitialization, "Inline lazy initialization.", !IsEnabled(DiagnosticIdentifiers.InlineLazyInitialization)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.ReplaceCommentWithDocumentationComment, "Replace comment with documentation comment.", !IsEnabled(DiagnosticIdentifiers.ReplaceCommentWithDocumentationComment)));
@@ -227,6 +225,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.OrderElementsInDocumentationComment, "Order elements in documentation comment.", !IsEnabled(DiagnosticIdentifiers.OrderElementsInDocumentationComment)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.UseShortCircuitingOperator, "Use short-circuiting operator.", !IsEnabled(DiagnosticIdentifiers.UseShortCircuitingOperator)));
             analyzers.Add(new BaseModel(DiagnosticIdentifiers.DuplicateEnumValue, "Duplicate enum value.", !IsEnabled(DiagnosticIdentifiers.DuplicateEnumValue)));
+            analyzers.Add(new BaseModel(DiagnosticIdentifiers.OptimizeMethodCall, "Optimize method call.", !IsEnabled(DiagnosticIdentifiers.OptimizeMethodCall)));
         }
     }
 }
