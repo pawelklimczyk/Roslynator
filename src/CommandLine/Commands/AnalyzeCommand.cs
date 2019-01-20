@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -59,15 +60,16 @@ namespace Roslynator.CommandLine
                 ignoredProjectNames: Options.IgnoredProjects,
                 language: Language);
 
-            IEnumerable<string> analyzerAssemblies = Options.AnalyzerAssemblies;
+            IEnumerable<AnalyzerAssembly> analyzerAssemblies = Options.AnalyzerAssemblies
+                .SelectMany(path => AnalyzerAssemblyLoader.LoadFrom(path, loadFixers: false).Select(info => info.AnalyzerAssembly));
 
             if (Options.UseRoslynatorAnalyzers)
-                analyzerAssemblies = analyzerAssemblies.Concat(RoslynatorAnalyzersAssemblies);
+                analyzerAssemblies = analyzerAssemblies.Concat(AnalyzerAssemblyLoader.LoadFiles(RoslynatorAnalyzersAssemblies, loadFixers: false));
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
             var codeAnalyzer = new CodeAnalyzer(
-                analyzerAssemblies: AnalyzerAssemblyLoader.LoadFiles(analyzerAssemblies, loadFixers: false),
+                analyzerAssemblies: analyzerAssemblies,
                 formatProvider: culture,
                 options: codeAnalyzerOptions);
 
@@ -77,7 +79,13 @@ namespace Roslynator.CommandLine
 
                 WriteLine($"Analyze '{project.Name}'", ConsoleColor.Cyan, Verbosity.Minimal);
 
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
                 ProjectAnalysisResult result = await codeAnalyzer.AnalyzeProjectAsync(project, cancellationToken);
+
+                stopwatch.Stop();
+
+                WriteLine($"Done analyzing project '{project.FilePath}' in {stopwatch.Elapsed:mm\\:ss\\.ff}", Verbosity.Minimal);
 
                 if (Options.Output != null
                     && result.Diagnostics.Any())
