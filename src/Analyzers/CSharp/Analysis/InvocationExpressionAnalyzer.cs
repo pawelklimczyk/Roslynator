@@ -337,7 +337,7 @@ namespace Roslynator.CSharp.Analysis
                             case "Compare":
                                 {
                                     if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall))
-                                        OptimizeMethodCallAnalysis.OptimizeStringCompareCall(context, invocationInfo);
+                                        OptimizeMethodCallAnalysis.OptimizeStringCompare(context, invocationInfo);
 
                                     break;
                                 }
@@ -399,7 +399,7 @@ namespace Roslynator.CSharp.Analysis
                         if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall)
                             && (argumentCount >= 1 && argumentCount <= 3))
                         {
-                            OptimizeMethodCallAnalysis.CallDebugFailInsteadOfDebugAssert(context, invocationInfo);
+                            OptimizeMethodCallAnalysis.OptimizeDebugAssert(context, invocationInfo);
                         }
 
                         break;
@@ -409,7 +409,7 @@ namespace Roslynator.CSharp.Analysis
                         if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall)
                             && argumentCount >= 2)
                         {
-                            OptimizeMethodCallAnalysis.CallStringConcatInsteadOfStringJoin(context, invocationInfo);
+                            OptimizeMethodCallAnalysis.OptimizeStringJoin(context, invocationInfo);
                         }
 
                         break;

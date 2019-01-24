@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -14,9 +14,14 @@ namespace Roslynator.CSharp.Analysis
 {
     internal static class OptimizeMethodCallAnalysis
     {
-        public static void OptimizeStringCompareCall(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        public static void OptimizeStringCompare(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
+
+            SeparatedSyntaxList<ArgumentSyntax> arguments = invocationInfo.Arguments;
+
+            if (arguments.Count != 3)
+                return;
 
             ISymbol symbol = context.SemanticModel.GetSymbol(invocationExpression, context.CancellationToken);
 
@@ -57,15 +62,22 @@ namespace Roslynator.CSharp.Analysis
 
                 if (other.WalkDownParentheses().IsNumericLiteralExpression("0"))
                 {
-                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, equalsExpression);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, equalsExpression, "string.Compare");
                     return;
                 }
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression);
+            Optional<object> optional = context.SemanticModel.GetConstantValue(invocationInfo.Arguments[2].Expression, context.CancellationToken);
+
+            if (optional.HasValue
+                && optional.Value is int value
+                && value == (int)StringComparison.Ordinal)
+            {
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "string.Compare");
+            }
         }
 
-        public static void CallDebugFailInsteadOfDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        public static void OptimizeDebugAssert(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
 
@@ -107,7 +119,7 @@ namespace Roslynator.CSharp.Analysis
             if (!ContainsFailMethod())
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "Debug.Assert");
 
             bool ContainsFailMethod()
             {
@@ -131,9 +143,9 @@ namespace Roslynator.CSharp.Analysis
             }
         }
 
-        public static void CallStringConcatInsteadOfStringJoin(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        public static void OptimizeStringJoin(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
-            InvocationExpressionSyntax invocation = invocationInfo.InvocationExpression;
+            InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
 
             ArgumentSyntax firstArgument = invocationInfo.Arguments.FirstOrDefault();
 
@@ -150,7 +162,7 @@ namespace Roslynator.CSharp.Analysis
             SemanticModel semanticModel = context.SemanticModel;
             CancellationToken cancellationToken = context.CancellationToken;
 
-            IMethodSymbol methodSymbol = semanticModel.GetMethodSymbol(invocation, cancellationToken);
+            IMethodSymbol methodSymbol = semanticModel.GetMethodSymbol(invocationExpression, cancellationToken);
 
             if (!SymbolUtility.IsPublicStaticNonGeneric(methodSymbol, "Join"))
                 return;
@@ -181,7 +193,7 @@ namespace Roslynator.CSharp.Analysis
             if (!CSharpUtility.IsEmptyStringExpression(firstArgument.Expression, semanticModel, cancellationToken))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationInfo.Name);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "string.Join");
         }
     }
 }

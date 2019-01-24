@@ -217,7 +217,7 @@ namespace Roslynator.CSharp
         public const string DuplicateEnumValue = "RCS1234";
         public const string RemoveUnnecessaryNewLine = "RCS1234Dev";
         public const string AvoidNestedConditionalExpressions = "RCS1235Dev";
-        public const string OptimizeMethodCall = "RCS1238Dev";
+        public const string OptimizeMethodCall = "RCS1238";
         public const string ImplementNonGenericInterface = "RCS9001";
     }
 }

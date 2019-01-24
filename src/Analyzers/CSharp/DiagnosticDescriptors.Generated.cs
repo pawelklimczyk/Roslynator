@@ -2569,7 +2569,7 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.AvoidNestedConditionalExpressions}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1238Dev</summary>
+        /// <summary>RCS1238</summary>
         public static readonly DiagnosticDescriptor OptimizeMethodCall = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.OptimizeMethodCall, 
             title:              "Optimize method call.", 
