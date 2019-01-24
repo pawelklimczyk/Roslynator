@@ -4,7 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using static Roslynator.Logger;
@@ -14,30 +17,169 @@ namespace Roslynator
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal sealed class AnalyzerAssembly : IEquatable<AnalyzerAssembly>
     {
+        private ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
+        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> _supportedDiagnosticsByPrefix;
+        private ImmutableArray<CodeFixProvider> _fixers;
+        private ImmutableArray<string> _fixableDiagnosticIds;
+        private ImmutableDictionary<string, ImmutableArray<string>> _fixableDiagnosticIdsByPrefix;
+
         private AnalyzerAssembly(
             Assembly assembly,
-            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers,
-            ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> fixers)
+            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersByLanguage,
+            ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> fixersByLanguage,
+            bool includeAnalyzers,
+            bool includeFixers)
         {
             Assembly = assembly;
-            Analyzers = analyzers;
-            Fixers = fixers;
+
+            AnalyzersByLanguage = analyzersByLanguage;
+            FixersByLanguage = fixersByLanguage;
+
+            IncludeAnalyzers = includeAnalyzers;
+            IncludeFixers = includeFixers;
         }
 
         public Assembly Assembly { get; }
 
-        public string FullName => Assembly.FullName;
+        internal string FullName => Assembly.FullName;
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> Analyzers { get; }
+        public bool IncludeAnalyzers { get; }
 
-        public ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> Fixers { get; }
+        public bool IncludeFixers { get; }
 
-        internal bool IsEmpty => Analyzers.Count == 0 && Fixers.Count == 0;
+        public bool HasAnalyzers => AnalyzersByLanguage.Count > 0;
+
+        public bool HasFixers => FixersByLanguage.Count > 0;
+
+        internal bool IsEmpty => !HasAnalyzers && !HasFixers;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => FullName;
 
-        public AssemblyName GetName() => Assembly.GetName();
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> AnalyzersByLanguage { get; }
+
+        public ImmutableArray<DiagnosticAnalyzer> Analyzers
+        {
+            get
+            {
+                if (_analyzers.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _analyzers, LoadAnalyzers());
+
+                return _analyzers;
+            }
+        }
+
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                if (_supportedDiagnostics.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _supportedDiagnostics, LoadSupportedDiagnostics());
+
+                return _supportedDiagnostics;
+            }
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> SupportedDiagnosticsByPrefix
+        {
+            get
+            {
+                if (_supportedDiagnosticsByPrefix == null)
+                    Interlocked.CompareExchange(ref _supportedDiagnosticsByPrefix, LoadSupportedDiagnosticsByPrefix(), null);
+
+                return _supportedDiagnosticsByPrefix;
+            }
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> FixersByLanguage { get; }
+
+        public ImmutableArray<CodeFixProvider> Fixers
+        {
+            get
+            {
+                if (_fixers.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _fixers, LoadFixers());
+
+                return _fixers;
+            }
+        }
+
+        public ImmutableArray<string> FixableDiagnosticIds
+        {
+            get
+            {
+                if (_fixableDiagnosticIds.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _fixableDiagnosticIds, LoadFixableDiagnosticIds());
+
+                return _fixableDiagnosticIds;
+            }
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<string>> FixableDiagnosticIdsByPrefix
+        {
+            get
+            {
+                if (_fixableDiagnosticIdsByPrefix == null)
+                    Interlocked.CompareExchange(ref _fixableDiagnosticIdsByPrefix, LoadFixableDiagnosticIdsByPrefix(), null);
+
+                return _fixableDiagnosticIdsByPrefix;
+            }
+        }
+
+        private ImmutableArray<DiagnosticAnalyzer> LoadAnalyzers()
+        {
+            if (!IncludeAnalyzers)
+                return ImmutableArray<DiagnosticAnalyzer>.Empty;
+
+            return AnalyzersByLanguage
+                .SelectMany(f => f.Value)
+                .Distinct()
+                .ToImmutableArray();
+        }
+
+        private ImmutableArray<DiagnosticDescriptor> LoadSupportedDiagnostics()
+        {
+            return Analyzers
+                .SelectMany(f => f.SupportedDiagnostics)
+                .Distinct(DiagnosticDescriptorComparer.Id)
+                .OrderBy(f => f, DiagnosticDescriptorComparer.Id)
+                .ToImmutableArray();
+        }
+
+        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> LoadSupportedDiagnosticsByPrefix()
+        {
+            return SupportedDiagnostics
+                .GroupBy(f => f, DiagnosticDescriptorComparer.IdPrefix)
+                .ToImmutableDictionary(f => DiagnosticIdPrefix.GetPrefix(f.Key.Id), f => f.ToImmutableArray());
+        }
+
+        private ImmutableArray<CodeFixProvider> LoadFixers()
+        {
+            if (!IncludeFixers)
+                return ImmutableArray<CodeFixProvider>.Empty;
+
+            return FixersByLanguage
+               .SelectMany(f => f.Value)
+               .Distinct()
+               .ToImmutableArray();
+        }
+
+        private ImmutableArray<string> LoadFixableDiagnosticIds()
+        {
+            return Fixers
+                .SelectMany(f => f.FixableDiagnosticIds)
+                .Distinct()
+                .OrderBy(f => f)
+                .ToImmutableArray();
+        }
+
+        private ImmutableDictionary<string, ImmutableArray<string>> LoadFixableDiagnosticIdsByPrefix()
+        {
+            return FixableDiagnosticIds
+                .GroupBy(f => f, DiagnosticIdComparer.Prefix)
+                .ToImmutableDictionary(f => DiagnosticIdPrefix.GetPrefix(f.Key), f => f.ToImmutableArray());
+        }
 
         public static AnalyzerAssembly Load(
             Assembly analyzerAssembly,
@@ -52,7 +194,7 @@ namespace Roslynator
 
             try
             {
-                foreach (TypeInfo typeInfo in analyzerAssembly.DefinedTypes)
+                foreach (System.Reflection.TypeInfo typeInfo in analyzerAssembly.DefinedTypes)
                 {
                     if (loadAnalyzers
                         && !typeInfo.IsAbstract
@@ -116,7 +258,9 @@ namespace Roslynator
             return new AnalyzerAssembly(
                 analyzerAssembly,
                 analyzers?.ToImmutableDictionary(f => f.Key, f => f.Value.ToImmutableArray()) ?? ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty,
-                fixers?.ToImmutableDictionary(f => f.Key, f => f.Value.ToImmutableArray()) ?? ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty);
+                fixers?.ToImmutableDictionary(f => f.Key, f => f.Value.ToImmutableArray()) ?? ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty,
+                includeAnalyzers: loadAnalyzers,
+                includeFixers: loadFixers);
         }
 
         public override int GetHashCode()

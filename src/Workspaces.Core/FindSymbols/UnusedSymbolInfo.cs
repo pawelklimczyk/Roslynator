@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 namespace Roslynator.FindSymbols
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public readonly struct UnusedSymbolInfo
+    internal readonly struct UnusedSymbolInfo
     {
         internal UnusedSymbolInfo(ISymbol symbol, string id, ProjectId projectId)
         {

@@ -10,6 +10,32 @@ namespace Roslynator
     {
         private static readonly Dictionary<string, string> _prefixes = new Dictionary<string, string>(LetterPrefixStringEqualityComparer.Instance);
 
+        public static string GetPrefix(string id)
+        {
+            int length = GetPrefixLength(id);
+
+            return id.Substring(0, length);
+        }
+
+        public static int GetPrefixLength(string id)
+        {
+            int length = 0;
+
+            for (int i = 0; i < id.Length; i++)
+            {
+                if (char.IsLetter(id[i]))
+                {
+                    length++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return length;
+        }
+
         public static IEnumerable<(string prefix, int count)> CountPrefixes(IEnumerable<string> values)
         {
             foreach (IGrouping<string, string> grouping in values
@@ -17,21 +43,7 @@ namespace Roslynator
                 {
                     if (!_prefixes.TryGetValue(id, out string prefix))
                     {
-                        int length = 0;
-
-                        for (int i = 0; i < id.Length; i++)
-                        {
-                            if (char.IsLetter(id[i]))
-                            {
-                                length++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-
-                        prefix = id.Substring(0, length);
+                        prefix = GetPrefix(id);
 
                         _prefixes[prefix] = prefix;
                     }

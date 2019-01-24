@@ -2,7 +2,7 @@
 
 namespace Roslynator.FindSymbols
 {
-    public enum UnusedSymbolKind
+    internal enum UnusedSymbolKind
     {
         None = 0,
         Class = 1,

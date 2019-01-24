@@ -13,7 +13,7 @@ using static Roslynator.Logger;
 
 namespace Roslynator.FindSymbols
 {
-    public static class UnusedSymbolFinder
+    internal static class UnusedSymbolFinder
     {
         public static async Task<ImmutableArray<UnusedSymbolInfo>> FindUnusedSymbolsAsync(
             Project project,
