@@ -2569,5 +2569,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1240</summary>
+        public static readonly DiagnosticDescriptor UnnecessaryRelationalOperator = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UnnecessaryRelationalOperator, 
+            title:              "Unnecessary relational operator.", 
+            messageFormat:      "Unnecessary relational operator.", 
+            category:           DiagnosticCategories.Simplification, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnnecessaryRelationalOperator}", 
+            customTags:         WellKnownDiagnosticTags.Unnecessary);
+
     }
 }
