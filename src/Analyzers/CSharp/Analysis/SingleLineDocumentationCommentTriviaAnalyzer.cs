@@ -70,27 +70,27 @@ namespace Roslynator.CSharp.Analysis
 
                 if (info.Success)
                 {
-                    switch (info.GetElementKind())
+                    switch (info.GetTag())
                     {
-                        case XmlElementKind.Include:
-                        case XmlElementKind.Exclude:
+                        case XmlTag.Include:
+                        case XmlTag.Exclude:
                             {
                                 if (isFirst)
                                     containsIncludeOrExclude = true;
 
                                 break;
                             }
-                        case XmlElementKind.InheritDoc:
+                        case XmlTag.InheritDoc:
                             {
                                 containsInheritDoc = true;
                                 break;
                             }
-                        case XmlElementKind.Content:
+                        case XmlTag.Content:
                             {
                                 containsContentElement = true;
                                 break;
                             }
-                        case XmlElementKind.Summary:
+                        case XmlTag.Summary:
                             {
                                 if (info.IsContentEmptyOrWhitespace)
                                     ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.AddSummaryToDocumentationComment, info.Element);
@@ -98,11 +98,11 @@ namespace Roslynator.CSharp.Analysis
                                 containsSummaryElement = true;
                                 break;
                             }
-                        case XmlElementKind.Code:
-                        case XmlElementKind.Example:
-                        case XmlElementKind.Remarks:
-                        case XmlElementKind.Returns:
-                        case XmlElementKind.Value:
+                        case XmlTag.Code:
+                        case XmlTag.Example:
+                        case XmlTag.Remarks:
+                        case XmlTag.Returns:
+                        case XmlTag.Value:
                             {
                                 if (info.IsContentEmptyOrWhitespace)
                                     ReportUnusedElement(context, info.Element, i, content);
@@ -145,7 +145,7 @@ namespace Roslynator.CSharp.Analysis
                 || orderParams
                 || unusedElement)
             {
-                SeparatedSyntaxList<ParameterSyntax> parameters = ParameterListInfo.Create(parent).Parameters;
+                SeparatedSyntaxList<ParameterSyntax> parameters = CSharpUtility.GetParameters((CSharpFacts.HasParameterList(parent.Kind())) ? parent : parent.Parent);
 
                 if (addParam
                     && parameters.Any())
@@ -162,7 +162,7 @@ namespace Roslynator.CSharp.Analysis
 
                 if (orderParams || unusedElement)
                 {
-                    Analyze(context, documentationComment.Content, parameters, XmlElementKind.Param, (nodes, name) => nodes.IndexOf(name));
+                    Analyze(context, documentationComment.Content, parameters, XmlTag.Param, (nodes, name) => nodes.IndexOf(name));
                 }
             }
 
@@ -170,7 +170,7 @@ namespace Roslynator.CSharp.Analysis
                 || orderParams
                 || unusedElement)
             {
-                SeparatedSyntaxList<TypeParameterSyntax> typeParameters = TypeParameterListInfo.Create(parent).Parameters;
+                SeparatedSyntaxList<TypeParameterSyntax> typeParameters = CSharpUtility.GetTypeParameters((CSharpFacts.HasTypeParameterList(parent.Kind())) ? parent : parent.Parent);
 
                 if (addTypeParam
                     && typeParameters.Any())
@@ -187,7 +187,7 @@ namespace Roslynator.CSharp.Analysis
 
                 if (orderParams || unusedElement)
                 {
-                    Analyze(context, documentationComment.Content, typeParameters, XmlElementKind.TypeParam, (nodes, name) => nodes.IndexOf(name));
+                    Analyze(context, documentationComment.Content, typeParameters, XmlTag.TypeParam, (nodes, name) => nodes.IndexOf(name));
                 }
             }
         }
@@ -200,7 +200,7 @@ namespace Roslynator.CSharp.Analysis
 
                 if (elementInfo.Success
                     && !elementInfo.IsEmptyElement
-                    && elementInfo.IsElementKind(XmlElementKind.Param))
+                    && elementInfo.HasTag(XmlTag.Param))
                 {
                     var element = (XmlElementSyntax)elementInfo.Element;
 
@@ -225,7 +225,7 @@ namespace Roslynator.CSharp.Analysis
 
                 if (elementInfo.Success
                     && !elementInfo.IsEmptyElement
-                    && elementInfo.IsElementKind(XmlElementKind.TypeParam))
+                    && elementInfo.HasTag(XmlTag.TypeParam))
                 {
                     var element = (XmlElementSyntax)elementInfo.Element;
 
@@ -246,10 +246,10 @@ namespace Roslynator.CSharp.Analysis
             SyntaxNodeAnalysisContext context,
             SyntaxList<XmlNodeSyntax> xmlNodes,
             SeparatedSyntaxList<TNode> nodes,
-            XmlElementKind kind,
+            XmlTag tag,
             Func<SeparatedSyntaxList<TNode>, string, int> indexOf) where TNode : SyntaxNode
         {
-            XmlElementSyntax firstElement = null;
+            XmlNodeSyntax firstElement = null;
 
             int firstIndex = -1;
 
@@ -260,15 +260,17 @@ namespace Roslynator.CSharp.Analysis
                 if (!elementInfo.Success)
                     continue;
 
-                if (!elementInfo.IsElementKind(kind))
+                if (!elementInfo.HasTag(tag))
                 {
                     firstIndex = -1;
                     continue;
                 }
 
-                var element = (XmlElementSyntax)elementInfo.Element;
+                XmlNodeSyntax element = elementInfo.Element;
 
-                string name = element.GetAttributeValue("name");
+                string name = (element.IsKind(SyntaxKind.XmlElement))
+                    ? ((XmlElementSyntax)element).GetAttributeValue("name")
+                    : ((XmlEmptyElementSyntax)element).GetAttributeValue("name");
 
                 if (name == null)
                 {
