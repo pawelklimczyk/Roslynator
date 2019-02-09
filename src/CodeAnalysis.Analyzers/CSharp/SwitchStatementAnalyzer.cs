@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -40,14 +41,15 @@ namespace Roslynator.CodeAnalysis.CSharp
 
                     INamedTypeSymbol syntaxNodeSymbol = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode");
 
-                    ImmutableDictionary<string, string> kindsToNames = compilation
+                    Dictionary<string, string> kindsToNames = compilation
                         .GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax")
                         .ContainingNamespace
                         .GetTypeMembers()
-                        .Where(f => f.TypeKind == TypeKind.Class && !f.IsAbstract && f.InheritsFrom(syntaxNodeSymbol))
-                        .Select(f => f.Name)
-                        .Where(f => f.EndsWith("Syntax", StringComparison.Ordinal))
-                        .ToImmutableDictionary(f => f.Remove(f.Length - 6), f => f);
+                        .Where(f => f.TypeKind == TypeKind.Class
+                            && !f.IsAbstract
+                            && f.InheritsFrom(syntaxNodeSymbol)
+                            && f.Name.EndsWith("Syntax", StringComparison.Ordinal))
+                        .ToDictionary(f => f.Name.Remove(f.Name.Length - 6), f => f.Name);
 
                     ImmutableHashSet<string>.Builder syntaxKinds = ImmutableHashSet.CreateBuilder<string>();
                     ImmutableHashSet<string>.Builder syntaxNames = ImmutableHashSet.CreateBuilder<string>();
