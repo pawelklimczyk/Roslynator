@@ -52,4 +52,20 @@
       </Sample>
     </Samples>
   </Analyzer>
+  <Analyzer Identifier="UsePatternMatching">
+    <Id>ROS0004</Id>
+    <Title>Use pattern matching.</Title>
+    <MessageFormat>Use pattern matching.</MessageFormat>
+    <Category>Usage</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
 </Analyzers>

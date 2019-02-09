@@ -47,5 +47,17 @@ namespace Roslynator.CodeAnalysis.CSharp
 
         public static readonly DiagnosticDescriptor RedundantConditionalAccessFadeOut = RedundantConditionalAccess.CreateFadeOut();
 
+        /// <summary>ROS0004</summary>
+        public static readonly DiagnosticDescriptor UsePatternMatching = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UsePatternMatching, 
+            title:              "Use pattern matching.", 
+            messageFormat:      "Use pattern matching.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePatternMatching}", 
+            customTags:         Array.Empty<string>());
+
     }
 }
