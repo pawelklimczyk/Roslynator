@@ -55,8 +55,6 @@ namespace Roslynator.CodeAnalysis.CSharp
             SwitchStatementSyntax switchStatement,
             CancellationToken cancellationToken)
         {
-            SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(switchStatement.Expression);
-
             SyntaxList<SwitchSectionSyntax> newSections = switchStatement.Sections.Select(section =>
             {
                 if (!(section.Labels.Single() is CaseSwitchLabelSyntax label))
@@ -91,11 +89,49 @@ namespace Roslynator.CodeAnalysis.CSharp
             })
             .ToSyntaxList();
 
+            ExpressionSyntax expression = switchStatement.Expression;
+
+            ExpressionSyntax newExpression = expression;
+
+            LocalDeclarationStatementSyntax localDeclaration = null;
+
+            if (expression.IsKind(SyntaxKind.InvocationExpression))
+            {
+                SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(expression);
+
+                newExpression = invocationInfo.Expression;
+            }
+            else
+            {
+                localDeclaration = (LocalDeclarationStatementSyntax)switchStatement.PreviousStatement();
+
+                SingleLocalDeclarationStatementInfo localInfo = SyntaxInfo.SingleLocalDeclarationStatementInfo(localDeclaration);
+
+                SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(localInfo.Value);
+
+                newExpression = invocationInfo.Expression;
+            }
+
             SwitchStatementSyntax newSwitchStatement = switchStatement
-                .WithExpression(invocationInfo.Expression.WithTriviaFrom(switchStatement.Expression))
+                .WithExpression(newExpression.WithTriviaFrom(expression))
                 .WithSections(newSections);
 
-            return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
+            if (localDeclaration != null)
+            {
+                StatementListInfo statementsInfo = SyntaxInfo.StatementListInfo(switchStatement);
+
+                newSwitchStatement = newSwitchStatement.WithLeadingTrivia(localDeclaration.GetLeadingTrivia());
+
+                SyntaxList<StatementSyntax> newStatements = statementsInfo.Statements
+                    .Replace(switchStatement, newSwitchStatement)
+                    .RemoveAt(statementsInfo.IndexOf(localDeclaration));
+
+                return document.ReplaceStatementsAsync(statementsInfo, newStatements, cancellationToken);
+            }
+            else
+            {
+                return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
+            }
         }
     }
 }

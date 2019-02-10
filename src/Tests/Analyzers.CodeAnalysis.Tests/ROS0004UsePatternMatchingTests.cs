@@ -78,5 +78,70 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePatternMatching)]
+        public async Task Test_LocalDeclaration()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+class C
+{
+    void M()
+    {
+        SyntaxNode node = null;
+
+        SyntaxKind kind = node.Kind();
+
+        [|switch|] (kind)
+        {
+            case SyntaxKind.IdentifierName:
+                {
+                    var identifierName = (IdentifierNameSyntax)node;
+                    break;
+                }
+            case SyntaxKind.GenericName:
+                var genericName = (GenericNameSyntax)node;
+                break;
+            default:
+                {
+                    throw new InvalidOperationException();
+                }
+        }
+    }
+}
+", @"
+using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+class C
+{
+    void M()
+    {
+        SyntaxNode node = null;
+
+        switch (node)
+        {
+            case IdentifierNameSyntax identifierName:
+                {
+                    break;
+                }
+
+            case GenericNameSyntax genericName:
+                break;
+            default:
+                {
+                    throw new InvalidOperationException();
+                }
+        }
+    }
+}
+");
+        }
     }
 }

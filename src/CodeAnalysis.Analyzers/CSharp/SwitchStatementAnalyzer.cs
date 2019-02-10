@@ -191,10 +191,42 @@ namespace Roslynator.CodeAnalysis.CSharp
 
             string GetName()
             {
-                if (!switchExpression.IsKind(SyntaxKind.InvocationExpression))
-                    return null;
+                switch (switchExpression.Kind())
+                {
+                    case SyntaxKind.IdentifierName:
+                        {
+                            StatementSyntax previousStatement = switchStatement.PreviousStatement();
 
-                SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo((InvocationExpressionSyntax)switchExpression);
+                            if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+                                return null;
+
+                            SingleLocalDeclarationStatementInfo localInfo = SyntaxInfo.SingleLocalDeclarationStatementInfo((LocalDeclarationStatementSyntax)previousStatement);
+
+                            if (!localInfo.Success)
+                                return null;
+
+                            if (localInfo.IdentifierText != ((IdentifierNameSyntax)switchExpression).Identifier.ValueText)
+                                return null;
+
+                            if (!localInfo.Value.IsKind(SyntaxKind.InvocationExpression))
+                                return null;
+
+                            return GetName2((InvocationExpressionSyntax)localInfo.Value);
+                        }
+                    case SyntaxKind.InvocationExpression:
+                        {
+                            return GetName2((InvocationExpressionSyntax)switchExpression);
+                        }
+                    default:
+                        {
+                            return null;
+                        }
+                }
+            }
+
+            string GetName2(InvocationExpressionSyntax invocationExpression)
+            {
+                SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(invocationExpression);
 
                 if (!invocationInfo.Success)
                     return null;
