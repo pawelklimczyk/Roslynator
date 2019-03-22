@@ -32,8 +32,8 @@ namespace Roslynator.CodeGeneration
             ImmutableArray<AnalyzerDescriptor> analyzers = metadata.Analyzers;
             ImmutableArray<AnalyzerDescriptor> codeAnalysisAnalyzers = metadata.CodeAnalysisAnalyzers;
             ImmutableArray<RefactoringDescriptor> refactorings = metadata.Refactorings;
-            ImmutableArray<CodeFixDescriptor> codeFixes = metadata.CodeFixes;
-            ImmutableArray<CompilerDiagnosticDescriptor> compilerDiagnostics = metadata.CompilerDiagnostics;
+            ImmutableArray<CodeFixMetadata> codeFixes = metadata.CodeFixes;
+            ImmutableArray<CompilerDiagnosticMetadata> compilerDiagnostics = metadata.CompilerDiagnostics;
 
             WriteCompilationUnit(
                 @"Refactorings\CSharp\RefactoringIdentifiers.Generated.cs",
@@ -52,12 +52,20 @@ namespace Roslynator.CodeGeneration
             WriteDiagnostics(@"CodeAnalysis.Analyzers\CSharp", codeAnalysisAnalyzers, @namespace: "Roslynator.CodeAnalysis.CSharp");
 
             WriteCompilationUnit(
+                @"CodeFixes\CSharp\CompilerDiagnosticDescriptors.Generated.cs",
+                CompilerDiagnosticDescriptorsGenerator.Generate(compilerDiagnostics, comparer: comparer, @namespace: "Roslynator.CSharp"), normalizeWhitespace: false);
+
+            WriteCompilationUnit(
+                @"CodeFixes\CSharp\CodeFixDescriptors.Generated.cs",
+                CodeFixDescriptorsGenerator.Generate(codeFixes.Where(f => !f.IsObsolete), comparer: comparer, @namespace: "Roslynator.CSharp"), normalizeWhitespace: false);
+
+            WriteCompilationUnit(
                 @"CodeFixes\CSharp\CodeFixIdentifiers.Generated.cs",
                 CodeFixIdentifiersGenerator.Generate(codeFixes, comparer));
 
             WriteCompilationUnit(
                 @"VisualStudio.Common\CodeFixesOptionsPage.Generated.cs",
-                CodeFixesOptionsPageGenerator.Generate(codeFixes, comparer));
+                CodeFixesOptionsPageGenerator.Generate(codeFixes, compilerDiagnostics, comparer));
 
             WriteCompilationUnit(
                 @"VisualStudio.Common\GlobalSuppressionsOptionsPage.Generated.cs",

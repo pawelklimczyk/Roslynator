@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RRTests : AbstractCSharpCodeRefactoringVerifier
+    public class RRTests : AbstractCSharpRefactoringVerifier
     {
         public override string RefactoringId { get; } = RefactoringIdentifiers.AddBraces;
 

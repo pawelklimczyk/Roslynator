@@ -40,8 +40,8 @@ namespace Roslynator.CodeGeneration
             ImmutableArray<AnalyzerDescriptor> analyzers = metadata.Analyzers;
             ImmutableArray<AnalyzerDescriptor> codeAnalysisAnalyzers = metadata.CodeAnalysisAnalyzers;
             ImmutableArray<RefactoringDescriptor> refactorings = metadata.Refactorings;
-            ImmutableArray<CodeFixDescriptor> codeFixes = metadata.CodeFixes;
-            ImmutableArray<CompilerDiagnosticDescriptor> compilerDiagnostics = metadata.CompilerDiagnostics;
+            ImmutableArray<CodeFixMetadata> codeFixes = metadata.CodeFixes;
+            ImmutableArray<CompilerDiagnosticMetadata> compilerDiagnostics = metadata.CompilerDiagnostics;
 
             WriteAnalyzersReadMe(@"Analyzers\README.md", analyzers);
 
@@ -86,6 +86,14 @@ namespace Roslynator.CodeGeneration
                     fileMustExists: false);
             }
 
+            foreach (AnalyzerDescriptor analyzer in analyzers)
+            {
+                WriteAllText(
+                    $@"..\docs\analyzers\{analyzer.Id}.md",
+                    MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, Array.Empty<string>()),
+                    fileMustExists: false);
+            }
+
             foreach (RefactoringDescriptor refactoring in refactorings)
             {
                 WriteAllText(
@@ -94,7 +102,7 @@ namespace Roslynator.CodeGeneration
                     fileMustExists: false);
             }
 
-            foreach (CompilerDiagnosticDescriptor diagnostic in compilerDiagnostics)
+            foreach (CompilerDiagnosticMetadata diagnostic in compilerDiagnostics)
             {
                 WriteAllText(
                     $@"..\docs\cs\{diagnostic.Id}.md",
