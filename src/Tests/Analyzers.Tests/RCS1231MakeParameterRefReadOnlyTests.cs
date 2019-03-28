@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1231MakeParameterRefReadOnlyTests : AbstractCSharpCodeFixVerifier
+    public class RCS1231MakeParameterRefReadOnlyTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.MakeParameterRefReadOnly;
 
@@ -125,6 +125,51 @@ readonly struct C
     }
 }
 ", options: Options.AddAllowedCompilerDiagnosticId("CS0100"));
+        }
+
+        [Fact]
+        public async Task TestNoDiagnostic_MethodReferencedAsMethodGroup()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    readonly struct B
+    {
+        public int P { get; }
+    }
+
+    bool M(B p) => p.P > 0;
+
+    bool M(List<B> p) => p.Any(M);
+}
+");
+        }
+
+        [Fact]
+        public async Task TestNoDiagnostic_LocalFunctionReferencedAsMethodGroup()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    readonly struct B
+    {
+        public int P { get; }
+    }
+
+    bool M(List<B> p)
+    {
+        return p.Any(M);
+
+        bool M(B p2) => p2.P > 0;
+    }
+}
+");
         }
     }
 }

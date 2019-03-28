@@ -8,7 +8,7 @@ namespace Roslynator.CodeGeneration.CSharp
 {
     public static class AnalyzerTestGenerator
     {
-        public static CompilationUnitSyntax Generate(AnalyzerDescriptor analyzer, string className)
+        public static CompilationUnitSyntax Generate(AnalyzerMetadata analyzer, string className)
         {
             string s = _sourceTemplate
                 .Replace("$ClassName$", className)
@@ -30,7 +30,7 @@ using Xunit;
 namespace Roslynator.CSharp.Analysis.Tests
 {
     //TODO: Add tests for $Id$
-    public class $ClassName$ : AbstractCSharpCodeFixVerifier
+    public class $ClassName$ : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.$Identifier$;
 

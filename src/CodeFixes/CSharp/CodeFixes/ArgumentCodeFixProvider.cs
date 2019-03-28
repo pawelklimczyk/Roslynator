@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -28,22 +29,13 @@ namespace Roslynator.CSharp.CodeFixes
                 return ImmutableArray.Create(
                     CompilerDiagnosticIdentifiers.ArgumentMustBePassedWithRefOrOutKeyword,
                     CompilerDiagnosticIdentifiers.ArgumentShouldNotBePassedWithRefOrOutKeyword,
-                    CompilerDiagnosticIdentifiers.CannotConvertArgumentType);
+                    CompilerDiagnosticIdentifiers.CannotConvertArgumentType,
+                    CompilerDiagnosticIdentifiers.ReadOnlyFieldCannotBePassedAsRefOrOutValue);
             }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsAnyEnabled(
-                CodeFixIdentifiers.AddOutModifierToArgument,
-                CodeFixIdentifiers.RemoveRefModifier,
-                CodeFixIdentifiers.CreateSingletonArray,
-                CodeFixIdentifiers.AddArgumentList,
-                CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue))
-            {
-                return;
-            }
-
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out ArgumentSyntax argument))
@@ -55,7 +47,7 @@ namespace Roslynator.CSharp.CodeFixes
                 {
                     case CompilerDiagnosticIdentifiers.ArgumentMustBePassedWithRefOrOutKeyword:
                         {
-                            if (!Settings.IsEnabled(CodeFixIdentifiers.AddOutModifierToArgument))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddOutModifierToArgument))
                                 return;
 
                             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
@@ -97,7 +89,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.ArgumentShouldNotBePassedWithRefOrOutKeyword:
                         {
-                            if (!Settings.IsEnabled(CodeFixIdentifiers.RemoveRefModifier))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.RemoveRefModifier))
                                 return;
 
                             CodeAction codeAction = CodeAction.Create(
@@ -118,7 +110,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.CannotConvertArgumentType:
                         {
-                            if (Settings.IsEnabled(CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue))
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue))
                             {
                                 ExpressionSyntax expression = argument.Expression;
 
@@ -150,7 +142,7 @@ namespace Roslynator.CSharp.CodeFixes
                                 }
                             }
 
-                            if (Settings.IsEnabled(CodeFixIdentifiers.AddArgumentList))
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddArgumentList))
                             {
                                 ExpressionSyntax expression = argument.Expression;
 
@@ -183,7 +175,7 @@ namespace Roslynator.CSharp.CodeFixes
                                 }
                             }
 
-                            if (Settings.IsEnabled(CodeFixIdentifiers.CreateSingletonArray))
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.CreateSingletonArray))
                             {
                                 ExpressionSyntax expression = argument.Expression;
 
@@ -213,6 +205,42 @@ namespace Roslynator.CSharp.CodeFixes
                                     }
                                 }
                             }
+
+                            break;
+                        }
+                    case CompilerDiagnosticIdentifiers.ReadOnlyFieldCannotBePassedAsRefOrOutValue:
+                        {
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.MakeFieldWritable))
+                                return;
+
+                            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+                            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(argument.Expression, context.CancellationToken);
+
+                            if (symbolInfo.CandidateReason != CandidateReason.NotAVariable)
+                                return;
+
+                            if (!(symbolInfo.CandidateSymbols.SingleOrDefault(shouldThrow: false) is IFieldSymbol fieldSymbol))
+                                return;
+
+                            if (fieldSymbol.DeclaredAccessibility != Accessibility.Private)
+                                return;
+
+                            if (!(fieldSymbol.GetSyntax().Parent.Parent is FieldDeclarationSyntax fieldDeclaration))
+                                return;
+
+                            TypeDeclarationSyntax containingTypeDeclaration = fieldDeclaration.FirstAncestor<TypeDeclarationSyntax>();
+
+                            if (!argument.Ancestors().Any(f => f == containingTypeDeclaration))
+                                return;
+
+                            ModifiersCodeFixRegistrator.RemoveModifier(
+                                context,
+                                diagnostic,
+                                fieldDeclaration,
+                                SyntaxKind.ReadOnlyKeyword,
+                                title: $"Make '{fieldSymbol.Name}' writable",
+                                additionalKey: CodeFixIdentifiers.MakeFieldWritable);
 
                             break;
                         }

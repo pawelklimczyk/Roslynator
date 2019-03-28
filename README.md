@@ -36,7 +36,7 @@ Although Roslynator products are free of charge, any [donation](https://www.payp
 ### Roslynator.Analyzers &ensp;[![NuGet](https://img.shields.io/nuget/v/Roslynator.Analyzers.svg)](https://nuget.org/packages/Roslynator.Analyzers)
 
 * Package [Roslynator.Analyzers](http://www.nuget.org/packages/Roslynator.Analyzers/) contains only analyzers.
-* Use this package if you want integrate analyzers into your build process.
+* Use this package if you want to integrate analyzers into your build process.
 
 ### Roslynator.CodeFixes &ensp;[![NuGet](https://img.shields.io/nuget/v/Roslynator.CodeFixes.svg)](https://nuget.org/packages/Roslynator.CodeFixes)
 
@@ -73,6 +73,8 @@ Please read the [tutorial](docs/RoslynatorForVisualStudioCode.md) how to install
 * [How to Customize Rules for a Project](docs/HowToCustomizeRulesForProject.md)
 * [How to Fix All Diagnostics in a Solution](docs/HowToFixAllDiagnostics.md)
 * [How to Generate API Documentation](docs/HowToGenerateDocumentation.md)
+
+Would you like to improve Roslynator documentation? Please see [how to update documentation](docs/HowToUpdateDocumentation.md).
 
 ## Other Projects
 

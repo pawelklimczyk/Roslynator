@@ -12,7 +12,7 @@ namespace Roslynator.CodeGeneration.CSharp
 {
     public static class GlobalSuppressionsOptionsPageGenerator
     {
-        public static CompilationUnitSyntax Generate(IEnumerable<AnalyzerDescriptor> analyzers, IComparer<string> comparer)
+        public static CompilationUnitSyntax Generate(IEnumerable<AnalyzerMetadata> analyzers, IComparer<string> comparer)
         {
             return CompilationUnit(
                 UsingDirectives(
@@ -26,14 +26,14 @@ namespace Roslynator.CodeGeneration.CSharp
                         CreateMembers(analyzers, comparer).ToSyntaxList())));
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<AnalyzerDescriptor> analyzers, IComparer<string> comparer)
+        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<AnalyzerMetadata> analyzers, IComparer<string> comparer)
         {
             yield return PropertyDeclaration(
                 Modifiers.Protected_Override(),
                 PredefinedStringType(),
                 Identifier("MaxId"),
                 AccessorList(AutoGetAccessorDeclaration()),
-                ParseExpression($"DiagnosticIdentifiers.{analyzers.OrderBy(f => f.Id, comparer).Last().Identifier}"));
+                ParseExpression($"\"{analyzers.OrderBy(f => f.Id, comparer).Last().Id}\""));
 
             yield return MethodDeclaration(
                 Modifiers.Protected_Override(),
@@ -47,7 +47,7 @@ namespace Roslynator.CodeGeneration.CSharp
                             .Select(analyzer =>
                             {
                                 return ExpressionStatement(
-                                    ParseExpression($"analyzers.Add(new BaseModel(DiagnosticIdentifiers.{analyzer.Identifier}, \"{StringUtility.EscapeQuote(analyzer.Title)}\", !IsEnabled(DiagnosticIdentifiers.{analyzer.Identifier})))"));
+                                    ParseExpression($"analyzers.Add(new BaseModel(\"{analyzer.Id}\", \"{StringUtility.EscapeQuote(analyzer.Title)}\", !IsEnabled(\"{analyzer.Id}\")))"));
                             }))));
         }
     }

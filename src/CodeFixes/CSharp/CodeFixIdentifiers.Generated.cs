@@ -115,5 +115,7 @@ namespace Roslynator.CSharp
         public const string RenameTupleElement = Prefix + "0110";
         public const string ChangeParameterType = Prefix + "0111";
         public const string MarkDeclarationAsNonCLSCompliant = Prefix + "0112";
+        public const string ReplaceCharacterLiteralWithStringLiteral = Prefix + "0113";
+        public const string MakeFieldWritable = Prefix + "0114";
     }
 }

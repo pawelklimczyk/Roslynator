@@ -18,7 +18,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>VisualStudio.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Roslynator.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -70,7 +70,6 @@
     <None Include="app.config" />
     <None Include="manifest.json" />
     <None Include="packages.config" />
-    <None Include="VisualStudio.snk" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -163,9 +162,9 @@
       <Project>{3b0653f4-919d-4049-84a8-b1cc173415d7}</Project>
       <Name>Analyzers.CodeFixes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Common.Workspaces\Common.Workspaces.csproj">
+    <ProjectReference Include="..\Workspaces.Common\Workspaces.Common.csproj">
       <Project>{d6b3faf2-c92d-4b2d-82df-d6b3dd7f4107}</Project>
-      <Name>Common.Workspaces</Name>
+      <Name>Workspaces.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{814c7bd5-f7fa-441d-897f-f7876b038b30}</Project>
