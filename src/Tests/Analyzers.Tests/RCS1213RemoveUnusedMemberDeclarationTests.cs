@@ -10,7 +10,7 @@ using Roslynator.CSharp.Analysis.UnusedMember;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1213RemoveUnusedMemberDeclarationTests : AbstractCSharpCodeFixVerifier
+    public class RCS1213RemoveUnusedMemberDeclarationTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.RemoveUnusedMemberDeclaration;
 
@@ -253,6 +253,28 @@ class C
     {
         M();
     }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.RemoveUnusedMemberDeclaration)]
+        public async Task TestNoDiagnostic_LateBound()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M()
+    {
+        dynamic x = 1;
+        Foo(x);
+
+        x = 1.1;
+        Foo(x);
+    }
+
+    void Foo(int _) => M();
+
+    void Foo(double _) => M();
 }
 ");
         }

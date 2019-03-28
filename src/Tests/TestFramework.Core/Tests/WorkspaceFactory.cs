@@ -16,22 +16,11 @@ namespace Roslynator.Tests
 
         public virtual string DefaultProjectName => "TestProject";
 
-        public virtual Project AddProject(Solution solution)
+        public virtual Project AddProject(Solution solution, CodeVerificationOptions options = null)
         {
             return solution
                 .AddProject(DefaultProjectName, DefaultProjectName, Language)
-                .WithMetadataReferences(ImmutableArray.Create(
-                    CorLibReference,
-                    CreateFromAssemblyName("System.Core.dll"),
-                    CreateFromAssemblyName("System.Linq.dll"),
-                    CreateFromAssemblyName("System.Linq.Expressions.dll"),
-                    CreateFromAssemblyName("System.Runtime.Serialization.Formatters.dll"),
-                    CreateFromAssemblyName("System.Runtime.dll"),
-                    CreateFromAssemblyName("System.Collections.dll"),
-                    CreateFromAssemblyName("System.Collections.Immutable.dll"),
-                    CreateFromAssemblyName("System.Text.RegularExpressions.dll"),
-                    CreateFromAssemblyName("Microsoft.CodeAnalysis.dll"),
-                    CreateFromAssemblyName("Microsoft.CodeAnalysis.CSharp.dll")));
+                .WithMetadataReferences(DefaultProjectReferences);
         }
 
         public Document AddDocument(Project project, string source, params string[] additionalSources)

@@ -212,20 +212,20 @@ namespace Roslynator.CSharp
             return node.RemoveNode(documentationComment, SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        public static TNode RemoveComments<TNode>(TNode node, CommentKinds kinds) where TNode : SyntaxNode
+        public static TNode RemoveComments<TNode>(TNode node, CommentFilter comments) where TNode : SyntaxNode
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
 
-            return RemoveComments(node, node.FullSpan, kinds);
+            return RemoveComments(node, node.FullSpan, comments);
         }
 
-        public static TNode RemoveComments<TNode>(TNode node, TextSpan span, CommentKinds kinds) where TNode : SyntaxNode
+        public static TNode RemoveComments<TNode>(TNode node, TextSpan span, CommentFilter comments) where TNode : SyntaxNode
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
 
-            var remover = new CommentRemover(node, kinds, span);
+            var remover = new CommentRemover(node, comments, span);
 
             return (TNode)remover.Visit(node);
         }
@@ -445,6 +445,45 @@ namespace Roslynator.CSharp
                         simpleName.GetLeadingTrivia(),
                         newName,
                         simpleName.GetTrailingTrivia()));
+            }
+        }
+
+        public static LiteralExpressionSyntax ReplaceStringLiteralWithCharacterLiteral(LiteralExpressionSyntax literalExpression)
+        {
+            return (LiteralExpressionSyntax)ParseExpression($"'{GetCharacterLiteralText()}'")
+                .WithTriviaFrom(literalExpression);
+
+            string GetCharacterLiteralText()
+            {
+                string s = literalExpression.Token.ValueText;
+
+                switch (s[0])
+                {
+                    case '\'':
+                        return @"\'";
+                    case '\"':
+                        return @"\""";
+                    case '\\':
+                        return @"\\";
+                    case '\0':
+                        return @"\0";
+                    case '\a':
+                        return @"\a";
+                    case '\b':
+                        return @"\b";
+                    case '\f':
+                        return @"\f";
+                    case '\n':
+                        return @"\n";
+                    case '\r':
+                        return @"\r";
+                    case '\t':
+                        return @"\t";
+                    case '\v':
+                        return @"\v";
+                    default:
+                        return s;
+                }
             }
         }
     }

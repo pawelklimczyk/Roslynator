@@ -45,6 +45,7 @@ namespace Roslynator.CSharp
         public const string VariableIsDeclaredButNeverUsed = "CS0168";
         public const string TypeOfConditionalExpressionCannotBeDetermined = "CS0173";
         public const string OutParameterMustBeAssignedToBeforeControlLeavesCurrentMethod = "CS0177";
+        public const string ReadOnlyFieldCannotBeAssignedTo = "CS0191";
         public const string ReadOnlyFieldCannotBePassedAsRefOrOutValue = "CS0192";
         public const string OnlyAssignmentCallIncrementDecrementAndNewObjectExpressionsCanBeUsedAsStatement = "CS0201";
         public const string PointersAndFixedSizeBuffersMayOnlyBeUsedInUnsafeContext = "CS0214";
@@ -116,6 +117,7 @@ namespace Roslynator.CSharp
         public const string SemicolonExpected = "CS1002";
         public const string SyntaxErrorCharExpected = "CS1003";
         public const string DuplicateModifier = "CS1004";
+        public const string TooManyCharactersInCharacterLiteral = "CS1012";
         public const string EmbeddedStatementCannotBeDeclarationOrLabeledStatement = "CS1023";
         public const string TypeExpected = "CS1031";
         public const string StaticClassesCannotContainProtectedMembers = "CS1057";
