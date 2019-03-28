@@ -40,7 +40,10 @@ namespace Roslynator.Diagnostics
 
         public IFormatProvider FormatProvider { get; }
 
-        public async Task<ImmutableArray<ProjectAnalysisResult>> AnalyzeSolutionAsync(Solution solution, CancellationToken cancellationToken = default)
+        public async Task<ImmutableArray<ProjectAnalysisResult>> AnalyzeSolutionAsync(
+            Solution solution,
+            Func<Project, bool> predicate,
+            CancellationToken cancellationToken = default)
         {
             foreach (string id in Options.IgnoredDiagnosticIds.OrderBy(f => f))
                 WriteLine($"Ignore diagnostic '{id}'", Verbosity.Diagnostic);
@@ -64,7 +67,7 @@ namespace Roslynator.Diagnostics
 
                 Project project = solution.GetProject(projectIds[i]);
 
-                if (Options.IsSupportedProject(project))
+                if (predicate == null || predicate(project))
                 {
                     WriteLine($"Analyze '{project.Name}' {$"{i + 1}/{projectIds.Length}"}", Verbosity.Minimal);
 
@@ -93,7 +96,7 @@ namespace Roslynator.Diagnostics
 
         public async Task<ProjectAnalysisResult> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken = default)
         {
-            ImmutableArray<DiagnosticAnalyzer> analyzers = CodeAnalysisUtilities.GetAnalyzers(
+            ImmutableArray<DiagnosticAnalyzer> analyzers = CodeAnalysisHelpers.GetAnalyzers(
                 project: project,
                 analyzerAssemblies: _analyzerAssemblies,
                 analyzerReferences: _analyzerReferences,
@@ -102,10 +105,12 @@ namespace Roslynator.Diagnostics
             if (!analyzers.Any())
             {
                 WriteLine($"  No analyzers found to analyze '{project.Name}'", ConsoleColor.DarkGray, Verbosity.Normal);
-                return default;
+
+                if (Options.IgnoreCompilerDiagnostics)
+                    return default;
             }
 
-            WriteUsedAnalyzers(analyzers, ConsoleColor.DarkGray, Verbosity.Diagnostic);
+            LogHelpers.WriteUsedAnalyzers(analyzers, ConsoleColor.DarkGray, Verbosity.Diagnostic);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -117,39 +122,43 @@ namespace Roslynator.Diagnostics
 
             compilerDiagnostics = FilterDiagnostics(compilerDiagnostics, cancellationToken).ToImmutableArray();
 
-            var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
-                options: default(AnalyzerOptions),
-                onAnalyzerException: default(Action<Exception, DiagnosticAnalyzer, Diagnostic>),
-                concurrentAnalysis: Options.ConcurrentAnalysis,
-                logAnalyzerExecutionTime: Options.LogAnalyzerExecutionTime,
-                reportSuppressedDiagnostics: Options.ReportSuppressedDiagnostics);
+            ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
 
-            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
-
-            ImmutableArray<Diagnostic> diagnostics = default;
             ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry = ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty;
 
-            if (Options.LogAnalyzerExecutionTime)
+            if (analyzers.Any())
             {
-                AnalysisResult analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
+                    options: default(AnalyzerOptions),
+                    onAnalyzerException: default(Action<Exception, DiagnosticAnalyzer, Diagnostic>),
+                    concurrentAnalysis: Options.ConcurrentAnalysis,
+                    logAnalyzerExecutionTime: Options.LogAnalyzerExecutionTime,
+                    reportSuppressedDiagnostics: Options.ReportSuppressedDiagnostics);
 
-                diagnostics = analysisResult.GetAllDiagnostics();
-                telemetry = analysisResult.AnalyzerTelemetryInfo;
-            }
-            else
-            {
-                diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
+
+                if (Options.LogAnalyzerExecutionTime)
+                {
+                    AnalysisResult analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+
+                    diagnostics = analysisResult.GetAllDiagnostics();
+                    telemetry = analysisResult.AnalyzerTelemetryInfo;
+                }
+                else
+                {
+                    diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
 
             string projectDirectoryPath = Path.GetDirectoryName(project.FilePath);
 
-            WriteDiagnostics(FilterDiagnostics(diagnostics.Where(f => f.IsAnalyzerExceptionDiagnostic()), cancellationToken).ToImmutableArray(), baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Diagnostic);
+            LogHelpers.WriteDiagnostics(FilterDiagnostics(diagnostics.Where(f => f.IsAnalyzerExceptionDiagnostic()), cancellationToken).ToImmutableArray(), baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Diagnostic);
 
             diagnostics = FilterDiagnostics(diagnostics.Where(f => !f.IsAnalyzerExceptionDiagnostic()), cancellationToken).ToImmutableArray();
 
-            WriteDiagnostics(compilerDiagnostics, baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Normal);
+            LogHelpers.WriteDiagnostics(compilerDiagnostics, baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Normal);
 
-            WriteDiagnostics(diagnostics, baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Normal);
+            LogHelpers.WriteDiagnostics(diagnostics, baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Normal);
 
             return new ProjectAnalysisResult(project.Id, analyzers, compilerDiagnostics, diagnostics, telemetry);
         }

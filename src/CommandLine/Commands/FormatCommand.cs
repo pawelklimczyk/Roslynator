@@ -20,7 +20,7 @@ namespace Roslynator.CommandLine
 {
     internal class FormatCommand : MSBuildWorkspaceCommand
     {
-        public FormatCommand(FormatCommandLineOptions options, string language) : base(language)
+        public FormatCommand(FormatCommandLineOptions options, in ProjectFilter projectFilter) : base(projectFilter)
         {
             Options = options;
         }
@@ -41,18 +41,18 @@ namespace Roslynator.CommandLine
                     ignoreCompilerErrors: true,
                     ignoreAnalyzerReferences: true,
                     supportedDiagnosticIds: supportedDiagnosticIds,
-                    projectNames: Options.Projects,
-                    ignoredProjectNames: Options.IgnoredProjects,
-                    language: Language,
                     batchSize: 1000,
                     format: true);
 
                 CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
+                var projectFilter = new ProjectFilter(Options.Projects, Options.IgnoredProjects, Language);
+
                 return await FixCommand.FixAsync(
                     projectOrSolution,
-                    FixCommand.RoslynatorAnalyzersAssemblies,
+                    RoslynatorAnalyzerAssemblies.AnalyzersAndCodeFixes,
                     codeFixerOptions,
+                    projectFilter,
                     culture,
                     cancellationToken);
             }
@@ -86,7 +86,7 @@ namespace Roslynator.CommandLine
 
             var changedDocuments = new ConcurrentBag<ImmutableArray<DocumentId>>();
 
-            Parallel.ForEach(FilterProjects(solution, Options), project =>
+            Parallel.ForEach(FilterProjects(solution), project =>
             {
                 WriteLine($"  Analyze '{project.Name}'", Verbosity.Minimal);
 
@@ -99,7 +99,7 @@ namespace Roslynator.CommandLine
                 if (formattedDocuments.Any())
                 {
                     changedDocuments.Add(formattedDocuments);
-                    WriteFormattedDocuments(formattedDocuments, project, solutionDirectory);
+                    LogHelpers.WriteFormattedDocuments(formattedDocuments, project, solutionDirectory);
                 }
 
                 WriteLine($"  Done analyzing '{project.Name}'", Verbosity.Normal);
@@ -146,7 +146,7 @@ namespace Roslynator.CommandLine
 
             ImmutableArray<DocumentId> formattedDocuments = await CodeFormatter.GetFormattedDocumentsAsync(project, newProject, syntaxFacts);
 
-            WriteFormattedDocuments(formattedDocuments, project, solutionDirectory);
+            LogHelpers.WriteFormattedDocuments(formattedDocuments, project, solutionDirectory);
 
             if (formattedDocuments.Length > 0)
             {

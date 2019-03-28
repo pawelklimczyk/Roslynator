@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -35,7 +34,9 @@ namespace Roslynator.CSharp.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeTypeOfLocalVariable))
+            Diagnostic diagnostic = context.Diagnostics[0];
+
+            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ChangeTypeOfLocalVariable))
                 return;
 
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -46,39 +47,26 @@ namespace Roslynator.CSharp.CodeFixes
             if (!(node is VariableDeclaratorSyntax variableDeclarator))
                 return;
 
-            foreach (Diagnostic diagnostic in context.Diagnostics)
+            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration))
+                return;
+
+            ExpressionSyntax value = variableDeclarator.Initializer?.Value;
+
+            if (value == null)
+                return;
+
+            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(value, context.CancellationToken);
+
+            if (symbolInfo.Symbol != null)
             {
-                switch (diagnostic.Id)
-                {
-                    case CompilerDiagnosticIdentifiers.CannotAssignMethodGroupToImplicitlyTypedVariable:
-                    case CompilerDiagnosticIdentifiers.NoOverloadMatchesDelegate:
-                    case CompilerDiagnosticIdentifiers.MethodHasWrongReturnType:
-                        {
-                            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration))
-                                break;
-
-                            ExpressionSyntax value = variableDeclarator.Initializer?.Value;
-
-                            if (value == null)
-                                break;
-
-                            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
-
-                            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(value, context.CancellationToken);
-
-                            if (symbolInfo.Symbol != null)
-                            {
-                                ComputeCodeFix(context, diagnostic, variableDeclarator, symbolInfo.Symbol, semanticModel);
-                            }
-                            else
-                            {
-                                foreach (ISymbol candidateSymbol in symbolInfo.CandidateSymbols)
-                                    ComputeCodeFix(context, diagnostic, variableDeclarator, candidateSymbol, semanticModel);
-                            }
-
-                            break;
-                        }
-                }
+                ComputeCodeFix(context, diagnostic, variableDeclarator, symbolInfo.Symbol, semanticModel);
+            }
+            else
+            {
+                foreach (ISymbol candidateSymbol in symbolInfo.CandidateSymbols)
+                    ComputeCodeFix(context, diagnostic, variableDeclarator, candidateSymbol, semanticModel);
             }
         }
 
@@ -101,10 +89,14 @@ namespace Roslynator.CSharp.CodeFixes
                     {
                         INamedTypeSymbol typeSymbol = ConstructActionOrFunc(returnType, parameters, semanticModel);
 
-                        CodeAction codeAction = CodeAction.Create(
-                            $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, variableDeclarator.SpanStart, SymbolDisplayFormats.Default)}'",
-                            cancellationToken => RefactorAsync(context.Document, (VariableDeclarationSyntax)variableDeclarator.Parent, typeSymbol, semanticModel, cancellationToken),
-                            GetEquivalenceKey(diagnostic, SymbolDisplay.ToDisplayString(typeSymbol, SymbolDisplayFormats.Default)));
+                        var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
+
+                        CodeAction codeAction = CodeActionFactory.ChangeType(
+                            context.Document,
+                            variableDeclaration.Type,
+                            typeSymbol,
+                            semanticModel,
+                            equivalenceKey: GetEquivalenceKey(diagnostic, SymbolDisplay.ToDisplayString(typeSymbol)));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
                     }
@@ -163,20 +155,6 @@ namespace Roslynator.CSharp.CodeFixes
 
                 return funcSymbol.Construct(typeArguments);
             }
-        }
-
-        private static Task<Document> RefactorAsync(
-            Document document,
-            VariableDeclarationSyntax variableDeclaration,
-            INamedTypeSymbol typeSymbol,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            TypeSyntax type = typeSymbol.ToMinimalTypeSyntax(semanticModel, variableDeclaration.SpanStart);
-
-            VariableDeclarationSyntax newNode = variableDeclaration.WithType(type.WithTriviaFrom(variableDeclaration.Type));
-
-            return document.ReplaceNodeAsync(variableDeclaration, newNode, cancellationToken);
         }
     }
 }

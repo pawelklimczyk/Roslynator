@@ -26,7 +26,13 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeIsExpression, SyntaxKind.IsExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (((CSharpCompilation)startContext.Compilation).LanguageVersion < LanguageVersion.CSharp7)
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeIsExpression, SyntaxKind.IsExpression);
+            });
         }
 
         public static void AnalyzeIsExpression(SyntaxNodeAnalysisContext context)
@@ -89,7 +95,7 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
                         if (!IsFixable(right, identifierName, semanticModel, cancellationToken))
                             return;
 
-                        context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatchingInsteadOfIsAndCast, logicalAnd);
+                        DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePatternMatchingInsteadOfIsAndCast, logicalAnd);
                         break;
                     }
                 case SyntaxKind.IfStatement:
@@ -113,7 +119,7 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
                         if (!IsFixable(statement, identifierName, semanticModel, cancellationToken))
                             return;
 
-                        context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatchingInsteadOfIsAndCast, ifStatement.Condition);
+                        DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePatternMatchingInsteadOfIsAndCast, ifStatement.Condition);
                         break;
                     }
             }

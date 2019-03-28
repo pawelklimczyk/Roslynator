@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Roslynator.CodeFixes;
 using Roslynator.VisualStudio;
 
@@ -17,7 +18,7 @@ namespace Roslynator.Configuration
 
         public Settings VisualStudioSettings { get; } = new Settings();
 
-        public ConfigFileSettings ConfigFileSettings { get; set; }
+        public Settings ConfigFileSettings { get; set; }
 
         public void UpdateVisualStudioSettings(GeneralOptionsPage generalOptionsPage)
         {
@@ -42,24 +43,74 @@ namespace Roslynator.Configuration
                 VisualStudioSettings.CodeFixes[id] = false;
         }
 
-        internal void ApplyTo(RefactoringSettings settings)
+        public void UpdateVisualStudioSettings(GlobalSuppressionsOptionsPage globalSuppressionsOptionsPage)
         {
-            settings.Reset();
+            VisualStudioSettings.GlobalSuppressions.Clear();
 
-            VisualStudioSettings.ApplyTo(settings);
-
-            if (UseConfigFile)
-                ConfigFileSettings?.ApplyTo(settings);
+            foreach (string id in globalSuppressionsOptionsPage.GetDisabledItems())
+                VisualStudioSettings.GlobalSuppressions.Add(id);
         }
 
-        public void ApplyTo(CodeFixSettings settings)
+        public void ApplyTo(AnalyzerSettings analyzerSettings)
         {
-            settings.Reset();
+            analyzerSettings.Reset();
 
-            VisualStudioSettings.ApplyTo(settings);
+            Apply(VisualStudioSettings);
 
             if (UseConfigFile)
-                ConfigFileSettings?.ApplyTo(settings);
+                Apply(ConfigFileSettings);
+
+            void Apply(Settings settings)
+            {
+                if (settings != null)
+                {
+                    foreach (string id in settings.GlobalSuppressions)
+                        analyzerSettings.Disable(id);
+                }
+            }
+        }
+
+        internal void ApplyTo(RefactoringSettings refactoringSettings)
+        {
+            refactoringSettings.Reset();
+
+            Apply(VisualStudioSettings);
+
+            if (UseConfigFile)
+                Apply(ConfigFileSettings);
+
+            void Apply(Settings settings)
+            {
+                if (settings != null)
+                {
+                    refactoringSettings.PrefixFieldIdentifierWithUnderscore = settings.PrefixFieldIdentifierWithUnderscore;
+                    refactoringSettings.Set(settings.Refactorings);
+                }
+            }
+        }
+
+        public void ApplyTo(CodeFixSettings codeFixSettings)
+        {
+            codeFixSettings.Reset();
+
+            Apply(VisualStudioSettings);
+
+            if (UseConfigFile)
+                Apply(ConfigFileSettings);
+
+            void Apply(Settings settings)
+            {
+                if (settings != null)
+                {
+                    foreach (KeyValuePair<string, bool> kvp in settings.CodeFixes)
+                    {
+                        if (CodeFixIdentifier.TryParse(kvp.Key, out CodeFixIdentifier codeFixIdentifier))
+                        {
+                            codeFixSettings.Set(codeFixIdentifier, kvp.Value);
+                        }
+                    }
+                }
+            }
         }
     }
 }

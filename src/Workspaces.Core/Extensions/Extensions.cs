@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,214 @@ namespace Roslynator
 {
     internal static class Extensions
     {
+        public static SymbolGroupFilter ToSymbolGroupFilter(this TypeKind typeKind)
+        {
+            switch (typeKind)
+            {
+                case TypeKind.Class:
+                    return SymbolGroupFilter.Class;
+                case TypeKind.Delegate:
+                    return SymbolGroupFilter.Delegate;
+                case TypeKind.Enum:
+                    return SymbolGroupFilter.Enum;
+                case TypeKind.Interface:
+                    return SymbolGroupFilter.Interface;
+                case TypeKind.Struct:
+                    return SymbolGroupFilter.Struct;
+                default:
+                    throw new ArgumentException("", nameof(typeKind));
+            }
+        }
+
+        public static MemberDeclarationKind GetMemberDeclarationKind(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                    {
+                        return (((IEventSymbol)symbol).ExplicitInterfaceImplementations.Any())
+                            ? MemberDeclarationKind.ExplicitlyImplementedEvent
+                            : MemberDeclarationKind.Event;
+                    }
+                case SymbolKind.Field:
+                    {
+                        var fieldSymbol = (IFieldSymbol)symbol;
+
+                        return (fieldSymbol.IsConst)
+                            ? MemberDeclarationKind.Const
+                            : MemberDeclarationKind.Field;
+                    }
+                case SymbolKind.Method:
+                    {
+                        var methodSymbol = (IMethodSymbol)symbol;
+
+                        switch (methodSymbol.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                                return MemberDeclarationKind.Method;
+                            case MethodKind.ExplicitInterfaceImplementation:
+                                return MemberDeclarationKind.ExplicitlyImplementedMethod;
+                            case MethodKind.Constructor:
+                                return MemberDeclarationKind.Constructor;
+                            case MethodKind.Destructor:
+                                return MemberDeclarationKind.Destructor;
+                            case MethodKind.StaticConstructor:
+                                return MemberDeclarationKind.StaticConstructor;
+                            case MethodKind.Conversion:
+                                return MemberDeclarationKind.ConversionOperator;
+                            case MethodKind.UserDefinedOperator:
+                                return MemberDeclarationKind.Operator;
+                        }
+
+                        break;
+                    }
+                case SymbolKind.Property:
+                    {
+                        var propertySymbol = (IPropertySymbol)symbol;
+
+                        bool explicitlyImplemented = propertySymbol.ExplicitInterfaceImplementations.Any();
+
+                        if (propertySymbol.IsIndexer)
+                        {
+                            return (explicitlyImplemented)
+                                ? MemberDeclarationKind.ExplicitlyImplementedIndexer
+                                : MemberDeclarationKind.Indexer;
+                        }
+                        else
+                        {
+                            return (explicitlyImplemented)
+                                ? MemberDeclarationKind.ExplicitlyImplementedProperty
+                                : MemberDeclarationKind.Property;
+                        }
+                    }
+            }
+
+            Debug.Fail(symbol.ToDisplayString(SymbolDisplayFormats.Test));
+
+            return MemberDeclarationKind.None;
+        }
+
+        public static SymbolGroup GetSymbolGroup(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    {
+                        var namedType = (INamedTypeSymbol)symbol;
+
+                        switch (namedType.TypeKind)
+                        {
+                            case TypeKind.Class:
+                                return SymbolGroup.Class;
+                            case TypeKind.Delegate:
+                                return SymbolGroup.Delegate;
+                            case TypeKind.Enum:
+                                return SymbolGroup.Enum;
+                            case TypeKind.Interface:
+                                return SymbolGroup.Interface;
+                            case TypeKind.Struct:
+                                return SymbolGroup.Struct;
+                        }
+
+                        Debug.Fail(namedType.TypeKind.ToString());
+                        return SymbolGroup.None;
+                    }
+                case SymbolKind.Event:
+                    {
+                        return SymbolGroup.Event;
+                    }
+                case SymbolKind.Field:
+                    {
+                        return (((IFieldSymbol)symbol).IsConst)
+                            ? SymbolGroup.Const
+                            : SymbolGroup.Field;
+                    }
+                case SymbolKind.Method:
+                    {
+                        return SymbolGroup.Method;
+                    }
+                case SymbolKind.Property:
+                    {
+                        return (((IPropertySymbol)symbol).IsIndexer)
+                            ? SymbolGroup.Indexer
+                            : SymbolGroup.Property;
+                    }
+            }
+
+            Debug.Fail(symbol.Kind.ToString());
+            return SymbolGroup.None;
+        }
+
+        public static string GetText(this SymbolGroup symbolGroup)
+        {
+            switch (symbolGroup)
+            {
+                case SymbolGroup.Namespace:
+                    return "namespace";
+                case SymbolGroup.Class:
+                    return "class";
+                case SymbolGroup.Delegate:
+                    return "delegate";
+                case SymbolGroup.Enum:
+                    return "enum";
+                case SymbolGroup.Interface:
+                    return "interface";
+                case SymbolGroup.Struct:
+                    return "struct";
+                case SymbolGroup.Event:
+                    return "event";
+                case SymbolGroup.Field:
+                    return "field";
+                case SymbolGroup.Const:
+                    return "const";
+                case SymbolGroup.Method:
+                    return "method";
+                case SymbolGroup.Property:
+                    return "property";
+                case SymbolGroup.Indexer:
+                    return "indexer";
+            }
+
+            Debug.Fail(symbolGroup.ToString());
+
+            return "";
+        }
+
+        public static string GetPluralText(this SymbolGroup symbolGroup)
+        {
+            switch (symbolGroup)
+            {
+                case SymbolGroup.Namespace:
+                    return "namespaces";
+                case SymbolGroup.Class:
+                    return "classes";
+                case SymbolGroup.Delegate:
+                    return "delegates";
+                case SymbolGroup.Enum:
+                    return "enums";
+                case SymbolGroup.Interface:
+                    return "interfaces";
+                case SymbolGroup.Struct:
+                    return "structs";
+                case SymbolGroup.Event:
+                    return "events";
+                case SymbolGroup.Field:
+                    return "fields";
+                case SymbolGroup.Const:
+                    return "consts";
+                case SymbolGroup.Method:
+                    return "methods";
+                case SymbolGroup.Property:
+                    return "properties";
+                case SymbolGroup.Indexer:
+                    return "indexers";
+            }
+
+            Debug.Fail(symbolGroup.ToString());
+
+            return "";
+        }
+
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
             if (dictionary.TryGetValue(key, out TValue value))
@@ -46,21 +255,6 @@ namespace Roslynator
             return compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken);
         }
 
-        public static bool IsAnalyzerExceptionDiagnostic(this Diagnostic diagnostic)
-        {
-            if (diagnostic.Id == "AD0001"
-                || diagnostic.Id == "AD0002")
-            {
-                foreach (string tag in diagnostic.Descriptor.CustomTags)
-                {
-                    if (tag == WellKnownDiagnosticTags.AnalyzerException)
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         public static void Add(this AnalyzerTelemetryInfo telemetryInfo, AnalyzerTelemetryInfo telemetryInfoToAdd)
         {
             telemetryInfo.CodeBlockActionsCount += telemetryInfoToAdd.CodeBlockActionsCount;
@@ -80,23 +274,6 @@ namespace Roslynator
             telemetryInfo.SyntaxTreeActionsCount += telemetryInfoToAdd.SyntaxTreeActionsCount;
         }
 
-        public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-        {
-            switch (diagnosticSeverity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-                default:
-                    throw new ArgumentException("", nameof(diagnosticSeverity));
-            }
-        }
-
         public static ConsoleColor GetColor(this DiagnosticSeverity diagnosticSeverity)
         {
             switch (diagnosticSeverity)
@@ -111,23 +288,6 @@ namespace Roslynator
                     return ConsoleColor.Red;
                 default:
                     throw new InvalidOperationException($"Unknown diagnostic severity '{diagnosticSeverity}'.");
-            }
-        }
-
-        public static DiagnosticSeverity ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
-        {
-            switch (reportDiagnostic)
-            {
-                case ReportDiagnostic.Error:
-                    return DiagnosticSeverity.Error;
-                case ReportDiagnostic.Warn:
-                    return DiagnosticSeverity.Warning;
-                case ReportDiagnostic.Info:
-                    return DiagnosticSeverity.Info;
-                case ReportDiagnostic.Hidden:
-                    return DiagnosticSeverity.Hidden;
-                default:
-                    throw new ArgumentException("", nameof(reportDiagnostic));
             }
         }
 

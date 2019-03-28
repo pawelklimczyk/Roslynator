@@ -12,14 +12,12 @@ namespace Roslynator.CodeGeneration.CSharp
 {
     public static class RefactoringsOptionsPageGenerator
     {
-        public static CompilationUnitSyntax Generate(IEnumerable<RefactoringDescriptor> refactorings, IComparer<string> comparer)
+        public static CompilationUnitSyntax Generate(IEnumerable<RefactoringMetadata> refactorings, IComparer<string> comparer)
         {
             return CompilationUnit(
                 UsingDirectives(
                     "System.Collections.Generic",
-                    "System.ComponentModel",
-                    "Roslynator.CSharp.Refactorings",
-                    "Roslynator.VisualStudio.TypeConverters"),
+                    "Roslynator.CSharp.Refactorings"),
                 NamespaceDeclaration(
                     "Roslynator.VisualStudio",
                     ClassDeclaration(
@@ -28,7 +26,7 @@ namespace Roslynator.CodeGeneration.CSharp
                         CreateMembers(refactorings, comparer).ToSyntaxList())));
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<RefactoringDescriptor> refactorings, IComparer<string> comparer)
+        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<RefactoringMetadata> refactorings, IComparer<string> comparer)
         {
             yield return PropertyDeclaration(
                 Modifiers.Protected_Override(),
@@ -61,7 +59,7 @@ namespace Roslynator.CodeGeneration.CSharp
                     .Select(refactoring =>
                     {
                         return ExpressionStatement(
-                            ParseExpression($"settings.DisableRefactoring(RefactoringIdentifiers.{refactoring.Identifier})"));
+                            ParseExpression($"settings.Disable(RefactoringIdentifiers.{refactoring.Identifier})"));
                     })));
 
             yield return MethodDeclaration(

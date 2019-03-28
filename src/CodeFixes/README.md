@@ -27,6 +27,7 @@
 | [CS0126](../../docs/cs/CS0126.md) | An object of a type convertible to 'type' is required\. |
 | [CS0127](../../docs/cs/CS0127.md) | Since 'function' returns void, a return keyword must not be followed by an object expression\. |
 | [CS0128](../../docs/cs/CS0128.md) | A local variable named 'variable' is already defined in this scope\. |
+| [CS0131](../../docs/cs/CS0131.md) | The left\-hand side of an assignment must be a variable, property or indexer\. |
 | [CS0132](../../docs/cs/CS0132.md) | 'constructor': a static constructor must be parameterless\. |
 | [CS0133](../../docs/cs/CS0133.md) | The expression being assigned to 'variable' must be constant\. |
 | [CS0136](../../docs/cs/CS0136.md) | A local variable named 'var' cannot be declared in this scope because it would give a different meaning to 'var', which is already used in a 'parent or current/child' scope to denote something else\. |
@@ -40,6 +41,7 @@
 | [CS0168](../../docs/cs/CS0168.md) | The variable 'var' is declared but never used\. |
 | [CS0173](../../docs/cs/CS0173.md) | Type of conditional expression cannot be determined because there is no implicit conversion between 'class1' and 'class2'\. |
 | [CS0177](../../docs/cs/CS0177.md) | The out parameter 'parameter' must be assigned to before control leaves the current method\. |
+| [CS0191](../../docs/cs/CS0191.md) | A readonly field cannot be assigned to \(except in a constructor or a variable initializer\)\. |
 | [CS0192](../../docs/cs/CS0192.md) | Readonly field 'name' cannot be used as ref or out value \(except in a constructor\)\. |
 | [CS0201](../../docs/cs/CS0201.md) | Only assignment, call, increment, decrement, and new object expressions can be used as a statement\. |
 | [CS0214](../../docs/cs/CS0214.md) | Pointers and fixed size buffers may only be used in an unsafe context\. |
@@ -111,6 +113,7 @@
 | [CS1002](../../docs/cs/CS1002.md) | ; expected\. |
 | [CS1003](../../docs/cs/CS1003.md) | Syntax error, 'char' expected\. |
 | [CS1004](../../docs/cs/CS1004.md) | Duplicate 'modifier' modifier\. |
+| [CS1012](../../docs/cs/CS1012.md) | Too many characters in character literal\. |
 | [CS1023](../../docs/cs/CS1023.md) | Embedded statement cannot be a declaration or labeled statement\. |
 | [CS1031](../../docs/cs/CS1031.md) | Type expected\. |
 | [CS1057](../../docs/cs/CS1057.md) | 'member': static classes cannot contain protected members\. |
@@ -146,6 +149,18 @@
 | [CS1988](../../docs/cs/CS1988.md) | Async methods cannot have ref or out parameters\. |
 | [CS1994](../../docs/cs/CS1994.md) | The 'async' modifier can only be used in methods that have a body\. |
 | [CS1997](../../docs/cs/CS1997.md) | Since 'RemoveReturnKeywordOrReturnExpression\.FooAsync\(\)' is an async method that returns 'Task', a return keyword must not be followed by an object expression\. Did you intend to return 'Task\<T>>'? |
+| [CS3000](../../docs/cs/CS3000.md) | Methods with variable arguments are not CLS\-compliant\. |
+| [CS3001](../../docs/cs/CS3001.md) | Argument type 'type' is not CLS\-compliant\. |
+| [CS3002](../../docs/cs/CS3002.md) | Return type of 'method' is not CLS\-compliant\. |
+| [CS3003](../../docs/cs/CS3003.md) | Type of 'variable' is not CLS\-compliant\. |
+| [CS3005](../../docs/cs/CS3005.md) | Identifier 'identifier' differing only in case is not CLS\-compliant\. |
+| [CS3006](../../docs/cs/CS3006.md) | Overloaded method 'method' differing only in ref or out, or in array rank, is not CLS\-compliant\. |
+| [CS3007](../../docs/cs/CS3007.md) | Overloaded method 'method' differing only by unnamed array types is not CLS\-compliant\. |
+| [CS3008](../../docs/cs/CS3008.md) | Identifier 'identifier' is not CLS\-compliant\. |
+| [CS3009](../../docs/cs/CS3009.md) | Base type 'type' is not CLS\-compliant\. |
+| [CS3016](../../docs/cs/CS3016.md) | Arrays as attribute arguments is not CLS\-compliant\. |
+| [CS3024](../../docs/cs/CS3024.md) | Constraint type 'type' is not CLS\-compliant\. |
+| [CS3027](../../docs/cs/CS3027.md) | 'type\_1' is not CLS\-compliant because base interface 'type\_2' is not CLS\-compliant\. |
 | [CS8050](../../docs/cs/CS8050.md) | Only auto\-implemented properties can have initializers\. |
 | [CS8070](../../docs/cs/CS8070.md) | Control cannot fall out of switch from final case label \('default'\)\. |
 | [CS8112](../../docs/cs/CS8112.md) | 'function' is a local function and must therefore always have a body\. |

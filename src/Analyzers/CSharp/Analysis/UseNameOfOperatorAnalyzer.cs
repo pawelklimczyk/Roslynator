@@ -38,6 +38,9 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseNameOfOperator))
                     return;
 
+                if (((CSharpCompilation)startContext.Compilation).LanguageVersion < LanguageVersion.CSharp6)
+                    return;
+
                 startContext.RegisterSyntaxNodeAction(AnalyzeArgument, SyntaxKind.Argument);
             });
         }
@@ -62,7 +65,7 @@ namespace Roslynator.CSharp.Analysis
             if (containingType.HasAttribute(MetadataNames.System_FlagsAttribute))
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.UseNameOfOperator, invocationInfo.InvocationExpression);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseNameOfOperator, invocationInfo.InvocationExpression);
         }
 
         public static void AnalyzeArgument(SyntaxNodeAnalysisContext context)
@@ -190,7 +193,7 @@ namespace Roslynator.CSharp.Analysis
             LiteralExpressionSyntax literalExpression,
             string identifier)
         {
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(context,
                 DiagnosticDescriptors.UseNameOfOperator,
                 literalExpression.GetLocation(),
                 ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("Identifier", identifier) }));
@@ -202,11 +205,11 @@ namespace Roslynator.CSharp.Analysis
                 SyntaxTree syntaxTree = literalExpression.SyntaxTree;
                 TextSpan span = literalExpression.Span;
 
-                context.ReportDiagnostic(
+                DiagnosticHelpers.ReportDiagnostic(context,
                     DiagnosticDescriptors.UseNameOfOperatorFadeOut,
                     Location.Create(syntaxTree, new TextSpan(span.Start, (text[0] == '@') ? 2 : 1)));
 
-                context.ReportDiagnostic(
+                DiagnosticHelpers.ReportDiagnostic(context,
                     DiagnosticDescriptors.UseNameOfOperatorFadeOut,
                     Location.Create(syntaxTree, new TextSpan(span.End - 1, 1)));
             }

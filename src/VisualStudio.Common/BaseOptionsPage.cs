@@ -11,14 +11,7 @@ namespace Roslynator.VisualStudio
 {
     public abstract class BaseOptionsPage : UIElementDialogPage
     {
-        private bool _isActive;
-
-        private readonly BaseOptionsPageControl _control = new BaseOptionsPageControl();
-
-        protected override UIElement Child
-        {
-            get { return _control; }
-        }
+        protected override UIElement Child => Control;
 
         [Browsable(false)]
         public string LastMaxId { get; set; }
@@ -29,7 +22,20 @@ namespace Roslynator.VisualStudio
 
         protected HashSet<string> DisabledItems { get; } = new HashSet<string>();
 
-        protected abstract void Fill(ICollection<BaseModel> codeFixes);
+        internal BaseOptionsPageControl Control { get; } = new BaseOptionsPageControl();
+
+        public bool IsLoaded { get; private set; }
+
+        protected abstract void Fill(ICollection<BaseModel> items);
+
+        public void Load()
+        {
+            if (!IsLoaded)
+            {
+                Fill(Control.Items);
+                IsLoaded = true;
+            }
+        }
 
         internal IEnumerable<string> GetDisabledItems()
         {
@@ -74,27 +80,28 @@ namespace Roslynator.VisualStudio
         {
             base.OnActivate(e);
 
-            if (!_isActive)
-            {
-                Fill(_control.Items);
-                _isActive = true;
-            }
+            Load();
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            _isActive = false;
+            IsLoaded = false;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
-                foreach (BaseModel item in _control.Items)
-                    SetIsEnabled(item.Id, item.Enabled);
+                OnApply();
             }
 
             base.OnApply(e);
+        }
+
+        protected virtual void OnApply()
+        {
+            foreach (BaseModel model in Control.Items)
+                SetIsEnabled(model.Id, model.Enabled);
         }
 
         protected void SetIsEnabled(string id, bool isEnabled)

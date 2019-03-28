@@ -62,7 +62,7 @@ namespace Roslynator.CSharp.Analysis
             if (!namedTypeSymbol.IsNullableType())
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.SimplifyNullableOfT, genericName);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.SimplifyNullableOfT, genericName);
         }
 
         public static void AnalyzeQualifiedName(SyntaxNodeAnalysisContext context)
@@ -71,6 +71,20 @@ namespace Roslynator.CSharp.Analysis
 
             if (qualifiedName.IsParentKind(SyntaxKind.UsingDirective, SyntaxKind.QualifiedCref))
                 return;
+
+            if (!qualifiedName.Right.IsKind(SyntaxKind.GenericName))
+                return;
+
+            var genericName = (GenericNameSyntax)qualifiedName.Right;
+
+            if (genericName
+                .TypeArgumentList?
+                .Arguments
+                .SingleOrDefault(shouldThrow: false)?
+                .IsKind(SyntaxKind.OmittedTypeArgument) != false)
+            {
+                return;
+            }
 
             if (IsWithinNameOfExpression(qualifiedName, context.SemanticModel, context.CancellationToken))
                 return;
@@ -84,7 +98,7 @@ namespace Roslynator.CSharp.Analysis
             if (!typeSymbol.IsNullableType())
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.SimplifyNullableOfT, qualifiedName);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.SimplifyNullableOfT, qualifiedName);
         }
 
         private static bool IsWithinNameOfExpression(

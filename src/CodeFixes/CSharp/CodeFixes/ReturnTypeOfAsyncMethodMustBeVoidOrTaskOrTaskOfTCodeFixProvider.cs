@@ -23,15 +23,15 @@ namespace Roslynator.CSharp.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeMethodReturnType))
+            Diagnostic diagnostic = context.Diagnostics[0];
+
+            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ChangeMethodReturnType))
                 return;
 
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.LocalFunctionStatement)))
                 return;
-
-            Diagnostic diagnostic = context.Diagnostics[0];
 
             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
@@ -52,14 +52,14 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 INamedTypeSymbol taskSymbol = semanticModel.GetTypeByMetadataName("System.Threading.Tasks.Task");
 
-                CodeFixRegistrator.ChangeReturnType(context, diagnostic, node, taskSymbol, semanticModel, "Task");
+                CodeFixRegistrator.ChangeTypeOrReturnType(context, diagnostic, node, taskSymbol, semanticModel, "Task");
             }
 
             if (containsReturnAwait)
             {
                 typeSymbol = semanticModel.GetTypeByMetadataName("System.Threading.Tasks.Task`1").Construct(typeSymbol);
 
-                CodeFixRegistrator.ChangeReturnType(context, diagnostic, node, typeSymbol, semanticModel, "TaskOfT");
+                CodeFixRegistrator.ChangeTypeOrReturnType(context, diagnostic, node, typeSymbol, semanticModel, "TaskOfT");
             }
         }
 

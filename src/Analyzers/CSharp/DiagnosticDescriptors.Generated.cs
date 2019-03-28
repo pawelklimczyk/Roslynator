@@ -2528,7 +2528,7 @@ namespace Roslynator.CSharp
             messageFormat:      "Make parameter ref read-only.", 
             category:           DiagnosticCategories.Performance, 
             defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: true, 
+            isEnabledByDefault: false, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.MakeParameterRefReadOnly}", 
             customTags:         Array.Empty<string>());
@@ -2543,6 +2543,30 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.OrderElementsInDocumentationComment}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1233</summary>
+        public static readonly DiagnosticDescriptor UseShortCircuitingOperator = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseShortCircuitingOperator, 
+            title:              "Use short-circuiting operator.", 
+            messageFormat:      "Use short-circuiting operator.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseShortCircuitingOperator}", 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS1234</summary>
+        public static readonly DiagnosticDescriptor DuplicateEnumValue = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.DuplicateEnumValue, 
+            title:              "Duplicate enum value.", 
+            messageFormat:      "Duplicate enum value.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1235Dev</summary>

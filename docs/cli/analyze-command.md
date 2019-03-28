@@ -25,7 +25,6 @@ roslynator analyze <PROJECT|SOLUTION>
 [--report-suppressed-diagnostics]
 [--severity-level]
 [--supported-diagnostics]
-[--use-roslynator-analyzers]
 [-v|--verbosity]
 ```
 
@@ -74,9 +73,7 @@ Defines project language.
 
 **`--msbuild-path`** <MSBUILD_PATH>
 
-Defines a path to MSBuild.
-
-*Note: First found instance of MSBuild will be used if the path to MSBuild is not specified.*
+Defines a path to MSBuild. This option must be specified if there are multiple locations of MSBuild (usually multiple installations of Visual Studio).
 
 **`--output`** <OUTPUT_FILE>
 
@@ -105,10 +102,6 @@ Defines minimally required severity for a diagnostic. Default value is `info`.
 **`--supported-diagnostics`** <DIAGNOSTIC_ID>
 
 Defines diagnostics that should be reported.
-
-**`--use-roslynator-analyzers`**
-
-Indicates whether code analysis should use analyzers from nuget package [Roslynator.Analyzers](https://nuget.org/packages/Roslynator.Analyzers).
 
 **`-v|--verbosity`** `{q[uiet]|m[inimal]|n[ormal]|d[etailed]|diag[nostic]}`
 

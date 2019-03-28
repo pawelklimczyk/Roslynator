@@ -8,15 +8,15 @@ namespace Roslynator.CSharp.Refactorings.Documentation
 {
     internal class AddParamElementToDocumentationCommentRefactoring : DocumentationCommentRefactoring<ParameterSyntax>
     {
-        public override XmlElementKind ElementKind
+        public override XmlTag Tag
         {
-            get { return XmlElementKind.Param; }
+            get { return XmlTag.Param; }
         }
 
-        public override bool ShouldBeBefore(XmlElementKind elementKind)
+        public override bool ShouldBeBefore(XmlTag tag)
         {
-            return elementKind == XmlElementKind.TypeParam
-                || elementKind == XmlElementKind.Summary;
+            return tag == XmlTag.TypeParam
+                || tag == XmlTag.Summary;
         }
 
         public override string GetName(ParameterSyntax node)
@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Refactorings.Documentation
 
         protected override SeparatedSyntaxList<ParameterSyntax> GetSyntaxList(SyntaxNode node)
         {
-            return ParameterListInfo.Create(node).Parameters;
+            return CSharpUtility.GetParameters(node);
         }
     }
 }

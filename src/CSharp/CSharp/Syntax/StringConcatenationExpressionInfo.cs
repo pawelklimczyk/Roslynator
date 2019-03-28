@@ -97,25 +97,9 @@ namespace Roslynator.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns expressions of this binary expression, including expressions of nested binary expressions of the same kind as parent binary expression.
+        /// Returns <see cref="ExpressionChain"/> that enables to enumerate expressions of a string concatenation.
         /// </summary>
-        /// <param name="leftToRight">If true expressions are enumerated as they are displayed in the source code.</param>
         /// <returns></returns>
-        [Obsolete("This method is obsolete. Use method 'AsChain' instead.")]
-        public IEnumerable<ExpressionSyntax> Expressions(bool leftToRight = false)
-        {
-            ThrowInvalidOperationIfNotInitialized();
-
-            if (leftToRight)
-            {
-                return _chain;
-            }
-            else
-            {
-                return _chain.Reverse();
-            }
-        }
-
         public ExpressionChain AsChain()
         {
             return _chain;

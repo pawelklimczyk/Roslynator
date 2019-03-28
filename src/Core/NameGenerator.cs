@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslynator.Helpers;
@@ -13,6 +14,7 @@ namespace Roslynator
     /// <summary>
     /// Provides methods to obtain an unique identifier.
     /// </summary>
+    [SuppressMessage("Usage", "RCS1223:Mark publicly visible type with DebuggerDisplay attribute.", Justification = "<Pending>")]
     public abstract class NameGenerator
     {
         internal static StringComparer OrdinalComparer { get; } = StringComparer.Ordinal;
@@ -46,45 +48,44 @@ namespace Roslynator
         public abstract string EnsureUniqueName(string baseName, ImmutableArray<ISymbol> symbols, bool isCaseSensitive = true);
 
         /// <summary>
-        /// Returns a member name that will be unique at the specified position.
+        /// Returns a name that will be unique at the specified position.
         /// </summary>
         /// <param name="baseName"></param>
         /// <param name="semanticModel"></param>
         /// <param name="position"></param>
         /// <param name="isCaseSensitive"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public string EnsureUniqueMemberName(
+        public string EnsureUniqueName(
             string baseName,
             SemanticModel semanticModel,
             int position,
-            bool isCaseSensitive = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool isCaseSensitive = true)
         {
             if (semanticModel == null)
                 throw new ArgumentNullException(nameof(semanticModel));
 
-            INamedTypeSymbol containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-
-            if (containingType != null)
-            {
-                return EnsureUniqueMemberName(baseName, containingType, isCaseSensitive);
-            }
-            else
-            {
-                return EnsureUniqueName(baseName, semanticModel.LookupSymbols(position), isCaseSensitive);
-            }
+            return EnsureUniqueName(baseName, semanticModel.LookupSymbols(position), isCaseSensitive);
         }
 
-        public string EnsureUniqueMemberName(
+        /// <summary>
+        /// Returns unique enum member name for a specified enum type.
+        /// </summary>
+        /// <param name="baseName"></param>
+        /// <param name="enumType"></param>
+        /// <param name="isCaseSensitive"></param>
+        /// <returns></returns>
+        public string EnsureUniqueEnumMemberName(
             string baseName,
-            INamedTypeSymbol typeSymbol,
+            INamedTypeSymbol enumType,
             bool isCaseSensitive = true)
         {
-            if (typeSymbol == null)
-                throw new ArgumentNullException(nameof(typeSymbol));
+            if (enumType == null)
+                throw new ArgumentNullException(nameof(enumType));
 
-            return EnsureUniqueName(baseName, typeSymbol.GetMembers(), isCaseSensitive);
+            if (enumType.TypeKind != TypeKind.Enum)
+                throw new ArgumentException("Symbol must be an enumeration.", nameof(enumType));
+
+            return EnsureUniqueName(baseName, enumType.GetMembers(), isCaseSensitive);
         }
 
         /// <summary>
@@ -140,26 +141,6 @@ namespace Roslynator
                 .AddRange(semanticModel.LookupSymbols(containingNode.SpanStart));
 
             return EnsureUniqueName(baseName, symbols, isCaseSensitive);
-        }
-
-        internal static bool IsUniqueMemberName(
-            string name,
-            SemanticModel semanticModel,
-            int position,
-            bool isCaseSensitive = true,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (semanticModel == null)
-                throw new ArgumentNullException(nameof(semanticModel));
-
-            INamedTypeSymbol containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-
-            Debug.Assert(containingType != null);
-
-            if (containingType == null)
-                return true;
-
-            return IsUniqueName(name, containingType.GetMembers(), isCaseSensitive);
         }
 
         /// <summary>

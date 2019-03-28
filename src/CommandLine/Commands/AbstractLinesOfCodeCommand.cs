@@ -15,7 +15,7 @@ namespace Roslynator.CommandLine
 {
     internal abstract class AbstractLinesOfCodeCommand : MSBuildWorkspaceCommand
     {
-        protected AbstractLinesOfCodeCommand(string language) : base(language)
+        protected AbstractLinesOfCodeCommand(in ProjectFilter projectFilter) : base(projectFilter)
         {
         }
 
@@ -39,28 +39,6 @@ namespace Roslynator.CommandLine
             });
 
             return codeMetrics.ToImmutableDictionary(f => f.projectId, f => f.codeMetrics);
-        }
-
-        public static async Task<ImmutableDictionary<ProjectId, CodeMetricsInfo>> CountLinesAsync(
-            IEnumerable<Project> projects,
-            LinesOfCodeKind kind,
-            CodeMetricsOptions options = null,
-            CancellationToken cancellationToken = default)
-        {
-            ImmutableDictionary<ProjectId, CodeMetricsInfo>.Builder builder = ImmutableDictionary.CreateBuilder<ProjectId, CodeMetricsInfo>();
-
-            foreach (Project project in projects)
-            {
-                ICodeMetricsService service = MefWorkspaceServices.Default.GetService<ICodeMetricsService>(project.Language);
-
-                CodeMetricsInfo projectMetrics = (service != null)
-                    ? await service.CountLinesAsync(project, kind, options, cancellationToken).ConfigureAwait(false)
-                    : CodeMetricsInfo.NotAvailable;
-
-                builder.Add(project.Id, projectMetrics);
-            }
-
-            return builder.ToImmutableDictionary();
         }
 
         public static void WriteLinesOfCode(Solution solution, ImmutableDictionary<ProjectId, CodeMetricsInfo> projectsMetrics)

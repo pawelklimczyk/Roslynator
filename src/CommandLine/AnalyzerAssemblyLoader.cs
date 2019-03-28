@@ -11,18 +11,6 @@ namespace Roslynator.CommandLine
 {
     internal static class AnalyzerAssemblyLoader
     {
-        public static IEnumerable<AnalyzerAssembly> LoadFiles(
-            IEnumerable<string> filePaths,
-            bool loadAnalyzers = true,
-            bool loadFixers = true,
-            string language = null)
-        {
-            foreach (string filePath in filePaths)
-            {
-                yield return LoadFile(filePath, loadAnalyzers: loadAnalyzers, loadFixers: loadFixers, language: language);
-            }
-        }
-
         public static AnalyzerAssembly LoadFile(
             string filePath,
             bool loadAnalyzers = true,
@@ -68,17 +56,19 @@ namespace Roslynator.CommandLine
                                 break;
                             }
                         }
-                        catch (IOException)
+                        catch (Exception ex)
                         {
-                            continue;
-                        }
-                        catch (SecurityException)
-                        {
-                            continue;
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
-                            continue;
+                            if (ex is IOException
+                                || ex is SecurityException
+                                || ex is UnauthorizedAccessException)
+                            {
+                                WriteLine(ex.Message, ConsoleColor.DarkGray, Verbosity.Diagnostic);
+                                continue;
+                            }
+                            else
+                            {
+                                throw;
+                            }
                         }
 
                         if (analyzerAssembly?.IsEmpty == false)

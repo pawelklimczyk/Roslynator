@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1227ValidateArgumentsCorrectlyTests : AbstractCSharpCodeFixVerifier
+    public class RCS1227ValidateArgumentsCorrectlyTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.ValidateArgumentsCorrectly;
 
@@ -54,8 +54,9 @@ class C
         if (p2 == null)
             throw new ArgumentNullException(nameof(p2));
 
-        return MIterator();
-        IEnumerable<string> MIterator()
+        return M2();
+
+        IEnumerable<string> M2()
         {
             string s = null;
             yield return s;
