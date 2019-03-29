@@ -27,6 +27,17 @@
         <Before><![CDATA[Debug.Assert(false, "message"); // [|Id|]]]></Before>
         <After><![CDATA[Debug.Fail("message");]]></After>
       </Sample>
+      <Sample>
+        <Before><![CDATA[if (dic.ContainsKey(key)) // [|Id|]
+{
+  dic[key] = value;
+}
+else
+{
+  dic.Add(key, value);
+}]]></Before>
+        <After><![CDATA[dic[key] = value;]]></After>
+      </Sample>
     </Samples>
     <Remarks></Remarks>
     <Links>
