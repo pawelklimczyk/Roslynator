@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1238OptimizeMethodCallTests : AbstractCSharpCodeFixVerifier
+    public class RCS1238OptimizeMethodCallTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.OptimizeMethodCall;
 
@@ -250,6 +250,125 @@ class C
     void M()
     {
         Debug.Fail(""x"", ""y"");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_OptimizeDictionaryContainsKey()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        [|if (dic.ContainsKey(key))
+        {
+            dic[key] = value;
+        }
+        else
+        {
+            dic.Add(key, value);
+        }|]
+    }
+}
+", @"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        dic[key] = value;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_OptimizeDictionaryContainsKey_EmbeddedStatement()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        [|if (dic.ContainsKey(key))
+            dic[key] = value;
+        else
+            dic.Add(key, value);|]
+    }
+}
+", @"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        dic[key] = value;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_OptimizeDictionaryContainsKey_LogicalNot()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        [|if (!dic.ContainsKey(key))
+        {
+            dic.Add(key, value);
+        }
+        else
+        {
+            dic[key] = value;
+        }|]
+    }
+}
+", @"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var dic = new Dictionary<string, string>();
+        string key = null;
+        string value = null;
+
+        dic[key] = value;
     }
 }
 ");

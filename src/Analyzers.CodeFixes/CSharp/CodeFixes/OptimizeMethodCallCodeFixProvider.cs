@@ -29,7 +29,7 @@ namespace Roslynator.CSharp.CodeFixes
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.EqualsExpression)))
+            if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.EqualsExpression, SyntaxKind.IfStatement)))
                 return;
 
             Document document = context.Document;
@@ -51,7 +51,7 @@ namespace Roslynator.CSharp.CodeFixes
                                     CodeAction codeAction = CodeAction.Create(
                                         "Call 'CompareOrdinal' instead of 'Compare'",
                                         ct => CallCompareOrdinalInsteadOfCompareAsync(document, invocationInfo, ct),
-                                        base.GetEquivalenceKey(diagnostic));
+                                        GetEquivalenceKey(diagnostic, "CallCompareOrdinalInsteadOfCompare"));
 
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     break;
@@ -61,7 +61,7 @@ namespace Roslynator.CSharp.CodeFixes
                                     CodeAction codeAction = CodeAction.Create(
                                         "Call 'Concat' instead of 'Join'",
                                         cancellationToken => CallStringConcatInsteadOfStringJoinAsync(document, invocationExpression, cancellationToken),
-                                        base.GetEquivalenceKey(diagnostic));
+                                        GetEquivalenceKey(diagnostic, "CallConcatInsteadOfJoin"));
 
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     break;
@@ -71,7 +71,7 @@ namespace Roslynator.CSharp.CodeFixes
                                     CodeAction codeAction = CodeAction.Create(
                                         "Call 'Fail' instead of 'Assert'",
                                         ct => CallDebugFailInsteadOfDebugAssertAsync(context.Document, invocationExpression, ct),
-                                        GetEquivalenceKey(diagnostic));
+                                        GetEquivalenceKey(diagnostic, "CallFailInsteadOfAssert"));
 
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     break;
@@ -87,7 +87,19 @@ namespace Roslynator.CSharp.CodeFixes
                         CodeAction codeAction = CodeAction.Create(
                             "Call 'Equals' instead of 'Compare'",
                             ct => CallEqualsInsteadOfCompareAsync(document, equalsExpression, ct),
-                            base.GetEquivalenceKey(diagnostic));
+                            GetEquivalenceKey(diagnostic, "CallEqualsInsteadOfCompare"));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
+                case SyntaxKind.IfStatement:
+                    {
+                        var ifStatement = (IfStatementSyntax)node;
+
+                        CodeAction codeAction = CodeAction.Create(
+                            "Use [] instead of 'ContainsKey'",
+                            ct => UseElementAccessInsteadOfContainsKeyAsync(document, ifStatement, ct),
+                            GetEquivalenceKey(diagnostic, "UseElementAccessInsteadOfContainsKey"));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
                         break;
@@ -123,7 +135,7 @@ namespace Roslynator.CSharp.CodeFixes
             if (!(equalsExpression.Left.WalkDownParentheses() is InvocationExpressionSyntax invocationExpression))
                 invocationExpression = (InvocationExpressionSyntax)equalsExpression.Right.WalkDownParentheses();
 
-            InvocationExpressionSyntax newInvocationExpression = RefactoringUtility.ChangeInvokedMethodName(invocationExpression, "Equals");
+            InvocationExpressionSyntax newInvocationExpression = SyntaxRefactorings.ChangeInvokedMethodName(invocationExpression, "Equals");
 
             newInvocationExpression = newInvocationExpression.WithTriviaFrom(equalsExpression);
 
@@ -171,11 +183,27 @@ namespace Roslynator.CSharp.CodeFixes
                 arguments = arguments.RemoveAt(0);
             }
 
-            InvocationExpressionSyntax newInvocation = RefactoringUtility.ChangeInvokedMethodName(invocation, "Fail")
+            InvocationExpressionSyntax newInvocation = SyntaxRefactorings.ChangeInvokedMethodName(invocation, "Fail")
                 .WithArgumentList(argumentList.WithArguments(arguments))
                 .WithFormatterAnnotation();
 
             return document.ReplaceNodeAsync(invocation, newInvocation, cancellationToken);
+        }
+
+        private static Task<Document> UseElementAccessInsteadOfContainsKeyAsync(
+            Document document,
+            IfStatementSyntax ifStatement,
+            CancellationToken cancellationToken)
+        {
+            StatementSyntax statement = (ifStatement.Condition.IsKind(SyntaxKind.LogicalNotExpression))
+                ? ifStatement.Else.Statement
+                : ifStatement.Statement;
+
+            statement = statement
+                .SingleNonBlockStatementOrDefault()
+                .WithTriviaFrom(ifStatement);
+
+            return document.ReplaceNodeAsync(ifStatement, statement, cancellationToken);
         }
     }
 }

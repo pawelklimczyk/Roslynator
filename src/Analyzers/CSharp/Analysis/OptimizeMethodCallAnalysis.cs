@@ -195,5 +195,135 @@ namespace Roslynator.CSharp.Analysis
 
             DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, invocationExpression, "string.Join");
         }
+
+        public static void OptimizeDictionaryContainsKey(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        {
+            InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
+
+            bool isNegation = false;
+
+            IfStatementSyntax ifStatement = GetIfStatement();
+
+            SimpleIfElseInfo simpleIfElse = SyntaxInfo.SimpleIfElseInfo(ifStatement);
+
+            if (!simpleIfElse.Success)
+                return;
+
+            StatementSyntax trueStatement = simpleIfElse.IfStatement.Statement?.SingleNonBlockStatementOrDefault();
+
+            if (trueStatement == null)
+                return;
+
+            StatementSyntax falseStatement = simpleIfElse.Else.Statement?.SingleNonBlockStatementOrDefault();
+
+            if (falseStatement == null)
+                return;
+
+            SimpleAssignmentStatementInfo simpleAssignmentStatement = SyntaxInfo.SimpleAssignmentStatementInfo((isNegation) ? falseStatement : trueStatement);
+
+            if (!simpleAssignmentStatement.Success)
+                return;
+
+            if (!(simpleAssignmentStatement.Left is ElementAccessExpressionSyntax elementAccessExpression))
+                return;
+
+            if (!CSharpFactory.AreEquivalent(invocationInfo.Expression, elementAccessExpression.Expression))
+                return;
+
+            ExpressionSyntax argumentExpression = elementAccessExpression.ArgumentList.Arguments.SingleOrDefault(shouldThrow: false)?.Expression;
+
+            ExpressionSyntax keyExpression = invocationInfo.Arguments[0].Expression;
+
+            if (!CSharpFactory.AreEquivalent(keyExpression, argumentExpression))
+                return;
+
+            SimpleMemberInvocationStatementInfo invocationInfo2 = SyntaxInfo.SimpleMemberInvocationStatementInfo((isNegation) ? trueStatement : falseStatement);
+
+            if (!invocationInfo2.Success)
+                return;
+
+            if (invocationInfo2.Arguments.Count != 2)
+                return;
+
+            if (invocationInfo2.NameText != "Add")
+                return;
+
+            if (!CSharpFactory.AreEquivalent(invocationInfo.Expression, invocationInfo2.Expression))
+                return;
+
+            if (!CSharpFactory.AreEquivalent(keyExpression, invocationInfo2.Arguments[0].Expression))
+                return;
+
+            if (!CSharpFactory.AreEquivalent(simpleAssignmentStatement.Right, invocationInfo2.Arguments[1].Expression))
+                return;
+
+            IMethodSymbol methodSymbol = context.SemanticModel.GetMethodSymbol(invocationExpression, context.CancellationToken);
+
+            if (!IsDictionaryContainsKey(methodSymbol))
+                return;
+
+            IMethodSymbol methodSymbol2 = context.SemanticModel.GetMethodSymbol(invocationInfo2.InvocationExpression, context.CancellationToken);
+
+            if (!IsDictionaryAdd(methodSymbol2))
+                return;
+
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.OptimizeMethodCall, ifStatement);
+
+            IfStatementSyntax GetIfStatement()
+            {
+                SyntaxNode parent = invocationExpression.Parent;
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.LogicalNotExpression:
+                        {
+                            var logicalNot = (PrefixUnaryExpressionSyntax)parent;
+
+                            isNegation = true;
+
+                            if (logicalNot.IsParentKind(SyntaxKind.IfStatement))
+                            {
+                                var ifStatement2 = (IfStatementSyntax)logicalNot.Parent;
+
+                                if (ifStatement2.Condition == logicalNot)
+                                    return ifStatement2;
+                            }
+
+                            break;
+                        }
+                    case SyntaxKind.IfStatement:
+                        {
+                            var ifStatement2 = (IfStatementSyntax)parent;
+
+                            if (ifStatement2.Condition == invocationExpression)
+                                return ifStatement2;
+
+                            break;
+                        }
+                }
+
+                return null;
+            }
+
+            bool IsDictionaryContainsKey(IMethodSymbol symbol)
+            {
+                return symbol?.DeclaredAccessibility == Accessibility.Public
+                    && !symbol.IsStatic
+                    && symbol.ReturnType.SpecialType == SpecialType.System_Boolean
+                    && symbol.Parameters.Length == 1
+                    && symbol.Name == "ContainsKey"
+                    && symbol.ContainingType.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_Dictionary_T2);
+            }
+
+            bool IsDictionaryAdd(IMethodSymbol symbol)
+            {
+                return symbol?.DeclaredAccessibility == Accessibility.Public
+                    && !symbol.IsStatic
+                    && symbol.ReturnType.SpecialType == SpecialType.System_Void
+                    && symbol.Parameters.Length == 2
+                    && symbol.Name == "Add"
+                    && symbol.ContainingType.OriginalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_Dictionary_T2);
+            }
+        }
     }
 }

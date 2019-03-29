@@ -215,6 +215,13 @@ namespace Roslynator.CSharp.Analysis
 
                                     break;
                                 }
+                            case "ContainsKey":
+                                {
+                                    if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeMethodCall))
+                                        OptimizeMethodCallAnalysis.OptimizeDictionaryContainsKey(context, invocationInfo);
+
+                                    break;
+                                }
                             case "ElementAt":
                                 {
                                     if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeLinqMethodCall)
