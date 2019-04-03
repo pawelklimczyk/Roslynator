@@ -2569,5 +2569,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1242</summary>
+        public static readonly DiagnosticDescriptor UseExceptionFilter = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseExceptionFilter, 
+            title:              "Use exception filter.", 
+            messageFormat:      "Use exception filter.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseExceptionFilter}", 
+            customTags:         Array.Empty<string>());
+
     }
 }
