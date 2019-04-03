@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Analyzers>
+  <Analyzer Identifier="UseForStatementInsteadOfWhileStatement" IsDevelopment="true">
+    <Id>RCS1243</Id>
+    <Title>Use 'for' statement instead of 'while' statement.</Title>
+    <MessageFormat>Use 'for' statement instead of 'while' statement.</MessageFormat>
+    <Category>Readability</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion></MinLanguageVersion>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
+    <Remarks></Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
+  </Analyzer>
+</Analyzers>

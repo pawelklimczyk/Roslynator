@@ -2569,5 +2569,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1243</summary>
+        public static readonly DiagnosticDescriptor UseForStatementInsteadOfWhileStatement = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseForStatementInsteadOfWhileStatement, 
+            title:              "Use 'for' statement instead of 'while' statement.", 
+            messageFormat:      "Use 'for' statement instead of 'while' statement.", 
+            category:           DiagnosticCategories.Readability, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseForStatementInsteadOfWhileStatement}", 
+            customTags:         Array.Empty<string>());
+
     }
 }

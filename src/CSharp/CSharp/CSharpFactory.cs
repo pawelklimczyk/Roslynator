@@ -1115,6 +1115,20 @@ namespace Roslynator.CSharp
         {
             return ThrowStatement(ObjectCreationExpression(exceptionType, ArgumentList()));
         }
+
+        public static ForStatementSyntax ForStatement(
+            VariableDeclarationSyntax declaration,
+            ExpressionSyntax condition,
+            ExpressionSyntax incrementor,
+            StatementSyntax statement)
+        {
+            return SyntaxFactory.ForStatement(
+                declaration: declaration,
+                initializers: default(SeparatedSyntaxList<ExpressionSyntax>),
+                condition: condition,
+                incrementors: SingletonSeparatedList(incrementor),
+                statement: statement);
+        }
         #endregion Statement
 
         #region BinaryExpression
