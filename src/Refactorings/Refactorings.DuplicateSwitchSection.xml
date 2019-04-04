@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactorings>
+  <Refactoring Id="RR0214" Identifier="DuplicateSwitchSection" Title="Duplicate switch section" IsDevelopment="true">
+    <Syntaxes>
+      <Syntax>switch section</Syntax>
+    </Syntaxes>
+    <Span>close brace</Span>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[switch (s)
+{
+    case "a":
+        {
+            // ...
+
+            break;
+        }
+    default:
+        {
+            break;
+        }
+}]]></Before>
+        <After><![CDATA[switch (s)
+{
+    case "a":
+        {
+            // ...
+
+            break;
+        }
+    case "a":
+        {
+            // ...
+
+            break;
+        }
+    default:
+        {
+            break;
+        }
+}]]></After>
+      </Sample>
+    </Samples>
+    <Remarks></Remarks>
+    <Links>
+      <Link>
+        <Url></Url>
+        <Text></Text>
+      </Link>
+    </Links>
+  </Refactoring>
+</Refactorings>

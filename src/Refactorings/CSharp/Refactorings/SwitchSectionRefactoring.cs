@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -82,6 +83,16 @@ namespace Roslynator.CSharp.Refactorings
                 }
             }
 
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.DuplicateSwitchSection)
+                && switchSection.Statements.SingleOrDefault(shouldThrow: false) is BlockSyntax block
+                && context.Span.IsEmptyAndContainedInSpan(block.CloseBraceToken))
+            {
+                context.RegisterRefactoring(
+                    "Duplicate section",
+                    ct => DuplicateSwitchSectionAsync(context.Document, switchSection, ct),
+                    RefactoringIdentifiers.DuplicateSwitchSection);
+            }
+
             bool IsContainedInCaseOrDefaultKeyword(TextSpan span)
             {
                 foreach (SwitchLabelSyntax label in switchSection.Labels)
@@ -92,6 +103,30 @@ namespace Roslynator.CSharp.Refactorings
 
                 return false;
             }
+        }
+
+        private static Task<Document> DuplicateSwitchSectionAsync(
+            Document document,
+            SwitchSectionSyntax switchSection,
+            CancellationToken cancellationToken)
+        {
+            var switchStatement = (SwitchStatementSyntax)switchSection.Parent;
+
+            SyntaxList<SwitchSectionSyntax> sections = switchStatement.Sections;
+
+            int index = sections.IndexOf(switchSection);
+
+            SwitchLabelSyntax label = switchSection.Labels.First();
+
+            SyntaxToken firstToken = label.GetFirstToken();
+
+            SwitchSectionSyntax newSection = switchSection.WithLabels(switchSection.Labels.ReplaceAt(0, label.ReplaceToken(firstToken, firstToken.WithNavigationAnnotation())));
+
+            SyntaxList<SwitchSectionSyntax> newSections = sections.Insert(index + 1, newSection);
+
+            SwitchStatementSyntax newSwitchStatement = switchStatement.WithSections(newSections);
+
+            return document.ReplaceNodeAsync(switchStatement, newSwitchStatement, cancellationToken);
         }
     }
 }
