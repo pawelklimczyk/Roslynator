@@ -15,7 +15,7 @@ namespace Roslynator.CSharp.Syntax
     /// Provides information about a list of member declaration list.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public readonly struct MemberDeclarationListInfo : IEquatable<MemberDeclarationListInfo>, IReadOnlyList<MemberDeclarationSyntax>
+    public readonly struct MemberDeclarationListInfo : IReadOnlyList<MemberDeclarationSyntax>
     {
         internal MemberDeclarationListInfo(SyntaxNode parent, SyntaxList<MemberDeclarationSyntax> members)
         {
@@ -515,45 +515,6 @@ namespace Roslynator.CSharp.Syntax
         public override string ToString()
         {
             return Parent?.ToString() ?? "";
-        }
-
-        /// <summary>
-        /// Determines whether this instance and a specified object are equal.
-        /// </summary>
-        /// <param name="obj">The object to compare with the current instance. </param>
-        /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false. </returns>
-        public override bool Equals(object obj)
-        {
-            return obj is MemberDeclarationListInfo other && Equals(other);
-        }
-
-        /// <summary>
-        /// Determines whether this instance is equal to another object of the same type.
-        /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
-        public bool Equals(MemberDeclarationListInfo other)
-        {
-            return EqualityComparer<SyntaxNode>.Default.Equals(Parent, other.Parent);
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
-        public override int GetHashCode()
-        {
-            return EqualityComparer<SyntaxNode>.Default.GetHashCode(Parent);
-        }
-
-        public static bool operator ==(in MemberDeclarationListInfo info1, in MemberDeclarationListInfo info2)
-        {
-            return info1.Equals(info2);
-        }
-
-        public static bool operator !=(in MemberDeclarationListInfo info1, in MemberDeclarationListInfo info2)
-        {
-            return !(info1 == info2);
         }
     }
 }
