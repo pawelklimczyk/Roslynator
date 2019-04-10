@@ -1,76 +1,75 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
 {
-    internal abstract class MakeMemberReadOnlyAnalysis
+    internal abstract class MakeMemberReadOnlyAnalysis<TNode> where TNode : SyntaxNode
     {
-        public abstract HashSet<ISymbol> GetAnalyzableSymbols(
-            SymbolAnalysisContext context,
-            INamedTypeSymbol containingType);
+        public TypeDeclarationSyntax TypeDeclaration { get; private set; }
 
-        public abstract void ReportFixableSymbols(
-            SymbolAnalysisContext context,
-            INamedTypeSymbol containingType,
-            HashSet<ISymbol> symbols);
+        public SemanticModel SemanticModel { get; private set; }
 
-        public virtual HashSet<ISymbol> GetFixableSymbols(
-            SymbolAnalysisContext context,
-            INamedTypeSymbol containingType,
-            HashSet<ISymbol> symbols)
+        public CancellationToken CancellationToken { get; private set; }
+
+        public MakeMemberReadOnlyWalker Walker { get; } = new MakeMemberReadOnlyWalker();
+
+        public Dictionary<ISymbol, TNode> Symbols { get; } = new Dictionary<ISymbol, TNode>();
+
+        public void Clear()
         {
-            CancellationToken cancellationToken = context.CancellationToken;
-            ImmutableArray<SyntaxReference> syntaxReferences = containingType.DeclaringSyntaxReferences;
+            TypeDeclaration = null;
+            SemanticModel = null;
+            CancellationToken = default;
+            Walker.Clear();
+            Symbols.Clear();
+        }
 
-            for (int i = 0; i < syntaxReferences.Length; i++)
+        public abstract void CollectAnalyzableSymbols();
+
+        public abstract void ReportFixableSymbols(SyntaxNodeAnalysisContext context);
+
+        public virtual void CollectFixableSymbols()
+        {
+            foreach (MemberDeclarationSyntax memberDeclaration in TypeDeclaration.Members)
             {
-                var typeDeclaration = (TypeDeclarationSyntax)syntaxReferences[i].GetSyntax(cancellationToken);
+                Walker.Clear();
 
-                SemanticModel semanticModel = context.Compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
+                Walker.Visit(memberDeclaration);
 
-                foreach (MemberDeclarationSyntax memberDeclaration in typeDeclaration.Members)
+                HashSet<AssignedInfo> assigned = Walker.Assigned;
+
+                if (assigned != null)
                 {
-                    MakeMemberReadOnlyWalker walker = MakeMemberReadOnlyWalkerCache.GetInstance();
-
-                    walker.Visit(memberDeclaration);
-
-                    HashSet<AssignedInfo> assigned = MakeMemberReadOnlyWalkerCache.GetAssignedAndFree(walker);
-
-                    if (assigned != null)
+                    foreach (AssignedInfo assignedInfo in assigned)
                     {
-                        foreach (AssignedInfo info in assigned)
+                        foreach (KeyValuePair<ISymbol, TNode> kvp in Symbols)
                         {
-                            foreach (ISymbol symbol in symbols)
+                            ISymbol symbol = kvp.Key;
+
+                            if (symbol.Name == assignedInfo.NameText
+                                && ((symbol.IsStatic) ? !assignedInfo.IsInStaticConstructor : !assignedInfo.IsInInstanceConstructor))
                             {
-                                if (symbol.Name == info.NameText
-                                    && ((symbol.IsStatic) ? !info.IsInStaticConstructor : !info.IsInInstanceConstructor))
+                                ISymbol nameSymbol = SemanticModel.GetSymbol(assignedInfo.Name, CancellationToken);
+
+                                if (ValidateSymbol(nameSymbol)
+                                    && Symbols.Remove(nameSymbol.OriginalDefinition))
                                 {
-                                    ISymbol nameSymbol = semanticModel.GetSymbol(info.Name, cancellationToken);
+                                    if (Symbols.Count == 0)
+                                        return;
 
-                                    if (ValidateSymbol(nameSymbol)
-                                        && symbols.Remove(nameSymbol.OriginalDefinition))
-                                    {
-                                        if (symbols.Count == 0)
-                                            return symbols;
-
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
                         }
-
-                        assigned.Clear();
                     }
                 }
             }
-
-            return symbols;
         }
 
         protected virtual bool ValidateSymbol(ISymbol symbol)
@@ -78,22 +77,24 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
             return symbol != null;
         }
 
-        public void AnalyzeNamedType(SymbolAnalysisContext context)
+        public void AnalyzeTypeDeclaration(SyntaxNodeAnalysisContext context)
         {
-            var typeSymbol = (INamedTypeSymbol)context.Symbol;
+            TypeDeclaration = (TypeDeclarationSyntax)context.Node;
 
-            if (typeSymbol.TypeKind.Is(TypeKind.Class, TypeKind.Struct))
+            if (TypeDeclaration.Modifiers.Contains(SyntaxKind.PartialKeyword))
+                return;
+
+            CollectAnalyzableSymbols();
+
+            if (Symbols != null)
             {
-                HashSet<ISymbol> symbols = GetAnalyzableSymbols(context, typeSymbol);
+                CollectFixableSymbols();
 
-                if (symbols != null)
-                {
-                    symbols = GetFixableSymbols(context, typeSymbol, symbols);
-
-                    if (symbols.Count > 0)
-                        ReportFixableSymbols(context, typeSymbol, symbols);
-                }
+                if (Symbols.Count > 0)
+                    ReportFixableSymbols(context);
             }
+
+            Clear();
         }
     }
 }

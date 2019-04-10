@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
@@ -22,9 +23,17 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
 
             base.Initialize(context);
 
-            context.RegisterSymbolAction(
-                MarkFieldAsReadOnlyAnalysis.Instance.AnalyzeNamedType,
-                SymbolKind.NamedType);
+            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.StructDeclaration);
+        }
+
+        private static void AnalyzeTypeDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            MarkFieldAsReadOnlyAnalysis analysis = MarkFieldAsReadOnlyAnalysis.GetInstance();
+
+            analysis.AnalyzeTypeDeclaration(context);
+
+            MarkFieldAsReadOnlyAnalysis.Free(analysis);
         }
     }
 }

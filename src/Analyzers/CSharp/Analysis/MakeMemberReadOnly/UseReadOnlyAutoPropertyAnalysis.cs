@@ -1,54 +1,75 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
 {
-    internal sealed class UseReadOnlyAutoPropertyAnalysis : MakeMemberReadOnlyAnalysis
+    internal sealed class UseReadOnlyAutoPropertyAnalysis : MakeMemberReadOnlyAnalysis<PropertyDeclarationSyntax>
     {
+        [ThreadStatic]
+        private static UseReadOnlyAutoPropertyAnalysis _cachedInstance;
+
         private UseReadOnlyAutoPropertyAnalysis()
         {
         }
 
-        public static UseReadOnlyAutoPropertyAnalysis Instance { get; } = new UseReadOnlyAutoPropertyAnalysis();
-
-        public override HashSet<ISymbol> GetAnalyzableSymbols(SymbolAnalysisContext context, INamedTypeSymbol containingType)
+        public static UseReadOnlyAutoPropertyAnalysis GetInstance()
         {
-            HashSet<ISymbol> properties = null;
+            UseReadOnlyAutoPropertyAnalysis walker = _cachedInstance;
 
-            ImmutableArray<ISymbol> members = containingType.GetMembers();
-
-            for (int i = 0; i < members.Length; i++)
+            if (walker != null)
             {
-                if (members[i].Kind == SymbolKind.Property)
+                _cachedInstance = null;
+                return walker;
+            }
+
+            return new UseReadOnlyAutoPropertyAnalysis();
+        }
+
+        public static void Free(UseReadOnlyAutoPropertyAnalysis analysis)
+        {
+            analysis.Clear();
+            _cachedInstance = analysis;
+        }
+
+        public override void CollectAnalyzableSymbols()
+        {
+            foreach (MemberDeclarationSyntax memberDeclaration in TypeDeclaration.Members)
+            {
+                if (memberDeclaration.IsKind(SyntaxKind.PropertyDeclaration))
                 {
-                    var propertySymbol = (IPropertySymbol)members[i];
+                    var propertyDeclaration = (PropertyDeclarationSyntax)memberDeclaration;
 
-                    if (!propertySymbol.IsIndexer
-                        && !propertySymbol.IsReadOnly
-                        && !propertySymbol.IsImplicitlyDeclared
-                        && propertySymbol.ExplicitInterfaceImplementations.IsDefaultOrEmpty
-                        && !propertySymbol.HasAttribute(MetadataNames.System_Runtime_Serialization_DataMemberAttribute))
+                    ISymbol symbol = SemanticModel.GetDeclaredSymbol(propertyDeclaration, CancellationToken);
+
+                    if (symbol.IsKind(SymbolKind.Property))
                     {
-                        IMethodSymbol setMethod = propertySymbol.SetMethod;
+                        var propertySymbol = (IPropertySymbol)symbol;
 
-                        if (setMethod?.DeclaredAccessibility == Accessibility.Private
-                            && setMethod.GetAttributes().IsEmpty
-                            && setMethod.GetSyntaxOrDefault(context.CancellationToken) is AccessorDeclarationSyntax accessor
-                            && accessor.BodyOrExpressionBody() == null)
+                        if (!propertySymbol.IsIndexer
+                            && !propertySymbol.IsReadOnly
+                            && !propertySymbol.IsImplicitlyDeclared
+                            && propertySymbol.ExplicitInterfaceImplementations.IsDefaultOrEmpty
+                            && !propertySymbol.HasAttribute(MetadataNames.System_Runtime_Serialization_DataMemberAttribute))
                         {
-                            (properties ?? (properties = new HashSet<ISymbol>())).Add(propertySymbol);
+                            IMethodSymbol setMethod = propertySymbol.SetMethod;
+
+                            if (setMethod?.DeclaredAccessibility == Accessibility.Private
+                                && setMethod.GetAttributes().IsEmpty
+                                && setMethod.GetSyntaxOrDefault(CancellationToken) is AccessorDeclarationSyntax accessor
+                                && accessor.BodyOrExpressionBody() == null)
+                            {
+                                Symbols.Add(propertySymbol, propertyDeclaration);
+                            }
                         }
                     }
                 }
             }
-
-            return properties;
         }
 
         protected override bool ValidateSymbol(ISymbol symbol)
@@ -56,11 +77,11 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
             return symbol?.Kind == SymbolKind.Property;
         }
 
-        public override void ReportFixableSymbols(SymbolAnalysisContext context, INamedTypeSymbol containingType, HashSet<ISymbol> symbols)
+        public override void ReportFixableSymbols(SyntaxNodeAnalysisContext context)
         {
-            foreach (PropertyDeclarationSyntax node in symbols.Select(f => (PropertyDeclarationSyntax)f.GetSyntax(context.CancellationToken)))
+            foreach (KeyValuePair<ISymbol, PropertyDeclarationSyntax> kvp in Symbols)
             {
-                AccessorDeclarationSyntax setter = node.Setter();
+                AccessorDeclarationSyntax setter = kvp.Value.Setter();
 
                 if (!setter.SpanContainsDirectives())
                     DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseReadOnlyAutoProperty, setter);
