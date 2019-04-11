@@ -68,7 +68,8 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
 
                             if (setter != null
                                 && setter.BodyOrExpressionBody() == null
-                                && !setter.AttributeLists.Any())
+                                && !setter.AttributeLists.Any()
+                                && !setter.SpanContainsDirectives())
                             {
                                 IPropertySymbol propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken);
 
@@ -131,8 +132,7 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
                         {
                             AccessorDeclarationSyntax setter = propertyDeclaration.Setter();
 
-                            if (!setter.SpanContainsDirectives())
-                                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseReadOnlyAutoProperty, setter);
+                            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseReadOnlyAutoProperty, setter);
                         }
                     }
 
@@ -161,8 +161,8 @@ namespace Roslynator.CSharp.Analysis.MakeMemberReadOnly
                 return false;
 
             return type.IsReferenceType
-                || CSharpFacts.IsSimpleType(type.SpecialType)
-                || type.TypeKind == TypeKind.Enum;
+                || type.TypeKind == TypeKind.Enum
+                || CSharpFacts.IsSimpleType(type.SpecialType);
         }
     }
 }
