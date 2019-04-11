@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Refactorings.Tests
 {
-    public class RRReplaceWhileWithIfAndDoTests : AbstractCSharpCodeRefactoringVerifier
+    public class RRReplaceWhileWithIfAndDoTests : AbstractCSharpRefactoringVerifier
     {
         public override string RefactoringId { get; } = RefactoringIdentifiers.ReplaceWhileWithIfAndDo;
 
@@ -19,10 +19,11 @@ class C
     {
         bool f = false;
 
+        // leading
         [||]while (f)
         {
             M();
-        }
+        } // trailing
     }
 }
 ", @"
@@ -32,6 +33,7 @@ class C
     {
         bool f = false;
 
+        // leading
         if (f)
         {
             do
@@ -39,7 +41,7 @@ class C
                 M();
             }
             while (f);
-        }
+        } // trailing
     }
 }
 ", equivalenceKey: RefactoringId);

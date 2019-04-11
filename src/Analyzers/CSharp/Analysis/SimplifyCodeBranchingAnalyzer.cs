@@ -78,19 +78,6 @@ namespace Roslynator.CSharp.Analysis
 
                     DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.SimplifyCodeBranching, ifStatement);
                 }
-                else
-                {
-                    if (ifStatement.IsParentKind(SyntaxKind.ElseClause))
-                        return;
-
-                    if (!(ifStatement.SingleNonBlockStatementOrDefault() is DoStatementSyntax doStatement))
-                        return;
-
-                    if (!CSharpFactory.AreEquivalent(condition, doStatement.Condition?.WalkDownParentheses()))
-                        return;
-
-                    context.ReportDiagnostic(DiagnosticDescriptors.SimplifyCodeBranching, ifStatement);
-                }
             }
         }
 
