@@ -27,14 +27,6 @@ namespace Roslynator.CSharp.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsAnyCodeFixEnabled(
-                CodeFixIdentifiers.AddOverrideModifier,
-                CodeFixIdentifiers.AddNewModifier,
-                CodeFixIdentifiers.RemoveMemberDeclaration))
-            {
-                return;
-            }
-
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out MemberDeclarationSyntax memberDeclaration))
@@ -46,27 +38,27 @@ namespace Roslynator.CSharp.CodeFixes
                 {
                     case CompilerDiagnosticIdentifiers.MemberHidesInheritedMemberUseNewKeywordIfHidingWasIntended:
                         {
-                            if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddNewModifier))
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddNewModifier))
                                 ModifiersCodeFixRegistrator.AddModifier(context, diagnostic, memberDeclaration, SyntaxKind.NewKeyword, additionalKey: nameof(SyntaxKind.NewKeyword));
 
-                            if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveMemberDeclaration))
-                                CodeFixRegistrator.RemoveMember(context, diagnostic, memberDeclaration);
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.RemoveMemberDeclaration))
+                                CodeFixRegistrator.RemoveMemberDeclaration(context, diagnostic, memberDeclaration);
 
                             break;
                         }
                     case CompilerDiagnosticIdentifiers.MemberHidesInheritedMemberToMakeCurrentMethodOverrideThatImplementationAddOverrideKeyword:
                         {
-                            if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddOverrideModifier)
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddOverrideModifier)
                                 && !SyntaxInfo.ModifierListInfo(memberDeclaration).IsStatic)
                             {
                                 ModifiersCodeFixRegistrator.AddModifier(context, diagnostic, memberDeclaration, SyntaxKind.OverrideKeyword, additionalKey: nameof(SyntaxKind.OverrideKeyword));
                             }
 
-                            if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddNewModifier))
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddNewModifier))
                                 ModifiersCodeFixRegistrator.AddModifier(context, diagnostic, memberDeclaration, SyntaxKind.NewKeyword, additionalKey: nameof(SyntaxKind.NewKeyword));
 
-                            if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveMemberDeclaration))
-                                CodeFixRegistrator.RemoveMember(context, diagnostic, memberDeclaration);
+                            if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.RemoveMemberDeclaration))
+                                CodeFixRegistrator.RemoveMemberDeclaration(context, diagnostic, memberDeclaration);
 
                             break;
                         }

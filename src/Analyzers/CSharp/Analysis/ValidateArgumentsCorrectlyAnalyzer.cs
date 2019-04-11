@@ -50,10 +50,28 @@ namespace Roslynator.CSharp.Analysis
 
             int statementCount = statements.Count;
 
-            if (statementCount == 0)
+            int index = -1;
+            for (int i = 0; i < statementCount; i++)
+            {
+                if (IsNullCheck(statements[i]))
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (index == -1)
                 return;
 
-            if (!IsNullCheck(statements[0]))
+            if (index == statementCount - 1)
+                return;
+
+            TextSpan span = TextSpan.FromBounds(statements[index + 1].SpanStart, statements.Last().Span.End);
+
+            if (body.ContainsUnbalancedIfElseDirectives(span))
                 return;
 
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -69,23 +87,10 @@ namespace Roslynator.CSharp.Analysis
             if (yieldStatement == null)
                 return;
 
-            int index = 0;
-            for (int i = 1; i < statementCount; i++)
-            {
-                if (IsNullCheck(statements[i]))
-                {
-                    index++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
             if (yieldStatement.SpanStart < statements[index].Span.End)
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(context,
                 DiagnosticDescriptors.ValidateArgumentsCorrectly,
                 Location.Create(body.SyntaxTree, new TextSpan(statements[index + 1].SpanStart, 0)));
         }

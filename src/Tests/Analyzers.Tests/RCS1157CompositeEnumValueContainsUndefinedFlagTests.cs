@@ -9,11 +9,11 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1157CompositeEnumValueContainsUndefinedFlagTests : AbstractCSharpCodeFixVerifier
+    public class RCS1157CompositeEnumValueContainsUndefinedFlagTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.CompositeEnumValueContainsUndefinedFlag;
 
-        public override DiagnosticAnalyzer Analyzer { get; } = new FlagsAnalyzer();
+        public override DiagnosticAnalyzer Analyzer { get; } = new EnumSymbolAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new CompositeEnumValueContainsUndefinedFlagCodeFixProvider();
 
@@ -70,6 +70,20 @@ enum Foo
     D = 8,
     ABD = 11,
     ABCD = 15,
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.CompositeEnumValueContainsUndefinedFlag)]
+        public async Task TestNoDiagnostic_NegativeValue()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+[Flags]
+public enum E
+{
+    A = 1 << 31
 }
 ");
         }

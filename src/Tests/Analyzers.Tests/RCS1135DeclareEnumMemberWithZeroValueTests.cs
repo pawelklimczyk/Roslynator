@@ -9,11 +9,11 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1135DeclareEnumMemberWithZeroValueTests : AbstractCSharpCodeFixVerifier
+    public class RCS1135DeclareEnumMemberWithZeroValueTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.DeclareEnumMemberWithZeroValue;
 
-        public override DiagnosticAnalyzer Analyzer { get; } = new FlagsAnalyzer();
+        public override DiagnosticAnalyzer Analyzer { get; } = new EnumSymbolAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new DeclareEnumMemberWithZeroValueCodeFixProvider();
 

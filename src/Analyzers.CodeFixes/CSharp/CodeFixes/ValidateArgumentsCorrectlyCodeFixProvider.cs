@@ -63,9 +63,6 @@ namespace Roslynator.CSharp.CodeFixes
 
             string name = methodDeclaration.Identifier.ValueText;
 
-            if (!name.EndsWith("Iterator", StringComparison.Ordinal))
-                name += "Iterator";
-
             name = NameGenerator.Default.EnsureUniqueLocalName(name, semanticModel, statement.SpanStart, cancellationToken: cancellationToken);
 
             SyntaxList<StatementSyntax> statements = statementsInfo.Statements;
@@ -76,26 +73,24 @@ namespace Roslynator.CSharp.CodeFixes
 
             int lastIndex = localFunctionStatements.Count - 1;
 
-            localFunctionStatements[lastIndex] = localFunctionStatements[lastIndex].WithoutTrailingTrivia();
+            localFunctionStatements[0] = localFunctionStatements[0].TrimLeadingTrivia();
 
             LocalFunctionStatementSyntax localFunction = LocalFunctionStatement(
                 default(SyntaxTokenList),
                 methodDeclaration.ReturnType.WithoutTrivia(),
                 Identifier(name).WithRenameAnnotation(),
                 ParameterList(),
-                Block(localFunctionStatements).WithTrailingTrivia(statements.Last().GetTrailingTrivia()));
-
-            localFunction = localFunction.WithFormatterAnnotation();
+                Block(localFunctionStatements));
 
             ReturnStatementSyntax returnStatement = ReturnStatement(
-                Token(SyntaxKind.ReturnKeyword).WithLeadingTrivia(statement.GetLeadingTrivia()),
+                Token(TriviaList(NewLine()), SyntaxKind.ReturnKeyword, TriviaList()),
                 InvocationExpression(IdentifierName(name)),
-                SemicolonToken());
+                Token(SyntaxTriviaList.Empty, SyntaxKind.SemicolonToken, TriviaList(NewLine(), NewLine())));
 
             SyntaxList<StatementSyntax> newStatements = statements.ReplaceRange(
                 index,
                 statements.Count - index,
-                new StatementSyntax[] { returnStatement, localFunction });
+                new StatementSyntax[] { returnStatement.WithFormatterAnnotation(), localFunction.WithFormatterAnnotation() });
 
             return await document.ReplaceStatementsAsync(statementsInfo, newStatements, cancellationToken).ConfigureAwait(false);
         }

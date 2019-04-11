@@ -347,6 +347,16 @@ namespace Roslynator.CSharp
         /// </summary>
         /// <param name="declaration"></param>
         /// <returns></returns>
+        public static MemberDeclarationListInfo MemberDeclarationListInfo(TypeDeclarationSyntax declaration)
+        {
+            return Syntax.MemberDeclarationListInfo.Create(declaration);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Syntax.MemberDeclarationListInfo"/> from the specified declaration.
+        /// </summary>
+        /// <param name="declaration"></param>
+        /// <returns></returns>
         public static MemberDeclarationListInfo MemberDeclarationListInfo(ClassDeclarationSyntax declaration)
         {
             return Syntax.MemberDeclarationListInfo.Create(declaration);
@@ -885,21 +895,6 @@ namespace Roslynator.CSharp
         }
 
         /// <summary>
-        /// Creates a new <see cref="Syntax.SimpleIfElseInfo"/> from the specified if statement.
-        /// </summary>
-        /// <param name="ifStatement"></param>
-        /// <param name="walkDownParentheses"></param>
-        /// <param name="allowMissing"></param>
-        /// <returns></returns>
-        public static SimpleIfElseInfo SimpleIfElseInfo(
-            IfStatementSyntax ifStatement,
-            bool walkDownParentheses = true,
-            bool allowMissing = false)
-        {
-            return Syntax.SimpleIfElseInfo.Create(ifStatement, walkDownParentheses, allowMissing);
-        }
-
-        /// <summary>
         /// Creates a new <see cref="Syntax.SimpleIfStatementInfo"/> from the specified node.
         /// </summary>
         /// <param name="node"></param>
@@ -927,6 +922,19 @@ namespace Roslynator.CSharp
             bool allowMissing = false)
         {
             return Syntax.SimpleIfStatementInfo.Create(ifStatement, walkDownParentheses, allowMissing);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Syntax.SingleLocalDeclarationStatementInfo"/> from the specified statement.
+        /// </summary>
+        /// <param name="statement"></param>
+        /// <param name="allowMissing"></param>
+        /// <returns></returns>
+        public static SingleLocalDeclarationStatementInfo SingleLocalDeclarationStatementInfo(
+            StatementSyntax statement,
+            bool allowMissing = false)
+        {
+            return Syntax.SingleLocalDeclarationStatementInfo.Create(statement, allowMissing);
         }
 
         /// <summary>
@@ -996,21 +1004,11 @@ namespace Roslynator.CSharp
         /// <summary>
         /// Creates a new <see cref="Syntax.StatementListInfo"/> from the specified statement.
         /// </summary>
-        /// <param name="statement"></param>
+        /// <param name="statementInList"></param>
         /// <returns></returns>
-        public static StatementListInfo StatementListInfo(StatementSyntax statement)
+        public static StatementListInfo StatementListInfo(StatementSyntax statementInList)
         {
-            return Syntax.StatementListInfo.Create(statement);
-        }
-
-        internal static StatementListInfo StatementListInfo(BlockSyntax block)
-        {
-            return Syntax.StatementListInfo.Create(block);
-        }
-
-        internal static StatementListInfo StatementListInfo(SwitchSectionSyntax switchSection)
-        {
-            return Syntax.StatementListInfo.Create(switchSection);
+            return Syntax.StatementListInfo.Create(statementInList);
         }
 
         internal static StatementListInfo StatementListInfo(StatementListSelection selectedStatements)
@@ -1097,16 +1095,6 @@ namespace Roslynator.CSharp
         internal static TypeParameterConstraintInfo TypeParameterConstraintInfo(TypeParameterConstraintSyntax constraint, bool allowMissing = false)
         {
             return Syntax.TypeParameterConstraintInfo.Create(constraint, allowMissing);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="Syntax.TypeParameterInfo"/> from the specified type parameter.
-        /// </summary>
-        /// <param name="typeParameter"></param>
-        /// <returns></returns>
-        internal static TypeParameterInfo TypeParameterInfo(TypeParameterSyntax typeParameter)
-        {
-            return Syntax.TypeParameterInfo.Create(typeParameter);
         }
 
         /// <summary>

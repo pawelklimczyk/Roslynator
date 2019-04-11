@@ -12,66 +12,6 @@ namespace Roslynator.Documentation
 {
     internal static class SymbolExtensions
     {
-        public static bool HidesBaseSymbol(this ISymbol symbol)
-        {
-            if (!symbol.IsOverride)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.Event:
-                    case SymbolKind.Field:
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                    case SymbolKind.NamedType:
-                        {
-                            INamedTypeSymbol baseType = symbol.ContainingType?.BaseType;
-
-                            while (baseType != null)
-                            {
-                                foreach (ISymbol member in baseType.GetMembers(symbol.Name))
-                                {
-                                    if (MemberSymbolEqualityComparer.Instance.Equals(symbol, member))
-                                        return true;
-                                }
-
-                                baseType = baseType.BaseType;
-                            }
-
-                            break;
-                        }
-                }
-            }
-
-            return false;
-        }
-
-        //XTODO: move to core
-        public static ImmutableArray<INamedTypeSymbol> GetTypes(this IAssemblySymbol assemblySymbol, Func<INamedTypeSymbol, bool> predicate = null)
-        {
-            ImmutableArray<INamedTypeSymbol>.Builder builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
-
-            GetTypes(assemblySymbol.GlobalNamespace);
-
-            return builder.ToImmutableArray();
-
-            void GetTypes(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
-            {
-                if (namespaceOrTypeSymbol is INamedTypeSymbol namedTypeSymbol
-                    && (predicate == null || predicate(namedTypeSymbol)))
-                {
-                    builder.Add(namedTypeSymbol);
-                }
-
-                foreach (ISymbol memberSymbol in namespaceOrTypeSymbol.GetMembers())
-                {
-                    if (memberSymbol is INamespaceOrTypeSymbol namespaceOrTypeSymbol2)
-                    {
-                        GetTypes(namespaceOrTypeSymbol2);
-                    }
-                }
-            }
-        }
-
         public static ImmutableArray<ISymbol> GetMembers(this INamedTypeSymbol typeSymbol, Func<ISymbol, bool> predicate, bool includeInherited = false)
         {
             if (includeInherited)
@@ -185,21 +125,6 @@ namespace Roslynator.Documentation
             }
 
             return ImmutableArray<ITypeParameterSymbol>.Empty;
-        }
-
-        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).Parameters;
-                case SymbolKind.NamedType:
-                    return ((INamedTypeSymbol)symbol).DelegateInvokeMethod?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Parameters;
-            }
-
-            return ImmutableArray<IParameterSymbol>.Empty;
         }
 
         public static ISymbol GetFirstExplicitInterfaceImplementation(this ISymbol symbol)
@@ -346,105 +271,14 @@ namespace Roslynator.Documentation
             return parts;
         }
 
-        public static string ToDisplayString(this INamedTypeSymbol typeSymbol, SymbolDisplayFormat format, SymbolDisplayTypeDeclarationOptions typeDeclarationOptions)
-        {
-            return typeSymbol.ToDisplayParts(format, typeDeclarationOptions).ToDisplayString();
-        }
-
-        public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(this INamedTypeSymbol typeSymbol, SymbolDisplayFormat format, SymbolDisplayTypeDeclarationOptions typeDeclarationOptions)
-        {
-            if (typeDeclarationOptions == SymbolDisplayTypeDeclarationOptions.None)
-                return typeSymbol.ToDisplayParts(format);
-
-            ImmutableArray<SymbolDisplayPart> parts = typeSymbol.ToDisplayParts(format);
-
-            ImmutableArray<SymbolDisplayPart>.Builder builder = ImmutableArray.CreateBuilder<SymbolDisplayPart>(parts.Length);
-
-            if ((typeDeclarationOptions & SymbolDisplayTypeDeclarationOptions.IncludeAccessibility) != 0)
-            {
-                switch (typeSymbol.DeclaredAccessibility)
-                {
-                    case Accessibility.Public:
-                        {
-                            AddKeyword(SyntaxKind.PublicKeyword);
-                            break;
-                        }
-                    case Accessibility.ProtectedOrInternal:
-                        {
-                            AddKeyword(SyntaxKind.ProtectedKeyword);
-                            AddKeyword(SyntaxKind.InternalKeyword);
-                            break;
-                        }
-                    case Accessibility.Internal:
-                        {
-                            AddKeyword(SyntaxKind.InternalKeyword);
-                            break;
-                        }
-                    case Accessibility.Protected:
-                        {
-                            AddKeyword(SyntaxKind.ProtectedKeyword);
-                            break;
-                        }
-                    case Accessibility.ProtectedAndInternal:
-                        {
-                            AddKeyword(SyntaxKind.PrivateKeyword);
-                            AddKeyword(SyntaxKind.ProtectedKeyword);
-                            break;
-                        }
-                    case Accessibility.Private:
-                        {
-                            AddKeyword(SyntaxKind.PrivateKeyword);
-                            break;
-                        }
-                    default:
-                        {
-                            throw new InvalidOperationException();
-                        }
-                }
-            }
-
-            if ((typeDeclarationOptions & SymbolDisplayTypeDeclarationOptions.IncludeModifiers) != 0)
-            {
-                if (typeSymbol.IsStatic)
-                    AddKeyword(SyntaxKind.StaticKeyword);
-
-                if (typeSymbol.IsSealed
-                    && !typeSymbol.TypeKind.Is(TypeKind.Struct, TypeKind.Enum, TypeKind.Delegate))
-                {
-                    AddKeyword(SyntaxKind.SealedKeyword);
-                }
-
-                if (typeSymbol.IsAbstract
-                    && typeSymbol.TypeKind != TypeKind.Interface)
-                {
-                    AddKeyword(SyntaxKind.AbstractKeyword);
-                }
-            }
-
-            builder.AddRange(parts);
-
-            return builder.ToImmutableArray();
-
-            void AddKeyword(SyntaxKind kind)
-            {
-                builder.Add(SymbolDisplayPartFactory.Keyword(SyntaxFacts.GetText(kind)));
-                AddSpace();
-            }
-
-            void AddSpace()
-            {
-                builder.Add(SymbolDisplayPartFactory.Space());
-            }
-        }
-
-        internal static ImmutableArray<AttributeInfo> GetAttributesIncludingInherited(this INamedTypeSymbol namedType, Func<INamedTypeSymbol, bool> predicate = null)
+        internal static ImmutableArray<AttributeInfo> GetAttributesIncludingInherited(this INamedTypeSymbol namedType, Func<ISymbol, AttributeData, bool> predicate = null)
         {
             HashSet<AttributeInfo> attributes = null;
 
             foreach (AttributeData attributeData in namedType.GetAttributes())
             {
                 if (predicate == null
-                    || predicate(attributeData.AttributeClass))
+                    || predicate(namedType, attributeData))
                 {
                     (attributes ?? (attributes = new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer))).Add(new AttributeInfo(namedType, attributeData));
                 }
@@ -471,7 +305,7 @@ namespace Roslynator.Documentation
                     }
 
                     if (predicate == null
-                        || predicate(attributeData.AttributeClass))
+                        || predicate(baseType, attributeData))
                     {
                         (attributes ?? (attributes = new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer))).Add(new AttributeInfo(baseType, attributeData));
                     }

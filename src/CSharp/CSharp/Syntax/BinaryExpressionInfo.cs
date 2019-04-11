@@ -42,6 +42,14 @@ namespace Roslynator.CSharp.Syntax
         public ExpressionSyntax Right { get; }
 
         /// <summary>
+        /// The operator of the binary expression.
+        /// </summary>
+        public SyntaxToken OperatorToken
+        {
+            get { return BinaryExpression?.OperatorToken ?? default; }
+        }
+
+        /// <summary>
         /// The kind of the binary expression.
         /// </summary>
         public SyntaxKind Kind
@@ -64,25 +72,9 @@ namespace Roslynator.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns expressions of this binary expression, including expressions of nested binary expressions of the same kind as parent binary expression.
+        /// Returns <see cref="ExpressionChain"/> that enables to enumerate expressions of a binary expression.
         /// </summary>
-        /// <param name="leftToRight">If true expressions are enumerated as they are displayed in the source code.</param>
         /// <returns></returns>
-        [Obsolete("This method is obsolete. Use method 'AsChain' instead.")]
-        public IEnumerable<ExpressionSyntax> Expressions(bool leftToRight = false)
-        {
-            ThrowInvalidOperationIfNotInitialized();
-
-            if (leftToRight)
-            {
-                return AsChain();
-            }
-            else
-            {
-                return AsChain().Reverse();
-            }
-        }
-
         public ExpressionChain AsChain()
         {
             return new ExpressionChain(BinaryExpression);

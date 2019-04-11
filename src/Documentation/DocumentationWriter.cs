@@ -436,24 +436,102 @@ namespace Roslynator.Documentation
             WriteSection(
                 heading: Resources.SummaryTitle,
                 xmlDocumentation: xmlDocumentation,
-                elementName: WellKnownTags.Summary,
+                elementName: WellKnownXmlTags.Summary,
                 headingLevelBase: headingLevelBase);
         }
 
+        //XTODO: WriteDeclaration > WriteDefinition
         public virtual void WriteDeclaration(ISymbol symbol)
         {
-            ImmutableArray<SymbolDisplayPart> parts = SymbolDeclarationBuilder.GetDisplayParts(
+            SymbolDisplayAdditionalOptions additionalOptions = SymbolDisplayAdditionalOptions.FormatAttributes
+                | SymbolDisplayAdditionalOptions.PreferDefaultLiteral;
+
+            if (Options.IncludeAttributeArguments)
+                additionalOptions |= SymbolDisplayAdditionalOptions.IncludeAttributeArguments;
+
+            if (Options.FormatDeclarationBaseList)
+                additionalOptions |= SymbolDisplayAdditionalOptions.FormatBaseList;
+
+            if (Options.FormatDeclarationConstraints)
+                additionalOptions |= SymbolDisplayAdditionalOptions.FormatConstraints;
+
+            if (Options.OmitIEnumerable)
+                additionalOptions |= SymbolDisplayAdditionalOptions.OmitIEnumerable;
+
+            ImmutableArray<SymbolDisplayPart> attributesParts = SymbolDefinitionDisplay.GetAttributesParts(
                 symbol,
                 SymbolDisplayFormats.FullDeclaration,
-                typeDeclarationOptions: SymbolDisplayTypeDeclarationOptions.IncludeAccessibility | SymbolDisplayTypeDeclarationOptions.IncludeModifiers,
-                isVisibleAttribute: f => DocumentationUtility.IsVisibleAttribute(f),
-                formatBaseList: Options.FormatDeclarationBaseList,
-                formatConstraints: Options.FormatDeclarationConstraints,
-                includeAttributeArguments: Options.IncludeAttributeArguments,
-                omitIEnumerable: Options.OmitIEnumerable,
-                useNameOnlyIfPossible: true);
+                additionalOptions: additionalOptions,
+                shouldDisplayAttribute: (s, a) => DocumentationModel.Filter.IsMatch(s, a),
+                includeTrailingNewLine: true);
 
-            WriteCodeBlock(parts.ToDisplayString(), symbol.Language);
+            ImmutableArray<SymbolDisplayPart> parts = SymbolDefinitionDisplay.GetDisplayParts(
+                symbol,
+                (symbol.GetFirstExplicitInterfaceImplementation() != null)
+                    ? SymbolDisplayFormats.ExplicitImplementationFullDeclaration
+                    : SymbolDisplayFormats.FullDeclaration,
+                typeDeclarationOptions: SymbolDisplayTypeDeclarationOptions.IncludeAccessibility
+                    | SymbolDisplayTypeDeclarationOptions.IncludeModifiers
+                    | SymbolDisplayTypeDeclarationOptions.BaseList,
+                additionalOptions: additionalOptions,
+                shouldDisplayAttribute: (s, a) => DocumentationModel.Filter.IsMatch(s, a));
+
+            if (symbol.IsKind(SymbolKind.NamedType))
+                RemoveContainingNamespace();
+
+            string text = attributesParts.ToDisplayString() + parts.ToDisplayString();
+
+            WriteCodeBlock(text, LanguageNames.CSharp);
+
+            void RemoveContainingNamespace()
+            {
+                int i = 0;
+                int j = 0;
+
+                while (i < parts.Length)
+                {
+                    if (parts[i].IsTypeName())
+                        break;
+
+                    if (parts[i].Kind == SymbolDisplayPartKind.NamespaceName)
+                    {
+                        j = i;
+
+                        if (Peek().IsPunctuation("."))
+                        {
+                            j++;
+
+                            while (Peek().Kind == SymbolDisplayPartKind.NamespaceName
+                                && Peek(2).IsPunctuation())
+                            {
+                                j += 2;
+                            }
+
+                            Debug.Assert(Peek().IsTypeName(), Peek().Kind.ToString());
+
+                            if (Peek().IsTypeName())
+                            {
+                                parts = parts.RemoveRange(i, j - i + 1);
+                                return;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    i++;
+                }
+
+                SymbolDisplayPart Peek(int offset = 1)
+                {
+                    if (j < parts.Length - offset)
+                    {
+                        return parts[j + offset];
+                    }
+
+                    return default;
+                }
+            }
         }
 
         public virtual void WriteTypeParameters(ImmutableArray<ITypeParameterSymbol> typeParameters)
@@ -468,7 +546,7 @@ namespace Roslynator.Documentation
                 {
                     WriteBold(en.Current.Name);
 
-                    XElement element = GetXmlDocumentation(en.Current.ContainingSymbol)?.Element(WellKnownTags.TypeParam, "name", en.Current.Name);
+                    XElement element = GetXmlDocumentation(en.Current.ContainingSymbol)?.Element(WellKnownXmlTags.TypeParam, "name", en.Current.Name);
 
                     if (element?.Nodes().Any() == true)
                     {
@@ -503,7 +581,7 @@ namespace Roslynator.Documentation
                 {
                     WriteBold(en.Current.Name);
 
-                    XElement element = GetXmlDocumentation(en.Current.ContainingSymbol)?.Element(WellKnownTags.Param, "name", en.Current.Name);
+                    XElement element = GetXmlDocumentation(en.Current.ContainingSymbol)?.Element(WellKnownXmlTags.Param, "name", en.Current.Name);
 
                     if (element?.Nodes().Any() == true)
                     {
@@ -545,7 +623,7 @@ namespace Roslynator.Documentation
 
                             WriteReturnType(returnType, Resources.ReturnValueTitle);
 
-                            xmlDocumentation?.Element(WellKnownTags.Returns)?.WriteContentTo(this);
+                            xmlDocumentation?.Element(WellKnownXmlTags.Returns)?.WriteContentTo(this);
                         }
 
                         break;
@@ -568,7 +646,7 @@ namespace Roslynator.Documentation
                                 {
                                     WriteReturnType(methodSymbol.ReturnType, Resources.ReturnsTitle);
 
-                                    xmlDocumentation?.Element(WellKnownTags.Returns)?.WriteContentTo(this);
+                                    xmlDocumentation?.Element(WellKnownXmlTags.Returns)?.WriteContentTo(this);
                                     break;
                                 }
                             default:
@@ -580,7 +658,7 @@ namespace Roslynator.Documentation
 
                                     WriteReturnType(returnType, Resources.ReturnsTitle);
 
-                                    xmlDocumentation?.Element(WellKnownTags.Returns)?.WriteContentTo(this);
+                                    xmlDocumentation?.Element(WellKnownXmlTags.Returns)?.WriteContentTo(this);
                                     break;
                                 }
                         }
@@ -593,7 +671,7 @@ namespace Roslynator.Documentation
 
                         WriteReturnType(propertySymbol.Type, Resources.PropertyValueTitle);
 
-                        string elementName = (propertySymbol.IsIndexer) ? WellKnownTags.Returns : WellKnownTags.Value;
+                        string elementName = (propertySymbol.IsIndexer) ? WellKnownXmlTags.Returns : WellKnownXmlTags.Value;
 
                         xmlDocumentation?.Element(elementName)?.WriteContentTo(this);
                         break;
@@ -695,13 +773,13 @@ namespace Roslynator.Documentation
             if (symbol is INamedTypeSymbol typeSymbol
                 && Options.IncludeInheritedAttributes)
             {
-                attributes = typeSymbol.GetAttributesIncludingInherited(f => DocumentationUtility.IsVisibleAttribute(f));
+                attributes = typeSymbol.GetAttributesIncludingInherited((s, a) => DocumentationModel.Filter.IsMatch(s, a));
             }
             else
             {
                 attributes = symbol
                     .GetAttributes()
-                    .Where(f => DocumentationUtility.IsVisibleAttribute(f.AttributeClass))
+                    .Where(f => DocumentationModel.Filter.IsMatch(symbol, f))
                     .Select(f => new AttributeInfo(symbol, f))
                     .ToImmutableArray();
             }
@@ -816,7 +894,7 @@ namespace Roslynator.Documentation
 
             IEnumerable<(XElement element, INamedTypeSymbol exceptionSymbol)> GetExceptions()
             {
-                foreach (XElement element in xmlDocumentation.Elements(WellKnownTags.Exception))
+                foreach (XElement element in xmlDocumentation.Elements(WellKnownXmlTags.Exception))
                 {
                     string commentId = element.Attribute("cref")?.Value;
 
@@ -831,12 +909,12 @@ namespace Roslynator.Documentation
 
         public virtual void WriteExamples(ISymbol symbol, SymbolXmlDocumentation xmlDocumentation, int headingLevelBase = 0)
         {
-            WriteSection(heading: Resources.ExamplesTitle, xmlDocumentation: xmlDocumentation, elementName: WellKnownTags.Example, headingLevelBase: headingLevelBase);
+            WriteSection(heading: Resources.ExamplesTitle, xmlDocumentation: xmlDocumentation, elementName: WellKnownXmlTags.Example, headingLevelBase: headingLevelBase);
         }
 
         public virtual void WriteRemarks(ISymbol symbol, SymbolXmlDocumentation xmlDocumentation, int headingLevelBase = 0)
         {
-            WriteSection(heading: Resources.RemarksTitle, xmlDocumentation: xmlDocumentation, elementName: WellKnownTags.Remarks, headingLevelBase: headingLevelBase);
+            WriteSection(heading: Resources.RemarksTitle, xmlDocumentation: xmlDocumentation, elementName: WellKnownXmlTags.Remarks, headingLevelBase: headingLevelBase);
         }
 
         public virtual void WriteEnumFields(IEnumerable<IFieldSymbol> fields, INamedTypeSymbol containingType)
@@ -910,7 +988,7 @@ namespace Roslynator.Documentation
                         if (xmlDocumentation != null)
                         {
                             WriteStartTableCell();
-                            xmlDocumentation?.Element(WellKnownTags.Summary)?.WriteContentTo(this, inlineOnly: true);
+                            xmlDocumentation?.Element(WellKnownXmlTags.Summary)?.WriteContentTo(this, inlineOnly: true);
                             WriteEndTableCell();
                         }
 
@@ -1022,7 +1100,7 @@ namespace Roslynator.Documentation
 
             IEnumerable<ISymbol> GetSymbols()
             {
-                foreach (XElement element in xmlDocumentation.Elements(WellKnownTags.SeeAlso))
+                foreach (XElement element in xmlDocumentation.Elements(WellKnownXmlTags.SeeAlso))
                 {
                     string commentId = element.Attribute("cref")?.Value;
 
@@ -1265,17 +1343,17 @@ namespace Roslynator.Documentation
 
                         if (symbol.Kind == SymbolKind.Parameter)
                         {
-                            GetXmlDocumentation(symbol.ContainingSymbol)?.Element(WellKnownTags.Param, "name", symbol.Name)?.WriteContentTo(this);
+                            GetXmlDocumentation(symbol.ContainingSymbol)?.Element(WellKnownXmlTags.Param, "name", symbol.Name)?.WriteContentTo(this);
                         }
                         else if (symbol.Kind == SymbolKind.TypeParameter)
                         {
-                            GetXmlDocumentation(symbol.ContainingSymbol)?.Element(WellKnownTags.TypeParam, "name", symbol.Name)?.WriteContentTo(this);
+                            GetXmlDocumentation(symbol.ContainingSymbol)?.Element(WellKnownXmlTags.TypeParam, "name", symbol.Name)?.WriteContentTo(this);
                         }
                         else
                         {
                             ISymbol symbol2 = (isInherited) ? symbol.OriginalDefinition : symbol;
 
-                            GetXmlDocumentation(symbol2)?.Element(WellKnownTags.Summary)?.WriteContentTo(this, inlineOnly: true);
+                            GetXmlDocumentation(symbol2)?.Element(WellKnownXmlTags.Summary)?.WriteContentTo(this, inlineOnly: true);
                         }
 
                         if (isInherited)

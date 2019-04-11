@@ -257,10 +257,6 @@ namespace Roslynator.Documentation
 
             IEnumerable<INamedTypeSymbol> typeSymbols = DocumentationModel.Types.Where(f => !Options.ShouldBeIgnored(f));
 
-            IEnumerable<INamespaceSymbol> namespaceSymbols = typeSymbols
-                .Select(f => f.ContainingNamespace)
-                .Distinct(MetadataNameEqualityComparer<INamespaceSymbol>.Instance);
-
             foreach (RootDocumentationParts part in EnabledAndSortedRootParts)
             {
                 switch (part)
@@ -277,6 +273,10 @@ namespace Roslynator.Documentation
                         }
                     case RootDocumentationParts.Namespaces:
                         {
+                            IEnumerable<INamespaceSymbol> namespaceSymbols = typeSymbols
+                                .Select(f => f.ContainingNamespace)
+                                .Distinct(MetadataNameEqualityComparer<INamespaceSymbol>.Instance);
+
                             writer.WriteList(namespaceSymbols, Resources.NamespacesTitle, 2, SymbolDisplayFormats.TypeNameAndContainingTypesAndNamespaces);
                             break;
                         }
@@ -286,7 +286,7 @@ namespace Roslynator.Documentation
                             {
                                 if (typeSymbols.Any(f => !f.IsStatic && f.TypeKind == TypeKind.Class))
                                 {
-                                    INamedTypeSymbol objectType = DocumentationModel.Compilation.ObjectType;
+                                    INamedTypeSymbol objectType = DocumentationModel.Compilations[0].ObjectType;
 
                                     IEnumerable<INamedTypeSymbol> instanceClasses = typeSymbols.Where(f => !f.IsStatic && f.TypeKind == TypeKind.Class);
 
@@ -482,7 +482,7 @@ namespace Roslynator.Documentation
                             }
                         case NamespaceDocumentationParts.Summary:
                             {
-                                xmlDocumentation?.Element(WellKnownTags.Summary)?.WriteContentTo(writer);
+                                xmlDocumentation?.Element(WellKnownXmlTags.Summary)?.WriteContentTo(writer);
                                 break;
                             }
                         case NamespaceDocumentationParts.Examples:
@@ -568,11 +568,11 @@ namespace Roslynator.Documentation
                             }
                         case NamespaceDocumentationParts.Examples:
                             {
-                                return xmlDocumentation?.HasElement(WellKnownTags.Example) == true;
+                                return xmlDocumentation?.HasElement(WellKnownXmlTags.Example) == true;
                             }
                         case NamespaceDocumentationParts.Remarks:
                             {
-                                return xmlDocumentation?.HasElement(WellKnownTags.Remarks) == true;
+                                return xmlDocumentation?.HasElement(WellKnownXmlTags.Remarks) == true;
                             }
                         case NamespaceDocumentationParts.Classes:
                             {
@@ -596,7 +596,7 @@ namespace Roslynator.Documentation
                             }
                         case NamespaceDocumentationParts.SeeAlso:
                             {
-                                return xmlDocumentation?.Elements(WellKnownTags.SeeAlso).Any() == true;
+                                return xmlDocumentation?.Elements(WellKnownXmlTags.SeeAlso).Any() == true;
                             }
                         default:
                             {
@@ -710,8 +710,8 @@ namespace Roslynator.Documentation
             if (EnabledAndSortedTypeParts.Contains(TypeDocumentationParts.Derived))
             {
                 derivedTypes = (Options.IncludeAllDerivedTypes)
-                    ? typeModel.GetAllDerivedTypes().ToImmutableArray()
-                    : typeModel.GetDerivedTypes().ToImmutableArray();
+                    ? DocumentationModel.GetAllDerivedTypes(typeSymbol).ToImmutableArray()
+                    : DocumentationModel.GetDerivedTypes(typeSymbol).ToImmutableArray();
             }
 
             bool includeInherited = typeModel.TypeKind != TypeKind.Interface || Options.IncludeInheritedInterfaceMembers;
@@ -880,7 +880,7 @@ namespace Roslynator.Documentation
                             }
                         case TypeDocumentationParts.ExtensionMethods:
                             {
-                                writer.WriteExtensionMethods(typeModel.GetExtensionMethods());
+                                writer.WriteExtensionMethods(DocumentationModel.GetExtensionMethods(typeSymbol));
                                 break;
                             }
                         case TypeDocumentationParts.Classes:
@@ -972,11 +972,11 @@ namespace Roslynator.Documentation
                         }
                     case TypeDocumentationParts.Examples:
                         {
-                            return xmlDocumentation?.HasElement(WellKnownTags.Example) == true;
+                            return xmlDocumentation?.HasElement(WellKnownXmlTags.Example) == true;
                         }
                     case TypeDocumentationParts.Remarks:
                         {
-                            return xmlDocumentation?.HasElement(WellKnownTags.Remarks) == true;
+                            return xmlDocumentation?.HasElement(WellKnownXmlTags.Remarks) == true;
                         }
                     case TypeDocumentationParts.Constructors:
                         {
@@ -1019,7 +1019,7 @@ namespace Roslynator.Documentation
                         }
                     case TypeDocumentationParts.ExtensionMethods:
                         {
-                            return typeModel.GetExtensionMethods().Any();
+                            return DocumentationModel.GetExtensionMethods(typeSymbol).Any();
                         }
                     case TypeDocumentationParts.Classes:
                         {
@@ -1043,7 +1043,7 @@ namespace Roslynator.Documentation
                         }
                     case TypeDocumentationParts.SeeAlso:
                         {
-                            return xmlDocumentation?.Elements(WellKnownTags.SeeAlso).Any() == true;
+                            return xmlDocumentation?.Elements(WellKnownXmlTags.SeeAlso).Any() == true;
                         }
                     default:
                         {

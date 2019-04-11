@@ -38,20 +38,6 @@ namespace Roslynator.CSharp.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddArgumentList)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.OrderModifiers)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.ReturnDefaultValue)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddMissingType)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveSemicolon)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveConditionalAccess)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeForEachType)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddDefaultValueToParameter)
-                && !Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeParameterType))
-            {
-                return;
-            }
-
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             if (!TryFindToken(root, context.Span.Start, out SyntaxToken token))
@@ -77,7 +63,7 @@ namespace Roslynator.CSharp.CodeFixes
                                 {
                                     if (typeSymbol.IsValueType)
                                     {
-                                        if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveConditionalAccess))
+                                        if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.RemoveConditionalAccess))
                                         {
                                             CodeAction codeAction = CodeAction.Create(
                                                 "Remove '?' operator",
@@ -93,7 +79,7 @@ namespace Roslynator.CSharp.CodeFixes
                                     }
                                     else if (typeSymbol.IsReferenceType)
                                     {
-                                        if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddArgumentList)
+                                        if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddArgumentList)
                                             && conditionalAccess.WhenNotNull is MemberBindingExpressionSyntax memberBindingExpression)
                                         {
                                             ConditionalAccessExpressionSyntax newNode = conditionalAccess.WithWhenNotNull(
@@ -110,22 +96,13 @@ namespace Roslynator.CSharp.CodeFixes
                                         }
                                     }
                                 }
-
-                                if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddArgumentList))
-                                {
-                                    break;
-                                }
-
-                                if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveConditionalAccess))
-                                {
-                                }
                             }
 
                             break;
                         }
                     case CompilerDiagnosticIdentifiers.PartialModifierCanOnlyAppearImmediatelyBeforeClassStructInterfaceOrVoid:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.OrderModifiers))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.OrderModifiers))
                                 break;
 
                             ModifiersCodeFixRegistrator.MoveModifier(context, diagnostic, token.Parent, token);
@@ -133,9 +110,6 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.ValueCannotBeUsedAsDefaultParameter:
                         {
-                            if (!Settings.IsAnyCodeFixEnabled(CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue, CodeFixIdentifiers.ChangeParameterType))
-                                break;
-
                             if (!(token.Parent is ParameterSyntax parameter))
                                 break;
 
@@ -146,7 +120,7 @@ namespace Roslynator.CSharp.CodeFixes
 
                             if (value.IsKind(SyntaxKind.NullLiteralExpression))
                             {
-                                if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue))
+                                if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ReplaceNullLiteralExpressionWithDefaultValue))
                                 {
                                     SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
@@ -155,7 +129,7 @@ namespace Roslynator.CSharp.CodeFixes
                             }
                             else if (!value.IsKind(SyntaxKind.DefaultExpression, SyntaxKind.DefaultLiteralExpression))
                             {
-                                if (Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeParameterType))
+                                if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ChangeParameterType))
                                 {
                                     SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
@@ -172,7 +146,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.ObjectOfTypeConvertibleToTypeIsRequired:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.ReturnDefaultValue))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ReturnDefaultValue))
                                 break;
 
                             if (token.Kind() != SyntaxKind.ReturnKeyword)
@@ -250,7 +224,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.TypeExpected:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddMissingType))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddMissingType))
                                 break;
 
                             if (token.Kind() != SyntaxKind.CloseParenToken)
@@ -293,7 +267,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.SemicolonAfterMethodOrAccessorBlockIsNotValid:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.RemoveSemicolon))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.RemoveSemicolon))
                                 break;
 
                             if (token.Kind() != SyntaxKind.SemicolonToken)
@@ -391,7 +365,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.CannotConvertType:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.ChangeForEachType))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ChangeForEachType))
                                 break;
 
                             if (token.Kind() != SyntaxKind.ForEachKeyword)
@@ -414,7 +388,7 @@ namespace Roslynator.CSharp.CodeFixes
                         }
                     case CompilerDiagnosticIdentifiers.OptionalParametersMustAppearAfterAllRequiredParameters:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.AddDefaultValueToParameter))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.AddDefaultValueToParameter))
                                 break;
 
                             if (!(token.Parent is BaseParameterListSyntax parameterList))

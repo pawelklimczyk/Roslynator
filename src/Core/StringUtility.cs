@@ -20,13 +20,6 @@ namespace Roslynator
                 || Equals(s, value2);
         }
 
-        internal static bool Equals(string s, string value1, string value2, string value3)
-        {
-            return Equals(s, value1)
-                || Equals(s, value2)
-                || Equals(s, value3);
-        }
-
         internal static bool Equals(string s, string value)
         {
             return string.Equals(s, value, StringComparison.Ordinal);
@@ -47,21 +40,6 @@ namespace Roslynator
             }
         }
 
-        public static string FirstCharToLowerInvariant(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            if (value.Length > 0)
-            {
-                return char.ToLowerInvariant(value[0]) + value.Substring(1);
-            }
-            else
-            {
-                return value;
-            }
-        }
-
         public static string FirstCharToUpper(string value)
         {
             if (value == null)
@@ -75,41 +53,6 @@ namespace Roslynator
             {
                 return value;
             }
-        }
-
-        public static string FirstCharToUpperInvariant(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            if (value.Length > 0)
-            {
-                return char.ToUpperInvariant(value[0]) + value.Substring(1);
-            }
-            else
-            {
-                return value;
-            }
-        }
-
-        public static bool StartsWithLowerLetter(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            return value.Length > 0
-                && char.IsLetter(value[0])
-                && char.IsLower(value[0]);
-        }
-
-        public static bool StartsWithUpperLetter(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            return value.Length > 0
-                && char.IsLetter(value[0])
-                && char.IsUpper(value[0]);
         }
 
         public static bool IsEmptyOrWhitespace(string value)
@@ -150,19 +93,9 @@ namespace Roslynator
                 .Replace("}", "}}");
         }
 
-        public static string DoubleBackslash(string value)
-        {
-            return value.Replace(@"\", @"\\");
-        }
-
         public static string EscapeQuote(string value)
         {
             return value.Replace("\"", @"\" + "\"");
-        }
-
-        public static string DoubleQuote(string value)
-        {
-            return value.Replace("\"", "\"\"");
         }
 
         public static string ToCamelCase(string value, bool prefixWithUnderscore = false)
@@ -225,16 +158,6 @@ namespace Roslynator
             }
 
             return false;
-        }
-
-        public static bool IsCamelCaseNotPrefixedWithUnderscore(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            return value.Length > 0
-                && value[0] != '_'
-                && char.IsLower(value[0]);
         }
 
         public static bool HasPrefix(string value, string prefix, StringComparison comparison = StringComparison.Ordinal)
@@ -376,6 +299,61 @@ namespace Roslynator
             return char.IsDigit(ch)
                 || (ch >= 'a' && ch <= 'f')
                 || (ch >= 'A' && ch <= 'F');
+        }
+
+        public static string ReplaceDoubleBracesWithSingleBrace(string s)
+        {
+            int i = 0;
+
+            if (!FindNextIndex())
+                return s;
+
+            var sb = new StringBuilder(s.Length);
+
+            int prevIndex = 0;
+
+            while (true)
+            {
+                sb.Append(s, prevIndex, i - prevIndex);
+                sb.Append(s[i]);
+                i++;
+                i++;
+
+                prevIndex = i;
+
+                if (!FindNextIndex())
+                {
+                    sb.Append(s, prevIndex, s.Length - prevIndex);
+                    return sb.ToString();
+                }
+            }
+
+            bool FindNextIndex()
+            {
+                while (i < s.Length)
+                {
+                    if (s[i] == '{')
+                    {
+                        if (i < s.Length - 1
+                            && s[i + 1] == '{')
+                        {
+                            return true;
+                        }
+                    }
+                    else if (s[i] == '}')
+                    {
+                        if (i < s.Length - 1
+                            && s[i + 1] == '}')
+                        {
+                            return true;
+                        }
+                    }
+
+                    i++;
+                }
+
+                return false;
+            }
         }
     }
 }

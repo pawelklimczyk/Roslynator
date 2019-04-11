@@ -295,6 +295,7 @@ foreach (var item in items) // [|Id|]
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>6.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[public void Foo(object parameter)
@@ -324,6 +325,7 @@ foreach (var item in items) // [|Id|]
     <IsEnabledByDefault>false</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>6.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[public object Foo()
@@ -1255,6 +1257,7 @@ public enum FooEnum
 }]]></After>
       </Sample>
     </Samples>
+    <Remarks>This analyzer does not enforce an empty line between two single-line declaration.</Remarks>
   </Analyzer>
   <Analyzer Identifier="UseCompoundAssignment">
     <Id>RCS1058</Id>
@@ -1417,10 +1420,9 @@ while (true);]]></Before>
         <Before><![CDATA[while (true) // [|Id|]
 {
 }]]></Before>
-        <After><![CDATA[do
+        <After><![CDATA[for (;;)
 {
-}
-while (true);]]></After>
+}]]></After>
       </Sample>
     </Samples>
   </Analyzer>
@@ -1706,8 +1708,12 @@ catch (Exception ex) // [|Id|]
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[bool x = items.Where(f => Foo(f)).Any(); // [|Id|]]]></Before>
-        <After><![CDATA[bool x = items.Any(f => Foo(f));]]></After>
+        <Before><![CDATA[bool any = items.Where(predicate).Any(); // [|Id|]]]></Before>
+        <After><![CDATA[bool any = items.Any(predicate);]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[int max = items.Select(selector).Max(); // [|Id|]]]></Before>
+        <After><![CDATA[int max = items.Max(selector);]]></After>
       </Sample>
       <Sample>
         <Before><![CDATA[IEnumerable<Foo> x = items.Where(f => f is Foo).Cast<Foo>(); // [|Id|]]]></Before>
@@ -1736,7 +1742,8 @@ catch (Exception ex) // [|Id|]
       <Sample>
         <Before><![CDATA[var x = list.First(); // [|Id|]]]></Before>
         <After><![CDATA[var x = list[0];]]></After>
-      </Sample>      <Sample>
+      </Sample>
+      <Sample>
         <Before><![CDATA[if (enumerable.Count() != 0) // [|Id|]
 {
 }]]></Before>
@@ -1767,6 +1774,10 @@ object x = stack.First(); // [|Id|]]]></Before>
         <After><![CDATA[var queue = new Queue<object>();
 // ...
 object x = items.Peek();]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[enumerable.Any() ? enumerable.First() : default // [|Id|]]]></Before>
+        <After><![CDATA[enumerable.FirstOrDefault()]]></After>
       </Sample>
     </Samples>
   </Analyzer>
@@ -3096,6 +3107,7 @@ string s2 = s as string; // [|Id|]]]></Before>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>6.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[if (s != null && s.StartsWith("a")) // [|Id|]
@@ -4362,6 +4374,7 @@ public class FooAttribute : Attribute
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>6.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[var x = new Foo();
@@ -4803,6 +4816,7 @@ else
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>7.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[if (x is T && Foo((T)x)) // [|Id|]
@@ -4823,6 +4837,7 @@ else
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>7.0</MinLanguageVersion>
     <Samples>
       <Sample>
         <Before><![CDATA[var y = x as Foo; // [|Id|]
@@ -5116,9 +5131,10 @@ public string Foo()
     <MessageFormat>Make parameter ref read-only.</MessageFormat>
     <Category>Performance</Category>
     <DefaultSeverity>Info</DefaultSeverity>
-    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <IsEnabledByDefault>false</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>7.2</MinLanguageVersion>
     <Summary></Summary>
     <Samples>
       <Sample>
@@ -5168,6 +5184,54 @@ public string Foo()
     void M(object p1, object p2, object p3)
     {
     }
+}]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
+  <Analyzer Identifier="UseShortCircuitingOperator">
+    <Id>RCS1233</Id>
+    <Title>Use short-circuiting operator.</Title>
+    <MessageFormat>Use short-circuiting operator.</MessageFormat>
+    <Category>Usage</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[boolExpr1 & boolExpr2 [|Id|]]]></Before>
+        <After><![CDATA[boolExpr1 && boolExpr2]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[boolExpr1 | boolExpr2 [|Id|]]]></Before>
+        <After><![CDATA[boolExpr1 || boolExpr2]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
+  <Analyzer Identifier="DuplicateEnumValue">
+    <Id>RCS1234</Id>
+    <Title>Duplicate enum value.</Title>
+    <MessageFormat>Duplicate enum value.</MessageFormat>
+    <Category>Readability</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Summary></Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[enum E
+{
+    A = 1,
+    B = 2,
+    C = 2, [|Id|]
+}]]></Before>
+        <After><![CDATA[enum E
+{
+    A = 1,
+    B = 2,
+    C = B,
 }]]></After>
       </Sample>
     </Samples>

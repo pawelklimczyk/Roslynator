@@ -15,11 +15,15 @@ namespace Roslynator.CodeGeneration.CSharp
 {
     public static class DiagnosticDescriptorsGenerator
     {
-        public static CompilationUnitSyntax Generate(IEnumerable<AnalyzerDescriptor> analyzers, bool obsolete, IComparer<string> comparer)
+        public static CompilationUnitSyntax Generate(
+            IEnumerable<AnalyzerMetadata> analyzers,
+            bool obsolete,
+            IComparer<string> comparer,
+            string @namespace)
         {
             CompilationUnitSyntax compilationUnit = CompilationUnit(
                 UsingDirectives("System", "Microsoft.CodeAnalysis"),
-                NamespaceDeclaration("Roslynator.CSharp",
+                NamespaceDeclaration(@namespace,
                     ClassDeclaration(
                         Modifiers.Public_Static_Partial(),
                         "DiagnosticDescriptors",
@@ -34,9 +38,9 @@ namespace Roslynator.CodeGeneration.CSharp
             return (CompilationUnitSyntax)Rewriter.Instance.Visit(compilationUnit);
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<AnalyzerDescriptor> analyzers)
+        private static IEnumerable<MemberDeclarationSyntax> CreateMembers(IEnumerable<AnalyzerMetadata> analyzers)
         {
-            foreach (AnalyzerDescriptor analyzer in analyzers)
+            foreach (AnalyzerMetadata analyzer in analyzers)
             {
                 FieldDeclarationSyntax fieldDeclaration = FieldDeclaration(
                     Modifiers.Public_Static_ReadOnly(),

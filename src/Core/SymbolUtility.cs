@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Roslynator
@@ -232,19 +233,6 @@ namespace Roslynator
             return typeArguments.Length == 2
                 && typeArguments[0].Equals(parameter1)
                 && typeArguments[1].Equals(parameter2);
-        }
-
-        public static bool IsFunc(ISymbol symbol, ITypeSymbol parameter1, ITypeSymbol parameter2, ITypeSymbol parameter3)
-        {
-            if (!symbol.OriginalDefinition.HasMetadataName(MetadataNames.System_Func_T3))
-                return false;
-
-            ImmutableArray<ITypeSymbol> typeArguments = ((INamedTypeSymbol)symbol).TypeArguments;
-
-            return typeArguments.Length == 3
-                && typeArguments[0].Equals(parameter1)
-                && typeArguments[1].Equals(parameter2)
-                && typeArguments[2].Equals(parameter3);
         }
 
         public static bool IsPredicateFunc(ISymbol symbol, ITypeSymbol parameter)
@@ -517,6 +505,40 @@ namespace Roslynator
             return false;
         }
 
+        // https://docs.microsoft.com/cs-cz/dotnet/csharp/programming-guide/main-and-command-args/
+        public static bool CanBeEntryPoint(IMethodSymbol methodSymbol)
+        {
+            if (methodSymbol.IsStatic
+                && string.Equals(methodSymbol.Name, "Main", StringComparison.Ordinal)
+                && methodSymbol.ContainingType?.TypeKind.Is(TypeKind.Class, TypeKind.Struct) == true
+                && !methodSymbol.TypeParameters.Any())
+            {
+                ImmutableArray<IParameterSymbol> parameters = methodSymbol.Parameters;
+
+                int length = parameters.Length;
+
+                if (length == 0)
+                    return true;
+
+                if (length == 1)
+                {
+                    IParameterSymbol parameter = parameters[0];
+
+                    ITypeSymbol type = parameter.Type;
+
+                    if (type.Kind == SymbolKind.ArrayType)
+                    {
+                        var arrayType = (IArrayTypeSymbol)type;
+
+                        if (arrayType.ElementType.SpecialType == SpecialType.System_String)
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public static ulong GetEnumValueAsUInt64(object value, INamedTypeSymbol enumType)
         {
             switch (enumType.EnumUnderlyingType.SpecialType)
@@ -539,6 +561,43 @@ namespace Roslynator
                     return (ulong)value;
                 default:
                     throw new InvalidOperationException();
+            }
+        }
+
+        public static IMethodSymbol FindMethodThatRaisePropertyChanged(INamedTypeSymbol typeSymbol, int position, SemanticModel semanticModel)
+        {
+            do
+            {
+                IMethodSymbol methodSymbol = FindMethod(typeSymbol.GetMembers("RaisePropertyChanged"))
+                    ?? FindMethod(typeSymbol.GetMembers("OnPropertyChanged"));
+
+                if (methodSymbol != null)
+                    return methodSymbol;
+
+                typeSymbol = typeSymbol.BaseType;
+            }
+            while (typeSymbol != null
+                && typeSymbol.SpecialType != SpecialType.System_Object);
+
+            return null;
+
+            IMethodSymbol FindMethod(ImmutableArray<ISymbol> symbols)
+            {
+                foreach (ISymbol symbol in symbols)
+                {
+                    if (symbol.Kind == SymbolKind.Method)
+                    {
+                        var methodSymbol = (IMethodSymbol)symbol;
+
+                        if (methodSymbol.Parameters.SingleOrDefault(shouldThrow: false)?.Type.SpecialType == SpecialType.System_String
+                            && semanticModel.IsAccessible(position, methodSymbol))
+                        {
+                            return methodSymbol;
+                        }
+                    }
+                }
+
+                return null;
             }
         }
     }

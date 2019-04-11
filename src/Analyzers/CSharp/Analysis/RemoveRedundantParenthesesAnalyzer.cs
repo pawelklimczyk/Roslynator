@@ -126,15 +126,18 @@ namespace Roslynator.CSharp.Analysis
                     }
                 case SyntaxKind.LogicalNotExpression:
                     {
-                        if (expression.Kind().Is(
-                          SyntaxKind.IdentifierName,
-                          SyntaxKind.GenericName,
-                          SyntaxKind.InvocationExpression,
-                          SyntaxKind.SimpleMemberAccessExpression,
-                          SyntaxKind.ElementAccessExpression,
-                          SyntaxKind.ConditionalAccessExpression))
+                        switch (expression.Kind())
                         {
-                            ReportDiagnostic();
+                            case SyntaxKind.IdentifierName:
+                            case SyntaxKind.GenericName:
+                            case SyntaxKind.InvocationExpression:
+                            case SyntaxKind.SimpleMemberAccessExpression:
+                            case SyntaxKind.ElementAccessExpression:
+                            case SyntaxKind.ConditionalAccessExpression:
+                                {
+                                    ReportDiagnostic();
+                                    break;
+                                }
                         }
 
                         break;
@@ -192,13 +195,13 @@ namespace Roslynator.CSharp.Analysis
 
             void ReportDiagnostic()
             {
-                context.ReportDiagnostic(
+                DiagnosticHelpers.ReportDiagnostic(context,
                    DiagnosticDescriptors.RemoveRedundantParentheses,
                    openParen.GetLocation(),
                    additionalLocations: ImmutableArray.Create(closeParen.GetLocation()));
 
-                context.ReportToken(DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, openParen);
-                context.ReportToken(DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, closeParen);
+                DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, openParen);
+                DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, closeParen);
             }
         }
     }

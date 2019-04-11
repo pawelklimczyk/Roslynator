@@ -26,7 +26,13 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeAsExpression, SyntaxKind.AsExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (((CSharpCompilation)startContext.Compilation).LanguageVersion < LanguageVersion.CSharp7)
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(AnalyzeAsExpression, SyntaxKind.AsExpression);
+            });
         }
 
         public static void AnalyzeAsExpression(SyntaxNodeAnalysisContext context)
@@ -85,7 +91,7 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
                     return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatchingInsteadOfAsAndNullCheck, localInfo.Statement);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePatternMatchingInsteadOfAsAndNullCheck, localInfo.Statement);
         }
     }
 }

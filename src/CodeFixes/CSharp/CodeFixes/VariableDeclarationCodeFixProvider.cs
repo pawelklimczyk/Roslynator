@@ -32,13 +32,6 @@ namespace Roslynator.CSharp.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (!Settings.IsAnyCodeFixEnabled(
-                CodeFixIdentifiers.UseExplicitTypeInsteadOfVar,
-                CodeFixIdentifiers.ReplaceVariableDeclarationWithAssignment))
-            {
-                return;
-            }
-
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(
@@ -63,7 +56,7 @@ namespace Roslynator.CSharp.CodeFixes
                     case CompilerDiagnosticIdentifiers.ImplicitlyTypedVariablesCannotHaveMultipleDeclarators:
                     case CompilerDiagnosticIdentifiers.ImplicitlyTypedVariablesCannotBeConstant:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.UseExplicitTypeInsteadOfVar))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.UseExplicitTypeInsteadOfVar))
                                 return;
 
                             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
@@ -74,10 +67,7 @@ namespace Roslynator.CSharp.CodeFixes
 
                             if (typeSymbol?.SupportsExplicitDeclaration() == true)
                             {
-                                CodeAction codeAction = CodeAction.Create(
-                                    $"Change type to '{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, type.SpanStart, SymbolDisplayFormats.Default)}'",
-                                    cancellationToken => ChangeTypeRefactoring.ChangeTypeAsync(context.Document, type, typeSymbol, cancellationToken),
-                                    GetEquivalenceKey(diagnostic));
+                                CodeAction codeAction = CodeActionFactory.ChangeType(context.Document, type, typeSymbol, semanticModel, equivalenceKey: GetEquivalenceKey(diagnostic));
 
                                 context.RegisterCodeFix(codeAction, diagnostic);
                             }
@@ -87,7 +77,7 @@ namespace Roslynator.CSharp.CodeFixes
                     case CompilerDiagnosticIdentifiers.LocalVariableOrFunctionIsAlreadyDefinedInThisScope:
                     case CompilerDiagnosticIdentifiers.LocalOrParameterCannotBeDeclaredInThisScopeBecauseThatNameIsUsedInEnclosingScopeToDefineLocalOrParameter:
                         {
-                            if (!Settings.IsCodeFixEnabled(CodeFixIdentifiers.ReplaceVariableDeclarationWithAssignment))
+                            if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ReplaceVariableDeclarationWithAssignment))
                                 return;
 
                             if (!(variableDeclaration.Parent is LocalDeclarationStatementSyntax localDeclaration))

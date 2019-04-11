@@ -20,7 +20,7 @@ namespace Roslynator.CSharp.Refactorings
         {
             ExpressionSyntax expression = conditionalAccess.Expression;
 
-            SemanticModel semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             int position = conditionalAccess.SpanStart;
 
@@ -40,7 +40,7 @@ namespace Roslynator.CSharp.Refactorings
             InvocationExpressionSyntax newExpression = CreateTaskFromResultExpression(document, conditionalAccess, semanticModel, cancellationToken);
 
             IfStatementSyntax ifStatement = IfStatement(
-                CSharpSnippets.NotEqualsToNull(IdentifierName(localName)),
+                NotEqualsExpression(IdentifierName(localName), NullLiteralExpression()),
                 Block(ReturnStatement(conditionalAccess.RemoveOperatorToken())),
                 ElseClause(Block(ReturnStatement(newExpression))));
 
@@ -139,7 +139,7 @@ namespace Roslynator.CSharp.Refactorings
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             ExpressionSyntax newExpression = CreateTaskFromResultExpression(document, expression, semanticModel, cancellationToken);
 

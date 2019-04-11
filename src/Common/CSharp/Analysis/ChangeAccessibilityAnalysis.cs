@@ -28,27 +28,22 @@ namespace Roslynator.CSharp.Analysis
             Accessibility.Protected,
             Accessibility.Private);
 
-        public static string GetTitle(Accessibility accessibility)
-        {
-            return $"Change accessibility to '{SyntaxFacts.GetText(accessibility)}'";
-        }
-
-        public static Accessibilities GetValidAccessibilities(
+        public static AccessibilityFilter GetValidAccessibilityFilter(
             MemberDeclarationListSelection selectedMembers,
             SemanticModel semanticModel,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (selectedMembers.Count < 2)
-                return Accessibilities.None;
+                return AccessibilityFilter.None;
 
             ImmutableArray<Accessibility> avaiableAccessibilities = AvailableAccessibilities;
 
-            var all = Accessibilities.None;
+            var all = AccessibilityFilter.None;
 
-            Accessibilities valid = Accessibilities.Public
-                | Accessibilities.Internal
-                | Accessibilities.Protected
-                | Accessibilities.Private;
+            AccessibilityFilter valid = AccessibilityFilter.Public
+                | AccessibilityFilter.Internal
+                | AccessibilityFilter.Protected
+                | AccessibilityFilter.Private;
 
             foreach (MemberDeclarationSyntax member in selectedMembers)
             {
@@ -59,7 +54,7 @@ namespace Roslynator.CSharp.Analysis
                     accessibility = SyntaxAccessibility.GetDefaultExplicitAccessibility(member);
 
                     if (accessibility == Accessibility.NotApplicable)
-                        return Accessibilities.None;
+                        return AccessibilityFilter.None;
                 }
 
                 switch (accessibility)
@@ -71,13 +66,13 @@ namespace Roslynator.CSharp.Analysis
                     case Accessibility.Internal:
                     case Accessibility.Public:
                         {
-                            all |= accessibility.GetAccessibilities();
+                            all |= accessibility.GetAccessibilityFilter();
                             break;
                         }
                     default:
                         {
                             Debug.Fail(accessibility.ToString());
-                            return Accessibilities.None;
+                            return AccessibilityFilter.None;
                         }
                 }
 
@@ -88,7 +83,7 @@ namespace Roslynator.CSharp.Analysis
                     SyntaxKind.VirtualKeyword,
                     SyntaxKind.OverrideKeyword))
                 {
-                    valid &= ~Accessibilities.Private;
+                    valid &= ~AccessibilityFilter.Private;
                 }
 
                 if (modifiersInfo.IsOverride
@@ -101,17 +96,17 @@ namespace Roslynator.CSharp.Analysis
                         case Accessibility.Internal:
                         case Accessibility.Public:
                             {
-                                valid &= accessibility.GetAccessibilities();
+                                valid &= accessibility.GetAccessibilityFilter();
 
-                                if (valid == Accessibilities.None)
-                                    return Accessibilities.None;
+                                if (valid == AccessibilityFilter.None)
+                                    return AccessibilityFilter.None;
 
                                 avaiableAccessibilities = _accessibilityArrayMap[accessibility];
                                 continue;
                             }
                         default:
                             {
-                                return Accessibilities.None;
+                                return AccessibilityFilter.None;
                             }
                     }
                 }
@@ -121,20 +116,20 @@ namespace Roslynator.CSharp.Analysis
                     if (accessibility != accessibility2
                         && !SyntaxAccessibility.IsValidAccessibility(member, accessibility2, ignoreOverride: true))
                     {
-                        valid &= ~accessibility2.GetAccessibilities();
+                        valid &= ~accessibility2.GetAccessibilityFilter();
 
-                        if (valid == Accessibilities.None)
-                            return Accessibilities.None;
+                        if (valid == AccessibilityFilter.None)
+                            return AccessibilityFilter.None;
                     }
                 }
             }
 
             switch (all)
             {
-                case Accessibilities.Private:
-                case Accessibilities.Protected:
-                case Accessibilities.Internal:
-                case Accessibilities.Public:
+                case AccessibilityFilter.Private:
+                case AccessibilityFilter.Protected:
+                case AccessibilityFilter.Internal:
+                case AccessibilityFilter.Public:
                     {
                         valid &= ~all;
                         break;

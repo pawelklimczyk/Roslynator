@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1104SimplifyConditionalExpressionTests : AbstractCSharpCodeFixVerifier
+    public class RCS1104SimplifyConditionalExpressionTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.SimplifyConditionalExpression;
 
@@ -100,11 +100,11 @@ class C
 
         if ((f)
 #if DEBUG
-                ? true
-            : false;
-#else
                 ? false
                 : true) { }
+#else
+                ? true
+                : false;
 #endif
     }
 }
