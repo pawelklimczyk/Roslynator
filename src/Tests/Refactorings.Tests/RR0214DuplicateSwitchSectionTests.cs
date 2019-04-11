@@ -67,5 +67,138 @@ class C
 }
 ", equivalenceKey: RefactoringId);
         }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.DuplicateSwitchSection)]
+        public async Task Test_OnEmptyLine()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+[||]
+            default:
+                break;
+        }
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+
+            case ""a"":
+                M();
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.DuplicateSwitchSection)]
+        public async Task Test_OnWhitespaceLine()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+[||]    
+            default:
+                break;
+        }
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+
+            case ""a"":
+                M();
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.DuplicateSwitchSection)]
+        public async Task Test_OnEmptyLineAfterLastSection()
+        {
+            await VerifyRefactoringAsync(@"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+[||]
+        }
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        string s = null;
+
+        switch (s)
+        {
+            case ""a"":
+                M();
+                break;
+
+            case ""a"":
+                M();
+                break;
+        }
+    }
+}
+", equivalenceKey: RefactoringId);
+        }
     }
 }
