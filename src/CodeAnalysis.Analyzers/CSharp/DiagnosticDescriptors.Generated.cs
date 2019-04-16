@@ -59,5 +59,17 @@ namespace Roslynator.CodeAnalysis.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePatternMatching}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>ROS0005</summary>
+        public static readonly DiagnosticDescriptor CallAnyInsteadOfUsingCount = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.CallAnyInsteadOfUsingCount, 
+            title:              "Call 'Any' instead of using 'Count'.", 
+            messageFormat:      "Call 'Any' instead of using 'Count'.", 
+            category:           DiagnosticCategories.Performance, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.CallAnyInsteadOfUsingCount}", 
+            customTags:         Array.Empty<string>());
+
     }
 }

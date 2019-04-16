@@ -4,6 +4,7 @@ namespace Roslynator
 {
     internal static class RoslynMetadataNames
     {
+        public static readonly MetadataName Microsoft_CodeAnalysis = MetadataName.Parse("Microsoft.CodeAnalysis");
         public static readonly MetadataName Microsoft_CodeAnalysis_CSharp_CSharpExtensions = MetadataName.Parse("Microsoft.CodeAnalysis.CSharp.CSharpExtensions");
         public static readonly MetadataName Microsoft_CodeAnalysis_CSharp_SyntaxKind = MetadataName.Parse("Microsoft.CodeAnalysis.CSharp.SyntaxKind");
         public static readonly MetadataName Microsoft_CodeAnalysis_CSharpExtensions = MetadataName.Parse("Microsoft.CodeAnalysis.CSharpExtensions");

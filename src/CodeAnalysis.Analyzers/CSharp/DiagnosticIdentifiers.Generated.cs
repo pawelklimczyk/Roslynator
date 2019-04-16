@@ -12,5 +12,6 @@ namespace Roslynator.CodeAnalysis.CSharp
         public const string UsePropertySyntaxNodeRawKind = "ROS0002";
         public const string RedundantConditionalAccess = "ROS0003";
         public const string UsePatternMatching = "ROS0004";
+        public const string CallAnyInsteadOfUsingCount = "ROS0005";
     }
 }

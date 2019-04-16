@@ -6,7 +6,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
+using Roslynator.CSharp.Syntax;
 
 namespace Roslynator.CodeAnalysis.CSharp
 {
@@ -15,7 +17,12 @@ namespace Roslynator.CodeAnalysis.CSharp
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart); }
+            get
+            {
+                return ImmutableArray.Create(
+                    DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart,
+                    DiagnosticDescriptors.CallAnyInsteadOfUsingCount);
+            }
         }
 
         public override void Initialize(AnalysisContext context)
@@ -80,11 +87,79 @@ namespace Roslynator.CodeAnalysis.CSharp
                                     context.ReportDiagnostic(DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart, memberAccess);
                                     break;
                                 }
+                            case "Count":
+                                {
+                                    CallAnyInsteadOfUsingCount();
+                                    break;
+                                }
                         }
 
                         break;
                     }
             }
+
+            void CallAnyInsteadOfUsingCount()
+            {
+                SyntaxNode expression = memberAccess.WalkUpParentheses();
+
+                SyntaxNode parent = expression.Parent;
+
+                if (!parent.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.GreaterThanExpression))
+                    return;
+
+                BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo((BinaryExpressionSyntax)parent);
+
+                if (!binaryExpressionInfo.Success)
+                    return;
+
+                ExpressionSyntax otherExpression = (expression == binaryExpressionInfo.Left)
+                    ? binaryExpressionInfo.Right
+                    : binaryExpressionInfo.Left;
+
+                if (!otherExpression.IsKind(SyntaxKind.NumericLiteralExpression))
+                    return;
+
+                var numericLiteralExpression = (LiteralExpressionSyntax)otherExpression;
+
+                if (numericLiteralExpression.Token.ValueText != "0")
+                    return;
+
+                ISymbol symbol = context.SemanticModel.GetSymbol(memberAccess, context.CancellationToken);
+
+                if (!IsList(symbol))
+                    return;
+
+                TextSpan span = (memberAccess == binaryExpressionInfo.Left)
+                    ? TextSpan.FromBounds(name.SpanStart, numericLiteralExpression.Span.End)
+                    : TextSpan.FromBounds(numericLiteralExpression.SpanStart, name.Span.End);
+
+                context.ReportDiagnostic(DiagnosticDescriptors.CallAnyInsteadOfUsingCount, Location.Create(memberAccess.SyntaxTree, span));
+            }
+        }
+
+        private static bool IsList(ISymbol symbol)
+        {
+            if (symbol?.Kind == SymbolKind.Property
+                && !symbol.IsStatic
+                && symbol.DeclaredAccessibility == Accessibility.Public)
+            {
+                INamedTypeSymbol containingType = symbol.ContainingType.OriginalDefinition;
+
+                switch (containingType?.MetadataName)
+                {
+                    case "ChildSyntaxList":
+                    case "SeparatedSyntaxList`1":
+                    case "SyntaxList`1":
+                    case "SyntaxNodeOrTokenList":
+                    case "SyntaxTokenList":
+                    case "SyntaxTriviaList":
+                        {
+                            return containingType.ContainingNamespace.HasMetadataName(RoslynMetadataNames.Microsoft_CodeAnalysis);
+                        }
+                }
+            }
+
+            return false;
         }
     }
 }

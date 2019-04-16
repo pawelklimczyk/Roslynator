@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CSharp;
 using Roslynator.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CodeAnalysis.CSharp
 {
@@ -20,7 +22,12 @@ namespace Roslynator.CodeAnalysis.CSharp
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind); }
+            get
+            {
+                return ImmutableArray.Create(
+                    DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind,
+                    DiagnosticIdentifiers.CallAnyInsteadOfUsingCount);
+            }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -30,21 +37,30 @@ namespace Roslynator.CodeAnalysis.CSharp
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out BinaryExpressionSyntax binaryExpression))
                 return;
 
-            foreach (Diagnostic diagnostic in context.Diagnostics)
-            {
-                switch (diagnostic.Id)
-                {
-                    case DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind:
-                        {
-                            CodeAction codeAction = CodeAction.Create(
-                                "Use property 'RawKind'",
-                                ct => UsePropertySyntaxNodeRawKindAsync(context.Document, binaryExpression, ct),
-                                GetEquivalenceKey(diagnostic));
+            Diagnostic diagnostic = context.Diagnostics[0];
 
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                            break;
-                        }
-                }
+            switch (diagnostic.Id)
+            {
+                case DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind:
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            "Use property 'RawKind'",
+                            ct => UsePropertySyntaxNodeRawKindAsync(context.Document, binaryExpression, ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
+                case DiagnosticIdentifiers.CallAnyInsteadOfUsingCount:
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            "Call 'Any' instead of 'Count'",
+                            ct => CallAnyInsteadOfUsingCountAsync(context.Document, binaryExpression, ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
             }
         }
 
@@ -74,6 +90,33 @@ namespace Roslynator.CodeAnalysis.CSharp
                 .AppendToTrailingTrivia(invocationInfo.ArgumentList.GetTrailingTrivia());
 
             return memberAccessExpression.WithName(newName);
+        }
+
+        private static Task<Document> CallAnyInsteadOfUsingCountAsync(
+        Document document,
+        BinaryExpressionSyntax binaryExpression,
+        CancellationToken cancellationToken)
+        {
+            BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo(binaryExpression);
+
+            if (!(binaryExpressionInfo.Left is MemberAccessExpressionSyntax memberAccessExpression))
+                memberAccessExpression = (MemberAccessExpressionSyntax)binaryExpressionInfo.Right;
+
+            SimpleNameSyntax name = memberAccessExpression.Name;
+
+            ExpressionSyntax newExpression = SimpleMemberInvocationExpression(
+                memberAccessExpression.Expression,
+                IdentifierName("Any").WithLeadingTrivia(name.GetLeadingTrivia()),
+                ArgumentList().WithTrailingTrivia(name.GetTrailingTrivia()));
+
+            if (binaryExpression.IsKind(SyntaxKind.EqualsExpression))
+                newExpression = LogicalNotExpression(newExpression.WithoutLeadingTrivia().Parenthesize());
+
+            newExpression = newExpression
+                .WithTriviaFrom(binaryExpression)
+                .WithFormatterAnnotation();
+
+            return document.ReplaceNodeAsync(binaryExpression, newExpression, cancellationToken);
         }
     }
 }

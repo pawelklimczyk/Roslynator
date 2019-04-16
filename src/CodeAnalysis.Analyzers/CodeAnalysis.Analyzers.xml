@@ -68,4 +68,27 @@
       </Sample>
     </Samples>
   </Analyzer>
+  <Analyzer Identifier="CallAnyInsteadOfUsingCount">
+    <Id>ROS0005</Id>
+    <Title>Call 'Any' instead of using 'Count'.</Title>
+    <MessageFormat>Call 'Any' instead of using 'Count'.</MessageFormat>
+    <Category>Performance</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>false</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[syntaxList.Count == 0 [|Id|]]]></Before>
+        <After><![CDATA[!syntaxList.Any()]]></After>
+      </Sample>
+    </Samples>
+    <Remarks>This analyzer is applicable:
+* `ChildSyntaxList`
+* `SeparatedSyntaxList&lt;TNode&gt;`
+* `SyntaxList&lt;TNode&gt;`
+* `SyntaxNodeOrTokenList`
+* `SyntaxTokenList`
+* `SyntaxTriviaList`.</Remarks>
+  </Analyzer>
 </Analyzers>
