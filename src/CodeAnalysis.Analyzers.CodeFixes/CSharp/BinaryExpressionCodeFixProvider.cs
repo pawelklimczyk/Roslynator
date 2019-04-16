@@ -26,7 +26,8 @@ namespace Roslynator.CodeAnalysis.CSharp
             {
                 return ImmutableArray.Create(
                     DiagnosticIdentifiers.UsePropertySyntaxNodeRawKind,
-                    DiagnosticIdentifiers.CallAnyInsteadOfUsingCount);
+                    DiagnosticIdentifiers.CallAnyInsteadOfUsingCount,
+                    DiagnosticIdentifiers.UnnecessaryNullCheck);
             }
         }
 
@@ -37,6 +38,8 @@ namespace Roslynator.CodeAnalysis.CSharp
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out BinaryExpressionSyntax binaryExpression))
                 return;
 
+            Document document = context.Document;
+
             Diagnostic diagnostic = context.Diagnostics[0];
 
             switch (diagnostic.Id)
@@ -45,7 +48,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                     {
                         CodeAction codeAction = CodeAction.Create(
                             "Use property 'RawKind'",
-                            ct => UsePropertySyntaxNodeRawKindAsync(context.Document, binaryExpression, ct),
+                            ct => UsePropertySyntaxNodeRawKindAsync(document, binaryExpression, ct),
                             GetEquivalenceKey(diagnostic));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
@@ -55,7 +58,22 @@ namespace Roslynator.CodeAnalysis.CSharp
                     {
                         CodeAction codeAction = CodeAction.Create(
                             "Call 'Any' instead of 'Count'",
-                            ct => CallAnyInsteadOfUsingCountAsync(context.Document, binaryExpression, ct),
+                            ct => CallAnyInsteadOfUsingCountAsync(document, binaryExpression, ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
+                case DiagnosticIdentifiers.UnnecessaryNullCheck:
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            "Remove unnecessary null check",
+                            ct =>
+                            {
+                                ExpressionSyntax newExpression = binaryExpression.Right.WithLeadingTrivia(binaryExpression.GetLeadingTrivia());
+
+                                return document.ReplaceNodeAsync(binaryExpression, newExpression, ct);
+                            },
                             GetEquivalenceKey(diagnostic));
 
                         context.RegisterCodeFix(codeAction, diagnostic);

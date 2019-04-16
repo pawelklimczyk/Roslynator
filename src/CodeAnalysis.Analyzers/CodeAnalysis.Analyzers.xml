@@ -91,4 +91,20 @@
 * `Microsoft.CodeAnalysis.SyntaxTokenList`
 * `Microsoft.CodeAnalysis.SyntaxTriviaList`</Remarks>
   </Analyzer>
+  <Analyzer Identifier="UnnecessaryNullCheck">
+    <Id>ROS0006</Id>
+    <Title>Unnecessary null check.</Title>
+    <MessageFormat>Unnecessary null check.</MessageFormat>
+    <Category>Performance</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <SupportsFadeOut>true</SupportsFadeOut>
+    <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[syntaxNode != null && syntaxNode.IsKind(kind) // [|Id|]]]></Before>
+        <After><![CDATA[syntaxNode.IsKind(kind)]]></After>
+      </Sample>
+    </Samples>
+  </Analyzer>
 </Analyzers>

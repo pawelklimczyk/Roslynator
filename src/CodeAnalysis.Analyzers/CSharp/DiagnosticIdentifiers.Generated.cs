@@ -13,5 +13,6 @@ namespace Roslynator.CodeAnalysis.CSharp
         public const string RedundantConditionalAccess = "ROS0003";
         public const string UsePatternMatching = "ROS0004";
         public const string CallAnyInsteadOfUsingCount = "ROS0005";
+        public const string UnnecessaryNullCheck = "ROS0006";
     }
 }

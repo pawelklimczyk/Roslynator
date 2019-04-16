@@ -71,5 +71,17 @@ namespace Roslynator.CodeAnalysis.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.CallAnyInsteadOfUsingCount}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>ROS0006</summary>
+        public static readonly DiagnosticDescriptor UnnecessaryNullCheck = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UnnecessaryNullCheck, 
+            title:              "Unnecessary null check.", 
+            messageFormat:      "Unnecessary null check.", 
+            category:           DiagnosticCategories.Performance, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UnnecessaryNullCheck}", 
+            customTags:         WellKnownDiagnosticTags.Unnecessary);
+
     }
 }
