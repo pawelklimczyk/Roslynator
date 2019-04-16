@@ -11,7 +11,7 @@
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[node.Span.Start [|Id|]]]></Before>
+        <Before><![CDATA[node.Span.Start // [|Id|]]]></Before>
         <After><![CDATA[node.SpanStart]]></After>
       </Sample>
     </Samples>
@@ -27,11 +27,11 @@
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[node1.Kind() == node2.Kind() [|Id|]]]></Before>
+        <Before><![CDATA[node1.Kind() == node2.Kind() // [|Id|]]]></Before>
         <After><![CDATA[node1.RawKind == node2.RawKind]]></After>
       </Sample>
       <Sample>
-        <Before><![CDATA[node1.IsKind(node2.Kind()) [|Id|]]]></Before>
+        <Before><![CDATA[node1.IsKind(node2.Kind()) // [|Id|]]]></Before>
         <After><![CDATA[node1?.RawKind == node2.RawKind]]></After>
       </Sample>
     </Samples>
@@ -47,7 +47,7 @@
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[node?.IsKind(kind) == true [|Id|]]]></Before>
+        <Before><![CDATA[node?.IsKind(kind) == true // [|Id|]]]></Before>
         <After><![CDATA[node.IsKind(kind)]]></After>
       </Sample>
     </Samples>
@@ -79,16 +79,16 @@
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[syntaxList.Count == 0 [|Id|]]]></Before>
+        <Before><![CDATA[syntaxList.Count == 0 // [|Id|]]]></Before>
         <After><![CDATA[!syntaxList.Any()]]></After>
       </Sample>
     </Samples>
-    <Remarks>This analyzer is applicable:
-* `ChildSyntaxList`
-* `SeparatedSyntaxList&lt;TNode&gt;`
-* `SyntaxList&lt;TNode&gt;`
-* `SyntaxNodeOrTokenList`
-* `SyntaxTokenList`
-* `SyntaxTriviaList`.</Remarks>
+    <Remarks>This analyzer is applicable for following types:
+* `Microsoft.CodeAnalysis.ChildSyntaxList`
+* `Microsoft.CodeAnalysis.SeparatedSyntaxList&lt;TNode&gt;`
+* `Microsoft.CodeAnalysis.SyntaxList&lt;TNode&gt;`
+* `Microsoft.CodeAnalysis.SyntaxNodeOrTokenList`
+* `Microsoft.CodeAnalysis.SyntaxTokenList`
+* `Microsoft.CodeAnalysis.SyntaxTriviaList`</Remarks>
   </Analyzer>
 </Analyzers>
