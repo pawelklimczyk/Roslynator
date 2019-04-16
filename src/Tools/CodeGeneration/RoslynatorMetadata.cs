@@ -80,12 +80,11 @@ namespace Roslynator.CodeGeneration
 
         private static ImmutableArray<AnalyzerMetadata> LoadAnalyzers(string directoryPath)
         {
-            IEnumerable<AnalyzerMetadata> analyzers = Directory
-                .EnumerateFiles(directoryPath, "Analyzers.*.xml", SearchOption.TopDirectoryOnly)
-                .Where(filePath => Path.GetFileName(filePath) != "Analyzers.Template.xml")
-                .SelectMany(filePath => MetadataFile.ReadAllAnalyzers(filePath));
+            IEnumerable<string> analyzers = Directory.EnumerateFiles(directoryPath, "*Analyzers.xml", SearchOption.TopDirectoryOnly)
+                .Concat(Directory.EnumerateFiles(directoryPath, "Analyzers.*.xml", SearchOption.TopDirectoryOnly)
+                    .Where(filePath => !filePath.EndsWith("Analyzers.Template.xml")));
 
-            return MetadataFile.ReadAllAnalyzers(Path.Combine(directoryPath, "Analyzers.xml")).AddRange(analyzers);
+            return analyzers.SelectMany(MetadataFile.ReadAnalyzers).ToImmutableArray();
         }
 
         private static ImmutableArray<RefactoringMetadata> LoadRefactorings(string directoryPath)
