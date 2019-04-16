@@ -50,9 +50,9 @@ namespace Roslynator.CodeGeneration
             WriteAnalyzersReadMe(@"CodeAnalysis.Analyzers\README.md", codeAnalysisAnalyzers);
 
             WriteAnalyzersByCategory(@"Analyzers\AnalyzersByCategory.md", analyzers);
-#if !DEBUG
-            WriteAnalyzersByCategory(@"CodeAnalysis.Analyzers\AnalyzersByCategory.md", codeAnalysisAnalyzers);
 
+            WriteAnalyzersByCategory(@"CodeAnalysis.Analyzers\AnalyzersByCategory.md", codeAnalysisAnalyzers);
+#if !DEBUG
             VisualStudioInstance instance = MSBuildLocator.QueryVisualStudioInstances().First(f => f.Version.Major == 15);
 
             MSBuildLocator.RegisterInstance(instance);
@@ -79,15 +79,15 @@ namespace Roslynator.CodeGeneration
 
                 MetadataFile.SaveSourceFiles(sourceFiles, @"..\SourceFiles.xml");
             }
-
-            foreach (AnalyzerDescriptor analyzer in analyzers.Concat(codeAnalysisAnalyzers))
+#endif
+            foreach (AnalyzerMetadata analyzer in analyzers.Concat(codeAnalysisAnalyzers))
             {
                 WriteAllText(
                     $@"..\docs\analyzers\{analyzer.Id}.md",
                     MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, Array.Empty<string>()),
                     fileMustExists: false);
             }
-#endif
+
             foreach (AnalyzerMetadata analyzer in analyzers)
             {
                 WriteAllText(
