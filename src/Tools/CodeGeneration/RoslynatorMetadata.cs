@@ -17,13 +17,13 @@ namespace Roslynator.CodeGeneration
 
         public string RootDirectoryPath { get; }
 
-        private ImmutableArray<AnalyzerDescriptor> _analyzers;
-        private ImmutableArray<AnalyzerDescriptor> _codeAnalysisAnalyzers;
-        private ImmutableArray<RefactoringDescriptor> _refactorings;
+        private ImmutableArray<AnalyzerMetadata> _analyzers;
+        private ImmutableArray<AnalyzerMetadata> _codeAnalysisAnalyzers;
+        private ImmutableArray<RefactoringMetadata> _refactorings;
         private ImmutableArray<CodeFixMetadata> _codeFixes;
         private ImmutableArray<CompilerDiagnosticMetadata> _compilerDiagnostics;
 
-        public ImmutableArray<AnalyzerDescriptor> Analyzers
+        public ImmutableArray<AnalyzerMetadata> Analyzers
         {
             get
             {
@@ -34,7 +34,7 @@ namespace Roslynator.CodeGeneration
             }
         }
 
-        public ImmutableArray<AnalyzerDescriptor> CodeAnalysisAnalyzers
+        public ImmutableArray<AnalyzerMetadata> CodeAnalysisAnalyzers
         {
             get
             {
@@ -45,7 +45,7 @@ namespace Roslynator.CodeGeneration
             }
         }
 
-        public ImmutableArray<RefactoringDescriptor> Refactorings
+        public ImmutableArray<RefactoringMetadata> Refactorings
         {
             get
             {
@@ -78,9 +78,9 @@ namespace Roslynator.CodeGeneration
             }
         }
 
-        private static ImmutableArray<AnalyzerDescriptor> LoadAnalyzers(string directoryPath)
+        private static ImmutableArray<AnalyzerMetadata> LoadAnalyzers(string directoryPath)
         {
-            IEnumerable<AnalyzerDescriptor> analyzers = Directory
+            IEnumerable<AnalyzerMetadata> analyzers = Directory
                 .EnumerateFiles(directoryPath, "Analyzers.*.xml", SearchOption.TopDirectoryOnly)
                 .Where(filePath => Path.GetFileName(filePath) != "Analyzers.Template.xml")
                 .SelectMany(filePath => MetadataFile.ReadAllAnalyzers(filePath));
@@ -88,9 +88,9 @@ namespace Roslynator.CodeGeneration
             return MetadataFile.ReadAllAnalyzers(Path.Combine(directoryPath, "Analyzers.xml")).AddRange(analyzers);
         }
 
-        private static ImmutableArray<RefactoringDescriptor> LoadRefactorings(string directoryPath)
+        private static ImmutableArray<RefactoringMetadata> LoadRefactorings(string directoryPath)
         {
-            IEnumerable<RefactoringDescriptor> refactorings = Directory
+            IEnumerable<RefactoringMetadata> refactorings = Directory
                 .EnumerateFiles(directoryPath, "Refactorings.*.xml", SearchOption.TopDirectoryOnly)
                 .Where(filePath => Path.GetFileName(filePath) != "Refactorings.Template.xml")
                 .SelectMany(filePath => MetadataFile.ReadAllRefactorings(filePath));

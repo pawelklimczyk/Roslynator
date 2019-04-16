@@ -14,6 +14,8 @@ using Roslynator.CodeGeneration.Xml;
 using Roslynator.Metadata;
 using Roslynator.Utilities;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
 namespace Roslynator.CodeGeneration
 {
     internal static class Program
@@ -37,9 +39,9 @@ namespace Roslynator.CodeGeneration
 
             var metadata = new RoslynatorMetadata(rootPath);
 
-            ImmutableArray<AnalyzerDescriptor> analyzers = metadata.Analyzers;
-            ImmutableArray<AnalyzerDescriptor> codeAnalysisAnalyzers = metadata.CodeAnalysisAnalyzers;
-            ImmutableArray<RefactoringDescriptor> refactorings = metadata.Refactorings;
+            ImmutableArray<AnalyzerMetadata> analyzers = metadata.Analyzers;
+            ImmutableArray<AnalyzerMetadata> codeAnalysisAnalyzers = metadata.CodeAnalysisAnalyzers;
+            ImmutableArray<RefactoringMetadata> refactorings = metadata.Refactorings;
             ImmutableArray<CodeFixMetadata> codeFixes = metadata.CodeFixes;
             ImmutableArray<CompilerDiagnosticMetadata> compilerDiagnostics = metadata.CompilerDiagnostics;
 
@@ -48,7 +50,7 @@ namespace Roslynator.CodeGeneration
             WriteAnalyzersReadMe(@"CodeAnalysis.Analyzers\README.md", codeAnalysisAnalyzers);
 
             WriteAnalyzersByCategory(@"Analyzers\AnalyzersByCategory.md", analyzers);
-
+#if !DEBUG
             WriteAnalyzersByCategory(@"CodeAnalysis.Analyzers\AnalyzersByCategory.md", codeAnalysisAnalyzers);
 
             VisualStudioInstance instance = MSBuildLocator.QueryVisualStudioInstances().First(f => f.Version.Major == 15);
@@ -85,8 +87,8 @@ namespace Roslynator.CodeGeneration
                     MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, Array.Empty<string>()),
                     fileMustExists: false);
             }
-
-            foreach (AnalyzerDescriptor analyzer in analyzers)
+#endif
+            foreach (AnalyzerMetadata analyzer in analyzers)
             {
                 WriteAllText(
                     $@"..\docs\analyzers\{analyzer.Id}.md",
@@ -94,7 +96,7 @@ namespace Roslynator.CodeGeneration
                     fileMustExists: false);
             }
 
-            foreach (RefactoringDescriptor refactoring in refactorings)
+            foreach (RefactoringMetadata refactoring in refactorings)
             {
                 WriteAllText(
                     $@"..\docs\refactorings\{refactoring.Id}.md",
@@ -127,7 +129,7 @@ namespace Roslynator.CodeGeneration
                 XmlGenerator.CreateDefaultConfigFile(refactorings, codeFixes));
 
             WriteAllText(
-                "DefaultRuleSet.ruleset",
+                "default.ruleset",
                 XmlGenerator.CreateDefaultRuleSet(analyzers));
 
             // find files to delete
@@ -141,11 +143,11 @@ namespace Roslynator.CodeGeneration
             }
 
             // find missing samples
-            foreach (RefactoringDescriptor refactoring in refactorings)
+            foreach (RefactoringMetadata refactoring in refactorings)
             {
                 if (refactoring.Samples.Count == 0)
                 {
-                    foreach (ImageDescriptor image in refactoring.ImagesOrDefaultImage())
+                    foreach (ImageMetadata image in refactoring.ImagesOrDefaultImage())
                     {
                         string imagePath = Path.Combine(GetPath(@"..\images\refactorings"), image.Name + ".png");
 
@@ -155,14 +157,14 @@ namespace Roslynator.CodeGeneration
                 }
             }
 
-            void WriteAnalyzersReadMe(string path, ImmutableArray<AnalyzerDescriptor> descriptors)
+            void WriteAnalyzersReadMe(string path, ImmutableArray<AnalyzerMetadata> descriptors)
             {
                 WriteAllText(
                     path,
                     MarkdownGenerator.CreateAnalyzersReadMe(descriptors.Where(f => !f.IsObsolete), comparer));
             }
 
-            void WriteAnalyzersByCategory(string path, ImmutableArray<AnalyzerDescriptor> descriptors)
+            void WriteAnalyzersByCategory(string path, ImmutableArray<AnalyzerMetadata> descriptors)
             {
                 WriteAllText(
                     path,

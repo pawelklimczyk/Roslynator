@@ -4,7 +4,7 @@ using Roslynator.CSharp.Tests;
 
 namespace Roslynator.CodeAnalysis.CSharp.Tests
 {
-    public abstract class AbstractCSharpCodeFixVerifier : CSharpCodeFixVerifier
+    public abstract class AbstractCSharpCodeFixVerifier : CSharpFixVerifier
     {
     }
 }

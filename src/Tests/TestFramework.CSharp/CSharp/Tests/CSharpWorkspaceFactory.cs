@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslynator.Tests;
@@ -14,9 +15,9 @@ namespace Roslynator.CSharp.Tests
 
         public override string DefaultDocumentName => "Test.cs";
 
-        public override Project AddProject(Solution solution)
+        public override Project AddProject(Solution solution, CodeVerificationOptions options = null)
         {
-            Project project = base.AddProject(solution);
+            Project project = base.AddProject(solution, options);
 
             var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions;
 
@@ -26,8 +27,13 @@ namespace Roslynator.CSharp.Tests
 
             var parseOptions = (CSharpParseOptions)project.ParseOptions;
 
+            CSharpCodeVerificationOptions csharpOptions = (options != null)
+                ? ((CSharpCodeVerificationOptions)options)
+                : CSharpCodeVerificationOptions.Default;
+
             CSharpParseOptions newParseOptions = parseOptions
-                .WithLanguageVersion(LanguageVersion.Latest);
+                .WithLanguageVersion(csharpOptions.LanguageVersion)
+                .WithPreprocessorSymbols(parseOptions.PreprocessorSymbolNames.Concat(new string[] { "DEBUG" }));
 
             return project
                 .WithCompilationOptions(newCompilationOptions)
