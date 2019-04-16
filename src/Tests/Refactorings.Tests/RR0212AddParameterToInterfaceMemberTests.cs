@@ -46,11 +46,11 @@ class C : IFoo
     {
     }
 }
-", equivalenceKey: EquivalenceKey.Join(RefactoringId, "IFoo.M(object)"));
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "M:IFoo.M(System.Object)"));
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddParameterToInterfaceMember)]
-        public async Task Test_ExplicitlyImplementedMethod()
+        public async Task Test_Method_OutParameter()
         {
             await VerifyRefactoringAsync(@"
 interface IFoo
@@ -60,23 +60,87 @@ interface IFoo
 
 class C : IFoo
 {
-    void IFoo.[||]M(object p, object p2)
+    public void [||]M(object p, out object p2)
     {
+        p2 = null;
     }
 }
 ", @"
 interface IFoo
 {
-    void M(object p, object p2);
+    void M(object p, out object p2);
 }
 
 class C : IFoo
 {
-    void IFoo.M(object p, object p2)
+    public void M(object p, out object p2)
+    {
+        p2 = null;
+    }
+}
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "M:IFoo.M(System.Object)"));
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddParameterToInterfaceMember)]
+        public async Task Test_Method_Parameter_WithDefaultValue()
+        {
+            await VerifyRefactoringAsync(@"
+interface IFoo
+{
+    void M(object p);
+}
+
+class C : IFoo
+{
+    public void [||]M(object p, int p2 = 1)
+    {
+        p2 = 0;
+    }
+}
+", @"
+interface IFoo
+{
+    void M(object p, int p2 = 1);
+}
+
+class C : IFoo
+{
+    public void M(object p, int p2 = 1)
+    {
+        p2 = 0;
+    }
+}
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "M:IFoo.M(System.Object)"));
+        }
+
+        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddParameterToInterfaceMember)]
+        public async Task Test_Method_Generic()
+        {
+            await VerifyRefactoringAsync(@"
+interface IFoo<T>
+{
+    void M(T p);
+}
+
+class C : IFoo<string>
+{
+    public void [||]M(string p, object p2)
     {
     }
 }
-", equivalenceKey: EquivalenceKey.Join(RefactoringId, "IFoo.M(object)"));
+", @"
+interface IFoo<T>
+{
+    void M(T p, object p2);
+}
+
+class C : IFoo<string>
+{
+    public void M(string p, object p2)
+    {
+    }
+}
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "M:IFoo`1.M(`0)"));
         }
 
         [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddParameterToInterfaceMember)]
@@ -102,33 +166,7 @@ class C : IFoo
 {
     public object this[object p, object p2] => null;
 }
-", equivalenceKey: EquivalenceKey.Join(RefactoringId, "IFoo.this[object]"));
-        }
-
-        [Fact, Trait(Traits.Refactoring, RefactoringIdentifiers.AddParameterToInterfaceMember)]
-        public async Task Test_ExplicitlyImplementedIndexer()
-        {
-            await VerifyRefactoringAsync(@"
-interface IFoo
-{
-    object this[object p] { get; }
-}
-
-class C : IFoo
-{
-    object IFoo.[||]this[object p, object p2] => null;
-}
-", @"
-interface IFoo
-{
-    object this[object p, object p2] { get; }
-}
-
-class C : IFoo
-{
-    object IFoo.this[object p, object p2] => null;
-}
-", equivalenceKey: EquivalenceKey.Join(RefactoringId, "IFoo.this[object]"));
+", equivalenceKey: EquivalenceKey.Join(RefactoringId, "P:IFoo.Item(System.Object)"));
         }
     }
 }

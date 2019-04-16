@@ -873,5 +873,12 @@ namespace Roslynator.CSharp
             "CS0191", 
             "CS0192");
 
+        /// <summary>RCF0115 (fixes CS0539)</summary>
+        public static readonly CodeFixDescriptor AddParameterToExplicitlyImplementedInterfaceMember = new CodeFixDescriptor(
+            id:                 CodeFixIdentifiers.AddParameterToExplicitlyImplementedInterfaceMember, 
+            title:              "Add parameter to explicitly implemented interface member", 
+            isEnabledByDefault: true, 
+            "CS0539");
+
     }
 }

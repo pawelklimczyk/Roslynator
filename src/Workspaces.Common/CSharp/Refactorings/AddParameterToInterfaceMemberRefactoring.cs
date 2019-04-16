@@ -1,157 +1,166 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Roslynator.CSharp.Refactorings
 {
     internal static class AddParameterToInterfaceMemberRefactoring
     {
-        public static void ComputeRefactoring(
-            RefactoringContext context,
-            MethodDeclarationSyntax methodDeclaration,
-            SemanticModel semanticModel)
+        public static CodeAction ComputeRefactoringForExplicitImplementation(
+            CommonFixContext context,
+            MemberDeclarationSyntax memberDeclaration)
         {
-            ComputeRefactoring(
+            switch (memberDeclaration)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    {
+                        return ComputeRefactoringForExplicitImplementation(
+                            context,
+                            methodDeclaration,
+                            methodDeclaration.ExplicitInterfaceSpecifier,
+                            methodDeclaration.ParameterList?.Parameters ?? default);
+                    }
+                case IndexerDeclarationSyntax indexerDeclaration:
+                    {
+                        return ComputeRefactoringForExplicitImplementation(
+                            context,
+                            indexerDeclaration,
+                            indexerDeclaration.ExplicitInterfaceSpecifier,
+                            indexerDeclaration.ParameterList?.Parameters ?? default);
+                    }
+            }
+
+            return default;
+        }
+
+        public static OneOrMany<CodeAction> ComputeRefactoringForImplicitImplementation(
+            CommonFixContext context,
+            MethodDeclarationSyntax methodDeclaration)
+        {
+            return ComputeRefactoringForImplicitImplementation(
                 context,
                 methodDeclaration,
                 methodDeclaration.Modifiers,
                 methodDeclaration.ExplicitInterfaceSpecifier,
-                methodDeclaration.Identifier,
-                methodDeclaration.ParameterList?.Parameters ?? default,
-                semanticModel);
+                methodDeclaration.ParameterList?.Parameters ?? default);
         }
 
-        public static void ComputeRefactoring(
-            RefactoringContext context,
-            IndexerDeclarationSyntax indexerDeclaration,
-            SemanticModel semanticModel)
+        public static OneOrMany<CodeAction> ComputeRefactoringForImplicitImplementation(
+            CommonFixContext context,
+            IndexerDeclarationSyntax indexerDeclaration)
         {
-            ComputeRefactoring(
+            return ComputeRefactoringForImplicitImplementation(
                 context,
                 indexerDeclaration,
                 indexerDeclaration.Modifiers,
                 indexerDeclaration.ExplicitInterfaceSpecifier,
-                indexerDeclaration.ThisKeyword,
-                indexerDeclaration.ParameterList?.Parameters ?? default,
-                semanticModel);
+                indexerDeclaration.ParameterList?.Parameters ?? default);
         }
 
-        private static void ComputeRefactoring(
-            RefactoringContext context,
+        private static OneOrMany<CodeAction> ComputeRefactoringForImplicitImplementation(
+            CommonFixContext context,
             MemberDeclarationSyntax memberDeclaration,
             SyntaxTokenList modifiers,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            SeparatedSyntaxList<ParameterSyntax> parameters,
-            SemanticModel semanticModel)
+            SeparatedSyntaxList<ParameterSyntax> parameters)
         {
             if (!parameters.Any())
-                return;
+                return default;
 
             if (modifiers.Contains(SyntaxKind.StaticKeyword))
-                return;
+                return default;
 
             if (explicitInterfaceSpecifier != null)
-            {
-                ComputeRefactoringForExplicitImplementation(
-                    context,
-                    memberDeclaration,
-                    explicitInterfaceSpecifier,
-                    identifier,
-                    parameters,
-                    semanticModel);
-            }
-            else
-            {
-                ComputeRefactoringForImplicitImplementation(
-                    context,
-                    memberDeclaration,
-                    modifiers,
-                    parameters,
-                    semanticModel);
-            }
+                return default;
+
+            return ComputeRefactoringForImplicitImplementation(
+                context,
+                memberDeclaration,
+                modifiers);
         }
 
-        private static void ComputeRefactoringForExplicitImplementation(
-            RefactoringContext context,
+        public static CodeAction ComputeRefactoringForExplicitImplementation(
+            CommonFixContext context,
             MemberDeclarationSyntax memberDeclaration,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            SeparatedSyntaxList<ParameterSyntax> parameters,
-            SemanticModel semanticModel)
-                        {
+            SeparatedSyntaxList<ParameterSyntax> parameters)
+        {
+            if (!parameters.Any())
+                return default;
+
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifier?.Name;
 
             if (explicitInterfaceName == null)
-                return;
+                return default;
 
-            var interfaceSymbol = (INamedTypeSymbol)semanticModel.GetTypeSymbol(explicitInterfaceName, context.CancellationToken);
+            var interfaceSymbol = (INamedTypeSymbol)context.SemanticModel.GetTypeSymbol(explicitInterfaceName, context.CancellationToken);
 
             if (interfaceSymbol?.TypeKind != TypeKind.Interface)
-                return;
+                return default;
 
             if (!(interfaceSymbol.GetSyntaxOrDefault(context.CancellationToken) is InterfaceDeclarationSyntax interfaceDeclaration))
-                return;
+                return default;
 
-            ISymbol memberSymbol = semanticModel.GetDeclaredSymbol(memberDeclaration, context.CancellationToken);
+            ISymbol memberSymbol = context.SemanticModel.GetDeclaredSymbol(memberDeclaration, context.CancellationToken);
 
             if (memberSymbol == null)
-                return;
-
-            Diagnostic diagnostic = semanticModel.GetDiagnostic("CS0539", identifier.Span, context.CancellationToken);
-
-            if (diagnostic?.Location.SourceSpan != identifier.Span)
-                return;
+                return default;
 
             ISymbol interfaceMemberSymbol = FindInterfaceMember(memberSymbol, interfaceSymbol);
 
             if (interfaceMemberSymbol == null)
-                return;
+                return default;
 
-            RegisterRefactoring(context, memberDeclaration, parameters.Last(), interfaceMemberSymbol, semanticModel);
+            return ComputeCodeAction(context, memberDeclaration, memberSymbol, interfaceMemberSymbol);
         }
 
-        private static void ComputeRefactoringForImplicitImplementation(
-            RefactoringContext context,
+        private static OneOrMany<CodeAction> ComputeRefactoringForImplicitImplementation(
+            CommonFixContext context,
             MemberDeclarationSyntax memberDeclaration,
-            SyntaxTokenList modifiers,
-            SeparatedSyntaxList<ParameterSyntax> parameters,
-            SemanticModel semanticModel)
+            SyntaxTokenList modifiers)
         {
             if (!modifiers.Contains(SyntaxKind.PublicKeyword))
-                return;
+                return default;
 
             BaseListSyntax baseList = GetBaseList(memberDeclaration.Parent);
 
             if (baseList == null)
-                return;
+                return default;
 
             SeparatedSyntaxList<BaseTypeSyntax> baseTypes = baseList.Types;
 
-            ISymbol memberSymbol = semanticModel.GetDeclaredSymbol(memberDeclaration, context.CancellationToken);
+            ISymbol memberSymbol = context.SemanticModel.GetDeclaredSymbol(memberDeclaration, context.CancellationToken);
 
             if (memberSymbol == null)
-                return;
+                return default;
 
             if (memberSymbol.ImplementsInterfaceMember())
-                return;
+                return default;
 
             int count = 0;
+
+            CodeAction singleCodeAction = null;
+            List<CodeAction> codeActions = default;
 
             for (int i = 0; i < baseTypes.Count; i++)
             {
                 BaseTypeSyntax baseType = baseTypes[i];
 
-                Diagnostic diagnostic = semanticModel.GetDiagnostic("CS0535", baseType.Type.Span, context.CancellationToken);
+                Diagnostic diagnostic = context.SemanticModel.GetDiagnostic("CS0535", baseType.Type.Span, context.CancellationToken);
 
                 if (diagnostic?.Location.SourceSpan != baseType.Type.Span)
                     continue;
 
-                var interfaceSymbol = semanticModel.GetTypeSymbol(baseType.Type, context.CancellationToken) as INamedTypeSymbol;
+                var interfaceSymbol = context.SemanticModel.GetTypeSymbol(baseType.Type, context.CancellationToken) as INamedTypeSymbol;
 
                 if (interfaceSymbol?.TypeKind != TypeKind.Interface)
                     continue;
@@ -163,13 +172,31 @@ namespace Roslynator.CSharp.Refactorings
 
                 if (interfaceMemberSymbol != null)
                 {
-                    RegisterRefactoring(context, memberDeclaration, parameters.Last(), interfaceMemberSymbol, semanticModel);
+                    CodeAction codeAction = ComputeCodeAction(context, memberDeclaration, memberSymbol, interfaceMemberSymbol);
+
+                    if (singleCodeAction == null)
+                    {
+                        singleCodeAction = codeAction;
+                    }
+                    else
+                    {
+                        (codeActions ?? (codeActions = new List<CodeAction>() { singleCodeAction })).Add(codeAction);
+                    }
 
                     count++;
 
                     if (count == 10)
                         break;
                 }
+            }
+
+            if (codeActions != null)
+            {
+                return new OneOrMany<CodeAction>(codeActions.ToImmutableArray());
+            }
+            else
+            {
+                return new OneOrMany<CodeAction>(singleCodeAction);
             }
         }
 
@@ -181,9 +208,7 @@ namespace Roslynator.CSharp.Refactorings
             {
                 case SymbolKind.Method:
                     {
-                        var methodSymbol = (IMethodSymbol)memberSymbol;
-
-                        return FindInterfaceMethod(methodSymbol, interfaceSymbol);
+                        return FindInterfaceMethod((IMethodSymbol)memberSymbol, interfaceSymbol);
                     }
                 case SymbolKind.Property:
                     {
@@ -300,51 +325,50 @@ namespace Roslynator.CSharp.Refactorings
             return true;
         }
 
-        private static void RegisterRefactoring(
-            RefactoringContext context,
+        private static CodeAction ComputeCodeAction(
+            CommonFixContext context,
             MemberDeclarationSyntax memberDeclaration,
-            ParameterSyntax parameter,
-            ISymbol interfaceMemberSymbol,
-            SemanticModel semanticModel)
+            ISymbol memberSymbol,
+            ISymbol interfaceMemberSymbol)
         {
-            Document document = context.Document;
+            IParameterSymbol parameterSymbol = memberSymbol.GetParameters().Last();
 
-            string displayName = SymbolDisplay.ToMinimalDisplayString(interfaceMemberSymbol, semanticModel, memberDeclaration.SpanStart, SymbolDisplayFormat.CSharpShortErrorMessageFormat);
+            string title = $"Add parameter '{parameterSymbol.Name}' to '{SymbolDisplay.ToMinimalDisplayString(interfaceMemberSymbol.OriginalDefinition, context.SemanticModel, memberDeclaration.SpanStart, SymbolDisplayFormat.CSharpShortErrorMessageFormat)}'";
 
-            string title = $"Add parameter '{parameter.Identifier.ValueText}' to '{displayName}'";
-
-            string equivalenceKey = EquivalenceKey.Join(RefactoringIdentifiers.AddParameterToInterfaceMember, displayName);
+            string equivalenceKey = EquivalenceKey.Join(context.EquivalenceKey, interfaceMemberSymbol.OriginalDefinition.GetDocumentationCommentId());
 
             var interfaceMemberDeclaration = (MemberDeclarationSyntax)interfaceMemberSymbol.GetSyntax();
 
             if (memberDeclaration.SyntaxTree == interfaceMemberDeclaration.SyntaxTree)
             {
-                context.RegisterRefactoring(
+                return CodeAction.Create(
                     title,
                     ct =>
                     {
-                        MemberDeclarationSyntax newNode = AddParameter(interfaceMemberDeclaration, parameter);
+                        MemberDeclarationSyntax newNode = AddParameter(interfaceMemberDeclaration, parameterSymbol).WithFormatterAnnotation();
 
-                        return document.ReplaceNodeAsync(interfaceMemberDeclaration, newNode, ct);
+                        return context.Document.ReplaceNodeAsync(interfaceMemberDeclaration, newNode, ct);
                     },
                     equivalenceKey);
             }
             else
             {
-                context.RegisterRefactoring(
+                return CodeAction.Create(
                     title,
                     ct =>
                     {
-                        MemberDeclarationSyntax newNode = AddParameter(interfaceMemberDeclaration, parameter);
+                        MemberDeclarationSyntax newNode = AddParameter(interfaceMemberDeclaration, parameterSymbol).WithFormatterAnnotation();
 
-                        return document.Solution().ReplaceNodeAsync(interfaceMemberDeclaration, newNode, ct);
+                        return context.Document.Solution().ReplaceNodeAsync(interfaceMemberDeclaration, newNode, ct);
                     },
                     equivalenceKey);
             }
         }
 
-        private static MemberDeclarationSyntax AddParameter(MemberDeclarationSyntax memberDeclaration, ParameterSyntax parameter)
+        private static MemberDeclarationSyntax AddParameter(MemberDeclarationSyntax memberDeclaration, IParameterSymbol parameterSymbol)
         {
+            ParameterSyntax parameter = CreateParameter(parameterSymbol);
+
             switch (memberDeclaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
@@ -374,6 +398,37 @@ namespace Roslynator.CSharp.Refactorings
                     return ((InterfaceDeclarationSyntax)node).BaseList;
                 default:
                     return null;
+            }
+        }
+
+        private static ParameterSyntax CreateParameter(IParameterSymbol parameterSymbol)
+        {
+            ExpressionSyntax defaultValue = (parameterSymbol.HasExplicitDefaultValue)
+                ? parameterSymbol.GetDefaultValueSyntax()
+                : null;
+
+            return Parameter(
+                default(SyntaxList<AttributeListSyntax>),
+                GetModifiers(),
+                parameterSymbol.Type.ToTypeSyntax().WithSimplifierAnnotation(),
+                Identifier(parameterSymbol.Name),
+                (defaultValue != null) ? EqualsValueClause(defaultValue) : default);
+
+            SyntaxTokenList GetModifiers()
+            {
+                switch (parameterSymbol.RefKind)
+                {
+                    case RefKind.Ref:
+                        return TokenList(Token(SyntaxKind.RefKeyword));
+                    case RefKind.Out:
+                        return TokenList(Token(SyntaxKind.OutKeyword));
+                    case RefKind.None:
+                        return default;
+                }
+
+                Debug.Fail(parameterSymbol.RefKind.ToString());
+
+                return default;
             }
         }
     }

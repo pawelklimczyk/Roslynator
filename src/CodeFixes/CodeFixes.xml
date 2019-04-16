@@ -649,4 +649,9 @@
       <Id>CS0192</Id>
     </FixableDiagnosticIds>
   </CodeFix>
+  <CodeFix Id="RCF0115" Identifier="AddParameterToExplicitlyImplementedInterfaceMember" Title="Add parameter to explicitly implemented interface member">
+    <FixableDiagnosticIds>
+      <Id>CS0539</Id>
+    </FixableDiagnosticIds>
+  </CodeFix>
 </CodeFixes>
