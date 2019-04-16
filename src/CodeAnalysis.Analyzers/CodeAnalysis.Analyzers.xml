@@ -57,7 +57,7 @@
     <Title>Use pattern matching.</Title>
     <MessageFormat>Use pattern matching.</MessageFormat>
     <Category>Usage</Category>
-    <DefaultSeverity>Info</DefaultSeverity>
+    <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>false</SupportsFadeOut>
     <SupportsFadeOutAnalyzer>false</SupportsFadeOutAnalyzer>

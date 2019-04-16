@@ -53,7 +53,7 @@ namespace Roslynator.CodeAnalysis.CSharp
             title:              "Use pattern matching.", 
             messageFormat:      "Use pattern matching.", 
             category:           DiagnosticCategories.Usage, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UsePatternMatching}", 

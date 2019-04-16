@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp;
 using Roslynator.CSharp.Syntax;
+using Roslynator.CSharp.SyntaxWalkers;
 
 namespace Roslynator.CodeAnalysis.CSharp
 {
@@ -83,6 +84,8 @@ namespace Roslynator.CodeAnalysis.CSharp
                 return;
 
             ExpressionSyntax switchExpression = switchStatement.Expression;
+
+            SingleLocalDeclarationStatementInfo localInfo = default;
 
             string name = GetName();
 
@@ -187,6 +190,12 @@ namespace Roslynator.CodeAnalysis.CSharp
                     return;
             }
 
+            if (localInfo.Success
+                && IsLocalVariableReferenced(context, localInfo, switchStatement))
+            {
+                return;
+            }
+
             context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatching, switchStatement.SwitchKeyword);
 
             string GetName()
@@ -200,7 +209,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                             if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
                                 return null;
 
-                            SingleLocalDeclarationStatementInfo localInfo = SyntaxInfo.SingleLocalDeclarationStatementInfo((LocalDeclarationStatementSyntax)previousStatement);
+                            localInfo = SyntaxInfo.SingleLocalDeclarationStatementInfo((LocalDeclarationStatementSyntax)previousStatement);
 
                             if (!localInfo.Success)
                                 return null;
@@ -244,6 +253,42 @@ namespace Roslynator.CodeAnalysis.CSharp
 
                 return identifierName.Identifier.ValueText;
             }
+        }
+
+        private static bool IsLocalVariableReferenced(
+            SyntaxNodeAnalysisContext context,
+            SingleLocalDeclarationStatementInfo localInfo,
+            SwitchStatementSyntax switchStatement)
+        {
+            ISymbol localSymbol = context.SemanticModel.GetDeclaredSymbol(localInfo.Declarator, context.CancellationToken);
+
+            if (localSymbol.IsKind(SymbolKind.Local))
+            {
+                ContainsLocalOrParameterReferenceWalker walker = ContainsLocalOrParameterReferenceWalker.GetInstance(localSymbol, context.SemanticModel, context.CancellationToken);
+
+                walker.VisitList(switchStatement.Sections);
+
+                if (!walker.Result)
+                {
+                    StatementListInfo statementsInfo = SyntaxInfo.StatementListInfo(switchStatement);
+
+                    if (statementsInfo.Success)
+                    {
+                        int index = statementsInfo.IndexOf(switchStatement);
+
+                        if (index < statementsInfo.Count - 1)
+                            walker.VisitList(statementsInfo.Statements, index + 1);
+                    }
+                }
+
+                bool isReferenced = walker.Result;
+
+                ContainsLocalOrParameterReferenceWalker.Free(walker);
+
+                return isReferenced;
+            }
+
+            return false;
         }
     }
 }

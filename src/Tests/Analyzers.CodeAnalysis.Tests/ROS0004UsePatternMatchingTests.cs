@@ -143,5 +143,36 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UsePatternMatching)]
+        public async Task TestNoDiagnostic_VariableIsReferenced()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+class C
+{
+    void M()
+    {
+        SyntaxNode node = null;
+
+        SyntaxKind kind = node.Kind();
+
+        switch (kind)
+        {
+            case SyntaxKind.IdentifierName:
+                {
+                    var identifierName = (IdentifierNameSyntax)node;
+                    break;
+                }
+        }
+
+        if (kind == SyntaxKind.None) { }
+    }
+}
+");
+        }
     }
 }
