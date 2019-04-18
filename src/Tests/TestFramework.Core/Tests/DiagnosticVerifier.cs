@@ -19,9 +19,22 @@ namespace Roslynator.Tests
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public abstract class DiagnosticVerifier : CodeVerifier
     {
+        private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
+
         public abstract DiagnosticDescriptor Descriptor { get; }
 
         public abstract DiagnosticAnalyzer Analyzer { get; }
+
+        internal ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                if (_supportedDiagnostics.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _supportedDiagnostics, Analyzer.SupportedDiagnostics);
+
+                return _supportedDiagnostics;
+            }
+        }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
@@ -135,7 +148,7 @@ namespace Roslynator.Tests
                 ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 
                 if (diagnostics.Length > 0
-                    && Analyzer.SupportedDiagnostics.Length > 1)
+                    && SupportedDiagnostics.Length > 1)
                 {
                     VerifyDiagnostics(FilterDiagnostics(diagnostics), expectedDiagnostics, cancellationToken);
                 }
@@ -188,7 +201,7 @@ namespace Roslynator.Tests
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!Analyzer.Supports(Descriptor))
+            if (SupportedDiagnostics.IndexOf(Descriptor, DiagnosticDescriptorComparer.Id) == -1)
                 Assert.True(false, $"Diagnostic \"{Descriptor.Id}\" is not supported by analyzer \"{Analyzer.GetType().Name}\".");
 
             using (Workspace workspace = new AdhocWorkspace())
@@ -250,7 +263,7 @@ namespace Roslynator.Tests
 
                     Diagnostic expectedDiagnostic = expectedEnumerator.Current;
 
-                    if (!Analyzer.Supports(expectedDiagnostic.Descriptor))
+                    if (SupportedDiagnostics.IndexOf(expectedDiagnostic.Descriptor, DiagnosticDescriptorComparer.Id) == -1)
                         Assert.True(false, $"Diagnostic \"{expectedDiagnostic.Id}\" is not supported by analyzer \"{Analyzer.GetType().Name}\".");
 
                     if (actualEnumerator.MoveNext())

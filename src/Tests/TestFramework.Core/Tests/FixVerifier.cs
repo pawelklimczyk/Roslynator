@@ -20,7 +20,20 @@ namespace Roslynator.Tests
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public abstract class FixVerifier : DiagnosticVerifier
     {
+        private ImmutableArray<string> _fixableDiagnosticIds;
+
         public abstract CodeFixProvider FixProvider { get; }
+
+        internal ImmutableArray<string> FixableDiagnosticIds
+        {
+            get
+            {
+                if (_fixableDiagnosticIds.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _fixableDiagnosticIds, FixProvider.FixableDiagnosticIds);
+
+                return _fixableDiagnosticIds;
+            }
+        }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
@@ -114,14 +127,11 @@ namespace Roslynator.Tests
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!Analyzer.SupportedDiagnostics.Contains(Descriptor, DiagnosticDescriptorComparer.Id))
+            if (!SupportedDiagnostics.Contains(Descriptor, DiagnosticDescriptorComparer.Id))
                 Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not supported by analyzer '{Analyzer.GetType().Name}'.");
 
-            if (!FixProvider.FixableDiagnosticIds.Contains(Descriptor.Id))
+            if (!FixableDiagnosticIds.Contains(Descriptor.Id))
                 Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not fixable by code fix provider '{FixProvider.GetType().Name}'.");
-
-            if (!FixProvider.CanFixAny(Analyzer.SupportedDiagnostics))
-                Assert.True(false, $"Code fix provider '{FixProvider.GetType().Name}' cannot fix any diagnostic supported by analyzer '{Analyzer}'.");
 
             using (Workspace workspace = new AdhocWorkspace())
             {
@@ -263,8 +273,6 @@ namespace Roslynator.Tests
 
                 ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 
-                ImmutableArray<string> fixableDiagnosticIds = FixProvider.FixableDiagnosticIds;
-
                 foreach (Diagnostic diagnostic in diagnostics)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -272,7 +280,7 @@ namespace Roslynator.Tests
                     if (!string.Equals(diagnostic.Id, Descriptor.Id, StringComparison.Ordinal))
                         continue;
 
-                    if (!fixableDiagnosticIds.Contains(diagnostic.Id))
+                    if (!FixableDiagnosticIds.Contains(diagnostic.Id))
                         continue;
 
                     var context = new CodeFixContext(
