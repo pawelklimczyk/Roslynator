@@ -13,8 +13,22 @@
     <Summary></Summary>
     <Samples>
       <Sample>
-        <Before><![CDATA[]]></Before>
-        <After><![CDATA[]]></After>
+        <Before><![CDATA[[Flags]
+enum Foo // [|Id|]
+{
+    None = 0,
+    Alpha = 1,
+    Beta = 2,
+    Gamma = 4,
+}]]></Before>
+        <After><![CDATA[[Flags]
+enum Foo
+{
+    None = 0,
+    Alpha = 1,
+    Beta = 1 << 1,
+    Gamma = 1 << 2,
+}]]></After>
       </Sample>
     </Samples>
     <Remarks></Remarks>
