@@ -23,7 +23,7 @@ namespace Roslynator.CSharp.Analysis
                     DiagnosticDescriptors.CompositeEnumValueContainsUndefinedFlag,
                     DiagnosticDescriptors.DeclareEnumValueAsCombinationOfNames,
                     DiagnosticDescriptors.DuplicateEnumValue,
-                    DiagnosticDescriptors.UseBitShift);
+                    DiagnosticDescriptors.UseBitShiftOperator);
             }
         }
 
@@ -133,7 +133,7 @@ namespace Roslynator.CSharp.Analysis
             }
 
             if (hasFlagsAttribute
-                && !context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseBitShift))
+                && !context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseBitShiftOperator))
             {
                 if (members.IsDefault)
                     members = typeSymbol.GetMembers();
@@ -162,7 +162,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         var enumDeclaration = (EnumDeclarationSyntax)typeSymbol.GetSyntax(context.CancellationToken);
 
-                        DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseBitShift, enumDeclaration.Identifier);
+                        DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseBitShiftOperator, enumDeclaration.Identifier);
                         break;
                     }
                 }

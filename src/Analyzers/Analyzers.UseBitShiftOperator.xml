@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Analyzers>
-  <Analyzer Identifier="UseBitShift" IsDevelopment="true">
+  <Analyzer Identifier="UseBitShiftOperator" IsDevelopment="true">
     <Id>RCS1244</Id>
-    <Title>Use bit shift.</Title>
-    <MessageFormat>Use bit shift.</MessageFormat>
+    <Title>Use bit shift operator.</Title>
+    <MessageFormat>Use bit shift operator.</MessageFormat>
     <Category>Usage</Category>
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>

@@ -9,15 +9,15 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1244UseBitShiftTests : AbstractCSharpFixVerifier
+    public class RCS1244UseBitShiftOperatorTests : AbstractCSharpFixVerifier
     {
-        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UseBitShift;
+        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.UseBitShiftOperator;
 
         public override DiagnosticAnalyzer Analyzer { get; } = new EnumSymbolAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new EnumDeclarationCodeFixProvider();
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShift)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShiftOperator)]
         public async Task Test()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -47,7 +47,7 @@ enum Foo
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShift)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShiftOperator)]
         public async Task TestNoDiagnostic_WithoutFlags()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -61,7 +61,7 @@ enum Foo
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShift)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShiftOperator)]
         public async Task TestNoDiagnostic_BitShift()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -77,7 +77,7 @@ enum Foo
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShift)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBitShiftOperator)]
         public async Task TestNoDiagnostic_CombinedValue()
         {
             await VerifyNoDiagnosticAsync(@"

@@ -217,6 +217,6 @@ namespace Roslynator.CSharp
         public const string OrderElementsInDocumentationComment = "RCS1232";
         public const string UseShortCircuitingOperator = "RCS1233";
         public const string DuplicateEnumValue = "RCS1234";
-        public const string UseBitShift = "RCS1244";
+        public const string UseBitShiftOperator = "RCS1244";
     }
 }

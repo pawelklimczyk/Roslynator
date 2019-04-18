@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.CodeFixes
                     DiagnosticIdentifiers.AddNewLineBeforeEnumMember,
                     DiagnosticIdentifiers.SortEnumMembers,
                     DiagnosticIdentifiers.EnumShouldDeclareExplicitValues,
-                    DiagnosticIdentifiers.UseBitShift);
+                    DiagnosticIdentifiers.UseBitShiftOperator);
             }
         }
 
@@ -43,6 +43,8 @@ namespace Roslynator.CSharp.CodeFixes
             if (!TryFindFirstAncestorOrSelf(root, context.Span, out EnumDeclarationSyntax enumDeclaration))
                 return;
 
+            Document document = context.Document;
+
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 switch (diagnostic.Id)
@@ -51,8 +53,8 @@ namespace Roslynator.CSharp.CodeFixes
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Add new line",
-                                cancellationToken => AddNewLineBeforeEnumMemberRefactoring.RefactorAsync(context.Document, enumDeclaration, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
+                                cancellationToken => AddNewLineBeforeEnumMemberRefactoring.RefactorAsync(document, enumDeclaration, cancellationToken),
+                                base.GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
@@ -61,8 +63,8 @@ namespace Roslynator.CSharp.CodeFixes
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 $"Sort '{enumDeclaration.Identifier}' members",
-                                cancellationToken => SortEnumMembersAsync(context.Document, enumDeclaration, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
+                                cancellationToken => SortEnumMembersAsync(document, enumDeclaration, cancellationToken),
+                                base.GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
@@ -91,18 +93,18 @@ namespace Roslynator.CSharp.CodeFixes
 
                             CodeAction codeAction = CodeAction.Create(
                                 "Declare explicit values",
-                                ct => DeclareExplicitValueAsync(context.Document, enumDeclaration, enumSymbol, values, semanticModel, ct),
-                                GetEquivalenceKey(diagnostic));
+                                ct => DeclareExplicitValueAsync(document, enumDeclaration, enumSymbol, values, semanticModel, ct),
+                                base.GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
                         }
-                    case DiagnosticIdentifiers.UseBitShift:
+                    case DiagnosticIdentifiers.UseBitShiftOperator:
                         {
                             CodeAction codeAction = CodeAction.Create(
-                                "Use bit shift",
-                                ct => UseBitShiftAsync(context.Document, enumDeclaration, ct),
-                                GetEquivalenceKey(diagnostic));
+                                "Use << operator",
+                                ct => UseBitShiftOperatorAsync(document, enumDeclaration, ct),
+                                base.GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
@@ -246,7 +248,7 @@ namespace Roslynator.CSharp.CodeFixes
             return await document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> UseBitShiftAsync(
+        private static async Task<Document> UseBitShiftOperatorAsync(
             Document document,
             EnumDeclarationSyntax enumDeclaration,
             CancellationToken cancellationToken)

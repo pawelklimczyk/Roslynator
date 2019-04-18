@@ -227,7 +227,7 @@ namespace Roslynator.VisualStudio
             analyzers.Add(new BaseModel("RCS1232", "Order elements in documentation comment.", !IsEnabled("RCS1232")));
             analyzers.Add(new BaseModel("RCS1233", "Use short-circuiting operator.", !IsEnabled("RCS1233")));
             analyzers.Add(new BaseModel("RCS1234", "Duplicate enum value.", !IsEnabled("RCS1234")));
-            analyzers.Add(new BaseModel("RCS1244", "Use bit shift.", !IsEnabled("RCS1244")));
+            analyzers.Add(new BaseModel("RCS1244", "Use bit shift operator.", !IsEnabled("RCS1244")));
         }
     }
 }
