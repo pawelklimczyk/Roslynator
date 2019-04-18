@@ -114,6 +114,12 @@ namespace Roslynator.Tests
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (!Analyzer.SupportedDiagnostics.Contains(Descriptor, DiagnosticDescriptorComparer.Id))
+                Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not supported by analyzer '{Analyzer.GetType().Name}'.");
+
+            if (!FixProvider.FixableDiagnosticIds.Contains(Descriptor.Id))
+                Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not fixable by code fix provider '{FixProvider.GetType().Name}'.");
+
             if (!FixProvider.CanFixAny(Analyzer.SupportedDiagnostics))
                 Assert.True(false, $"Code fix provider '{FixProvider.GetType().Name}' cannot fix any diagnostic supported by analyzer '{Analyzer}'.");
 
@@ -141,11 +147,9 @@ namespace Roslynator.Tests
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
                 if (options.EnableDiagnosticsDisabledByDefault)
-                    compilation = compilation.EnableDiagnosticsDisabledByDefault(Analyzer);
+                    compilation = compilation.EnsureEnabled(Descriptor);
 
                 ImmutableArray<Diagnostic> previousDiagnostics = ImmutableArray<Diagnostic>.Empty;
-
-                ImmutableArray<string> fixableDiagnosticIds = FixProvider.FixableDiagnosticIds;
 
                 bool fixRegistered = false;
 
@@ -166,7 +170,15 @@ namespace Roslynator.Tests
                         Assert.True(false, "Same diagnostics returned before and after the fix was applied.");
                     }
 
-                    Diagnostic diagnostic = FindFirstFixableDiagnostic(diagnostics, fixableDiagnosticIds);
+                    Diagnostic diagnostic = null;
+                    foreach (Diagnostic d in diagnostics)
+                    {
+                        if (d.Id == Descriptor.Id)
+                        {
+                            diagnostic = d;
+                            break;
+                        }
+                    }
 
                     if (diagnostic == null)
                         break;
@@ -206,7 +218,7 @@ namespace Roslynator.Tests
                         VerifyNoNewCompilerDiagnostics(compilerDiagnostics, newCompilerDiagnostics, options);
 
                     if (options.EnableDiagnosticsDisabledByDefault)
-                        compilation = compilation.EnableDiagnosticsDisabledByDefault(Analyzer);
+                        compilation = compilation.EnsureEnabled(Descriptor);
 
                     previousDiagnostics = diagnostics;
                 }
@@ -219,17 +231,6 @@ namespace Roslynator.Tests
 
                 if (expectedDocuments.Any())
                     await VerifyAdditionalDocumentsAsync(document.Project, expectedDocuments).ConfigureAwait(false);
-            }
-
-            Diagnostic FindFirstFixableDiagnostic(ImmutableArray<Diagnostic> diagnostics, ImmutableArray<string> fixableDiagnosticIds)
-            {
-                foreach (Diagnostic diagnostic in diagnostics)
-                {
-                    if (fixableDiagnosticIds.Contains(diagnostic.Id))
-                        return diagnostic;
-                }
-
-                return null;
             }
         }
 
@@ -258,7 +259,7 @@ namespace Roslynator.Tests
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
                 if (options.EnableDiagnosticsDisabledByDefault)
-                    compilation = compilation.EnableDiagnosticsDisabledByDefault(Analyzer);
+                    compilation = compilation.EnsureEnabled(Descriptor);
 
                 ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 

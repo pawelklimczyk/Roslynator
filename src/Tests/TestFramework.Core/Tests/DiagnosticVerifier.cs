@@ -130,7 +130,7 @@ namespace Roslynator.Tests
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
                 if (options.EnableDiagnosticsDisabledByDefault)
-                    compilation = compilation.EnableDiagnosticsDisabledByDefault(Analyzer);
+                    compilation = compilation.EnsureEnabled(Descriptor);
 
                 ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 
@@ -207,7 +207,7 @@ namespace Roslynator.Tests
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
                 if (options.EnableDiagnosticsDisabledByDefault)
-                    compilation = compilation.EnableDiagnosticsDisabledByDefault(Analyzer);
+                    compilation = compilation.EnsureEnabled(Descriptor);
 
                 ImmutableArray<Diagnostic> analyzerDiagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 

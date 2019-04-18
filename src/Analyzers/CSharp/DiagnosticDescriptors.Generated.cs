@@ -2569,5 +2569,17 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1244</summary>
+        public static readonly DiagnosticDescriptor UseBitShift = new DiagnosticDescriptor(
+            id:                 DiagnosticIdentifiers.UseBitShift, 
+            title:              "Use bit shift.", 
+            messageFormat:      "Use bit shift.", 
+            category:           DiagnosticCategories.Usage, 
+            defaultSeverity:    DiagnosticSeverity.Hidden, 
+            isEnabledByDefault: true, 
+            description:        null, 
+            helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.UseBitShift}", 
+            customTags:         Array.Empty<string>());
+
     }
 }
