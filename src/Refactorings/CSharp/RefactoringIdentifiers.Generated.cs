@@ -94,6 +94,7 @@ namespace Roslynator.CSharp.Refactorings
         public const string InvertIf = Prefix + "0189";
         public const string InvertIfElse = Prefix + "0162";
         public const string InvertIsExpression = Prefix + "0081";
+        public const string InvertLinqMethodCall = Prefix + "0116";
         public const string InvertOperator = Prefix + "0082";
         public const string InvertPrefixOrPostfixUnaryOperator = Prefix + "0134";
         public const string JoinStringExpressions = Prefix + "0078";
@@ -105,7 +106,7 @@ namespace Roslynator.CSharp.Refactorings
         public const string MergeIfWithParentIf = Prefix + "0196";
         public const string MergeLocalDeclarations = Prefix + "0077";
         public const string MoveUnsafeContextToContainingDeclaration = Prefix + "0202";
-        public const string NotifyPropertyChanged = Prefix + "0083";
+        public const string NotifyWhenPropertyChange = Prefix + "0083";
         public const string ParenthesizeExpression = Prefix + "0084";
         public const string PromoteLocalToParameter = Prefix + "0085";
         public const string RemoveAllComments = Prefix + "0086";
@@ -140,7 +141,6 @@ namespace Roslynator.CSharp.Refactorings
         public const string RenameMethodAccordingToTypeName = Prefix + "0113";
         public const string RenameParameterAccordingToTypeName = Prefix + "0114";
         public const string RenamePropertyAccordingToTypeName = Prefix + "0115";
-        public const string ReplaceAnyWithAllOrAllWithAny = Prefix + "0116";
         public const string ReplaceAsWithCast = Prefix + "0117";
         public const string ReplaceCastWithAs = Prefix + "0118";
         public const string ReplaceCommentWithDocumentationComment = Prefix + "0192";
