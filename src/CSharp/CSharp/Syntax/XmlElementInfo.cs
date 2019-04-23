@@ -149,14 +149,5 @@ namespace Roslynator.CSharp.Syntax
         {
             return string.Equals(LocalName, localName, comparison);
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return Element?.ToString() ?? "";
-        }
     }
 }

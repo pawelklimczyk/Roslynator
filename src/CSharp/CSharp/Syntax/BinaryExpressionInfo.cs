@@ -117,14 +117,5 @@ namespace Roslynator.CSharp.Syntax
 
             return new BinaryExpressionInfo(binaryExpression, left, right);
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return BinaryExpression?.ToString() ?? "";
-        }
     }
 }

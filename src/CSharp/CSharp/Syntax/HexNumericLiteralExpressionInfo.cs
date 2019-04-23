@@ -116,10 +116,5 @@ namespace Roslynator.CSharp.Syntax
 
             return new HexNumericLiteralExpressionInfo(literalExpression, token);
         }
-
-        public override string ToString()
-        {
-            return LiteralExpression?.ToString() ?? "";
-        }
     }
 }

@@ -222,15 +222,6 @@ namespace Roslynator.CSharp.Syntax
             return (LiteralExpressionSyntax)ParseExpression(StringBuilderCache.GetStringAndFree(sb));
         }
 
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return _chain.ToString();
-        }
-
         private void ThrowInvalidOperationIfNotInitialized()
         {
             if (BinaryExpression == null)

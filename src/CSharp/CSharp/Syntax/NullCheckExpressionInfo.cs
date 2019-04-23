@@ -332,14 +332,5 @@ namespace Roslynator.CSharp.Syntax
                 && string.Equals(((IdentifierNameSyntax)expression).Identifier.ValueText, name, StringComparison.Ordinal)
                 && SyntaxUtility.IsPropertyOfNullableOfT(expression, name, semanticModel, cancellationToken);
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return NullCheckExpression?.ToString() ?? "";
-        }
     }
 }

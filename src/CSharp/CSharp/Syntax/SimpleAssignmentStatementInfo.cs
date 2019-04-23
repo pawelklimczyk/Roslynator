@@ -101,14 +101,5 @@ namespace Roslynator.CSharp.Syntax
 
             return new SimpleAssignmentStatementInfo(info);
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return AssignmentExpression?.Parent.ToString() ?? "";
-        }
     }
 }

@@ -120,14 +120,5 @@ namespace Roslynator.CSharp.Syntax
 
             return new ConditionalExpressionInfo(condition, whenTrue, whenFalse);
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return ConditionalExpression?.ToString() ?? "";
-        }
     }
 }

@@ -400,14 +400,5 @@ namespace Roslynator.CSharp.Syntax
             if (Parent == null)
                 throw new InvalidOperationException($"{nameof(UsingDirectiveListInfo)} is not initalized.");
         }
-
-        /// <summary>
-        /// Returns the string representation of the underlying syntax, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return Parent?.ToString() ?? "";
-        }
     }
 }

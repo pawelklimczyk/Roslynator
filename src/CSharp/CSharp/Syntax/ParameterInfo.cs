@@ -302,10 +302,5 @@ namespace Roslynator.CSharp.Syntax
 
             return true;
         }
-
-        public override string ToString()
-        {
-            return Node?.ToString() ?? "";
-        }
     }
 }
