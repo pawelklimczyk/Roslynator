@@ -52,7 +52,7 @@ namespace Roslynator.CSharp.Analysis
 
             SyntaxNode node = invocationExpression.WalkUpParentheses();
 
-            if (node.IsParentKind(SyntaxKind.EqualsExpression))
+            if (node.IsParentKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression))
             {
                 var equalsExpression = (BinaryExpressionSyntax)node.Parent;
 
@@ -204,22 +204,12 @@ namespace Roslynator.CSharp.Analysis
 
             IfStatementSyntax ifStatement = GetIfStatement();
 
-            SimpleIfElseInfo simpleIfElse = SyntaxInfo.SimpleIfElseInfo(ifStatement);
+            ConditionalStatementInfo conditionalInfo = SyntaxInfo.ConditionalStatementInfo(ifStatement);
 
-            if (!simpleIfElse.Success)
+            if (!conditionalInfo.Success)
                 return;
 
-            StatementSyntax trueStatement = simpleIfElse.IfStatement.Statement?.SingleNonBlockStatementOrDefault();
-
-            if (trueStatement == null)
-                return;
-
-            StatementSyntax falseStatement = simpleIfElse.Else.Statement?.SingleNonBlockStatementOrDefault();
-
-            if (falseStatement == null)
-                return;
-
-            SimpleAssignmentStatementInfo simpleAssignmentStatement = SyntaxInfo.SimpleAssignmentStatementInfo((isNegation) ? falseStatement : trueStatement);
+            SimpleAssignmentStatementInfo simpleAssignmentStatement = SyntaxInfo.SimpleAssignmentStatementInfo((isNegation) ? conditionalInfo.WhenFalse : conditionalInfo.WhenTrue);
 
             if (!simpleAssignmentStatement.Success)
                 return;
@@ -237,7 +227,7 @@ namespace Roslynator.CSharp.Analysis
             if (!CSharpFactory.AreEquivalent(keyExpression, argumentExpression))
                 return;
 
-            SimpleMemberInvocationStatementInfo invocationInfo2 = SyntaxInfo.SimpleMemberInvocationStatementInfo((isNegation) ? trueStatement : falseStatement);
+            SimpleMemberInvocationStatementInfo invocationInfo2 = SyntaxInfo.SimpleMemberInvocationStatementInfo((isNegation) ? conditionalInfo.WhenTrue : conditionalInfo.WhenFalse);
 
             if (!invocationInfo2.Success)
                 return;

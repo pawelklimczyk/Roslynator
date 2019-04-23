@@ -4,64 +4,56 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Roslynator.CSharp.Syntax.SyntaxInfoHelpers;
 
 namespace Roslynator.CSharp.Syntax
 {
     /// <summary>
-    /// Provides information about conditional expression.
+    /// Provides information about a simple if-else where if and else contains single non-block statement.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public readonly struct ConditionalExpressionInfo : IEquatable<ConditionalExpressionInfo>
+    internal readonly struct ConditionalStatementInfo : IEquatable<ConditionalStatementInfo>
     {
-        private ConditionalExpressionInfo(
+        private ConditionalStatementInfo(
+            IfStatementSyntax ifStatement,
             ExpressionSyntax condition,
-            ExpressionSyntax whenTrue,
-            ExpressionSyntax whenFalse)
+            StatementSyntax whenTrue,
+            StatementSyntax whenFalse)
         {
+            IfStatement = ifStatement;
             Condition = condition;
             WhenTrue = whenTrue;
             WhenFalse = whenFalse;
         }
 
         /// <summary>
-        /// The conditional expression.
+        /// The if statement.
         /// </summary>
-        public ConditionalExpressionSyntax ConditionalExpression
-        {
-            get { return (ConditionalExpressionSyntax)Condition?.WalkUpParentheses().Parent; }
-        }
+        public IfStatementSyntax IfStatement { get; }
 
         /// <summary>
-        /// The condition expression.
+        /// The condition.
         /// </summary>
         public ExpressionSyntax Condition { get; }
 
         /// <summary>
-        /// The expression to be executed when the expression is true.
+        /// The statement that is executed if the condition evaluates to true.
         /// </summary>
-        public ExpressionSyntax WhenTrue { get; }
+        public StatementSyntax WhenTrue { get; }
 
         /// <summary>
-        /// The expression to be executed when the expression is false.
+        /// The statement that is executed if the condition evaluates to false.
         /// </summary>
-        public ExpressionSyntax WhenFalse { get; }
+        public StatementSyntax WhenFalse { get; }
 
         /// <summary>
-        /// The token representing the question mark.
+        /// The else clause.
         /// </summary>
-        public SyntaxToken QuestionToken
+        public ElseClauseSyntax Else
         {
-            get { return ConditionalExpression?.QuestionToken ?? default(SyntaxToken); }
-        }
-
-        /// <summary>
-        /// The token representing the colon.
-        /// </summary>
-        public SyntaxToken ColonToken
-        {
-            get { return ConditionalExpression?.ColonToken ?? default(SyntaxToken); }
+            get { return IfStatement?.Else; }
         }
 
         /// <summary>
@@ -69,39 +61,42 @@ namespace Roslynator.CSharp.Syntax
         /// </summary>
         public bool Success
         {
-            get { return Condition != null; }
+            get { return IfStatement != null; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {
-            get { return ToDebugString(Success, this, ConditionalExpression); }
+            get { return ToDebugString(Success, this, IfStatement); }
         }
 
-        internal static ConditionalExpressionInfo Create(
-            ConditionalExpressionSyntax conditionalExpression,
+        internal static ConditionalStatementInfo Create(
+            IfStatementSyntax ifStatement,
             bool walkDownParentheses = true,
             bool allowMissing = false)
         {
-            if (conditionalExpression == null)
+            if (ifStatement?.IsParentKind(SyntaxKind.ElseClause) != false)
                 return default;
 
-            ExpressionSyntax condition = WalkAndCheck(conditionalExpression.Condition, walkDownParentheses, allowMissing);
+            StatementSyntax whenTrue = ifStatement.Statement.SingleNonBlockStatementOrDefault();
+
+            if (!Check(whenTrue, allowMissing))
+                return default;
+
+            StatementSyntax whenFalse = ifStatement.Else?.Statement.SingleNonBlockStatementOrDefault();
+
+            if (!Check(whenFalse, allowMissing))
+                return default;
+
+            if (whenFalse.IsKind(SyntaxKind.IfStatement))
+                return default;
+
+            ExpressionSyntax condition = WalkAndCheck(ifStatement.Condition, walkDownParentheses, allowMissing);
 
             if (condition == null)
                 return default;
 
-            ExpressionSyntax whenTrue = WalkAndCheck(conditionalExpression.WhenTrue, walkDownParentheses, allowMissing);
-
-            if (whenTrue == null)
-                return default;
-
-            ExpressionSyntax whenFalse = WalkAndCheck(conditionalExpression.WhenFalse, walkDownParentheses, allowMissing);
-
-            if (whenFalse == null)
-                return default;
-
-            return new ConditionalExpressionInfo(condition, whenTrue, whenFalse);
+            return new ConditionalStatementInfo(ifStatement, condition, whenTrue, whenFalse);
         }
 
         /// <summary>
@@ -110,7 +105,7 @@ namespace Roslynator.CSharp.Syntax
         /// <returns></returns>
         public override string ToString()
         {
-            return ConditionalExpression?.ToString() ?? "";
+            return IfStatement?.ToString() ?? "";
         }
 
         /// <summary>
@@ -120,7 +115,7 @@ namespace Roslynator.CSharp.Syntax
         /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false. </returns>
         public override bool Equals(object obj)
         {
-            return obj is ConditionalExpressionInfo other && Equals(other);
+            return obj is ConditionalStatementInfo other && Equals(other);
         }
 
         /// <summary>
@@ -128,9 +123,9 @@ namespace Roslynator.CSharp.Syntax
         /// </summary>
         /// <param name="other">An object to compare with this object.</param>
         /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
-        public bool Equals(ConditionalExpressionInfo other)
+        public bool Equals(ConditionalStatementInfo other)
         {
-            return EqualityComparer<ConditionalExpressionSyntax>.Default.Equals(ConditionalExpression, other.ConditionalExpression);
+            return EqualityComparer<IfStatementSyntax>.Default.Equals(IfStatement, other.IfStatement);
         }
 
         /// <summary>
@@ -139,15 +134,15 @@ namespace Roslynator.CSharp.Syntax
         /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
         public override int GetHashCode()
         {
-            return EqualityComparer<ConditionalExpressionSyntax>.Default.GetHashCode(ConditionalExpression);
+            return EqualityComparer<IfStatementSyntax>.Default.GetHashCode(IfStatement);
         }
 
-        public static bool operator ==(in ConditionalExpressionInfo info1, in ConditionalExpressionInfo info2)
+        public static bool operator ==(in ConditionalStatementInfo info1, in ConditionalStatementInfo info2)
         {
             return info1.Equals(info2);
         }
 
-        public static bool operator !=(in ConditionalExpressionInfo info1, in ConditionalExpressionInfo info2)
+        public static bool operator !=(in ConditionalStatementInfo info1, in ConditionalStatementInfo info2)
         {
             return !(info1 == info2);
         }

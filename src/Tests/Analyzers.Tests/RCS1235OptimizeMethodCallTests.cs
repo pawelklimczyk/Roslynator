@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
 {
-    public class RCS1238OptimizeMethodCallTests : AbstractCSharpFixVerifier
+    public class RCS1235OptimizeMethodCallTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.OptimizeMethodCall;
 
@@ -78,6 +78,42 @@ class C
         string y = null;
 
         if (string.Equals(x, y, StringComparison.Ordinal))
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeMethodCall)]
+        public async Task Test_CallNotEqualsInsteadOfCompare()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string x = null;
+        string y = null;
+
+        if ([|string.Compare(x, y, StringComparison.Ordinal) != 0|])
+        {
+        }
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M()
+    {
+        string x = null;
+        string y = null;
+
+        if (!string.Equals(x, y, StringComparison.Ordinal))
         {
         }
     }

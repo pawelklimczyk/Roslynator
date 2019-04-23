@@ -2545,7 +2545,7 @@ namespace Roslynator.CSharp
             helpLinkUri:        $"{HelpLinkUriRoot}{DiagnosticIdentifiers.DuplicateEnumValue}", 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS1238</summary>
+        /// <summary>RCS1235</summary>
         public static readonly DiagnosticDescriptor OptimizeMethodCall = new DiagnosticDescriptor(
             id:                 DiagnosticIdentifiers.OptimizeMethodCall, 
             title:              "Optimize method call.", 

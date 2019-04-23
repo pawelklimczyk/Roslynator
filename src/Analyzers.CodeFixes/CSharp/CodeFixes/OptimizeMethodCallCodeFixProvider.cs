@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Roslynator.CSharp.CodeFixes
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.EqualsExpression, SyntaxKind.IfStatement)))
+            if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.IfStatement)))
                 return;
 
             Document document = context.Document;
@@ -81,12 +82,13 @@ namespace Roslynator.CSharp.CodeFixes
                         break;
                     }
                 case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
                     {
-                        var equalsExpression = (BinaryExpressionSyntax)node;
+                        var equalityExpression = (BinaryExpressionSyntax)node;
 
                         CodeAction codeAction = CodeAction.Create(
                             "Call 'Equals' instead of 'Compare'",
-                            ct => CallEqualsInsteadOfCompareAsync(document, equalsExpression, ct),
+                            ct => CallEqualsInsteadOfCompareAsync(document, equalityExpression, ct),
                             GetEquivalenceKey(diagnostic, "CallEqualsInsteadOfCompare"));
 
                         context.RegisterCodeFix(codeAction, diagnostic);
@@ -129,17 +131,20 @@ namespace Roslynator.CSharp.CodeFixes
 
         private static Task<Document> CallEqualsInsteadOfCompareAsync(
             Document document,
-            BinaryExpressionSyntax equalsExpression,
+            BinaryExpressionSyntax equalityExpression,
             CancellationToken cancellationToken)
         {
-            if (!(equalsExpression.Left.WalkDownParentheses() is InvocationExpressionSyntax invocationExpression))
-                invocationExpression = (InvocationExpressionSyntax)equalsExpression.Right.WalkDownParentheses();
+            if (!(equalityExpression.Left.WalkDownParentheses() is InvocationExpressionSyntax invocationExpression))
+                invocationExpression = (InvocationExpressionSyntax)equalityExpression.Right.WalkDownParentheses();
 
-            InvocationExpressionSyntax newInvocationExpression = SyntaxRefactorings.ChangeInvokedMethodName(invocationExpression, "Equals");
+            ExpressionSyntax newExpression = SyntaxRefactorings.ChangeInvokedMethodName(invocationExpression, "Equals");
 
-            newInvocationExpression = newInvocationExpression.WithTriviaFrom(equalsExpression);
+            if (equalityExpression.IsKind(SyntaxKind.NotEqualsExpression))
+                newExpression = LogicalNotExpression(newExpression.WithoutTrivia());
 
-            return document.ReplaceNodeAsync(equalsExpression, newInvocationExpression, cancellationToken);
+            newExpression = newExpression.WithTriviaFrom(equalityExpression);
+
+            return document.ReplaceNodeAsync(equalityExpression, newExpression, cancellationToken);
         }
 
         private static Task<Document> CallStringConcatInsteadOfStringJoinAsync(
