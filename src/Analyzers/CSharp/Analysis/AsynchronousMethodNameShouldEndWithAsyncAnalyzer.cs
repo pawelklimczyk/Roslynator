@@ -24,19 +24,21 @@ namespace Roslynator.CSharp.Analysis
 
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                INamedTypeSymbol asyncAction = startContext.Compilation.GetTypeByMetadataName("Windows.Foundation.IAsyncAction");
+
+                bool shouldCheckWindowsRuntimeTypes = asyncAction != null;
+
+                startContext.RegisterSyntaxNodeAction(nodeContext => AnalyzeMethodDeclaration(nodeContext, shouldCheckWindowsRuntimeTypes), SyntaxKind.MethodDeclaration);
+            });
         }
 
-        public static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        public static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context, bool shouldCheckWindowsRuntimeTypes)
         {
             var methodDeclaration = (MethodDeclarationSyntax)context.Node;
 
-            SyntaxTokenList modifiers = methodDeclaration.Modifiers;
-
-            if (modifiers.Contains(SyntaxKind.OverrideKeyword))
-                return;
-
-            if (!modifiers.Contains(SyntaxKind.AsyncKeyword))
+            if (methodDeclaration.Modifiers.Contains(SyntaxKind.OverrideKeyword))
                 return;
 
             if (methodDeclaration.Identifier.ValueText.EndsWith("Async", StringComparison.Ordinal))
@@ -47,13 +49,13 @@ namespace Roslynator.CSharp.Analysis
 
             IMethodSymbol methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration, context.CancellationToken);
 
-            if (methodSymbol?.IsAsync != true)
-                return;
-
             if (methodSymbol.Name.EndsWith("Async", StringComparison.Ordinal))
                 return;
 
             if (SymbolUtility.CanBeEntryPoint(methodSymbol))
+                return;
+
+            if (!SymbolUtility.IsAwaitable(methodSymbol.ReturnType, shouldCheckWindowsRuntimeTypes))
                 return;
 
             DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AsynchronousMethodNameShouldEndWithAsync, methodDeclaration.Identifier);
