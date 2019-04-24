@@ -11,13 +11,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Roslynator.CSharp.Analysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NonAsynchronousMethodNameShouldNotEndWithAsyncAnalyzer : BaseDiagnosticAnalyzer
+    public class AsyncSuffixAnalyzer : BaseDiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
                 return ImmutableArray.Create(
+                    DiagnosticDescriptors.AsynchronousMethodNameShouldEndWithAsync,
                     DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync,
                     DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsyncFadeOut);
             }
@@ -32,7 +33,7 @@ namespace Roslynator.CSharp.Analysis
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync))
+                if (startContext.AreAnalyzersSuppressed(DiagnosticDescriptors.AsynchronousMethodNameShouldEndWithAsync, DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync))
                     return;
 
                 INamedTypeSymbol asyncAction = startContext.Compilation.GetTypeByMetadataName("Windows.Foundation.IAsyncAction");
@@ -47,32 +48,53 @@ namespace Roslynator.CSharp.Analysis
         {
             var methodDeclaration = (MethodDeclarationSyntax)context.Node;
 
-            if (!methodDeclaration.Identifier.ValueText.EndsWith("Async", StringComparison.Ordinal))
-                return;
+            if (methodDeclaration.Identifier.ValueText.EndsWith("Async", StringComparison.Ordinal))
+            {
+                IMethodSymbol methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration, context.CancellationToken);
 
-            IMethodSymbol methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration, context.CancellationToken);
+                if (methodSymbol == null)
+                    return;
 
-            if (methodSymbol == null)
-                return;
+                if (methodSymbol.IsAsync)
+                    return;
 
-            if (methodSymbol.IsAsync)
-                return;
+                if (!methodSymbol.Name.EndsWith("Async", StringComparison.Ordinal))
+                    return;
 
-            if (!methodSymbol.Name.EndsWith("Async", StringComparison.Ordinal))
-                return;
+                if (SymbolUtility.IsAwaitable(methodSymbol.ReturnType, shouldCheckWindowsRuntimeTypes))
+                    return;
 
-            if (SymbolUtility.IsAwaitable(methodSymbol.ReturnType, shouldCheckWindowsRuntimeTypes))
-                return;
+                SyntaxToken identifier = methodDeclaration.Identifier;
 
-            SyntaxToken identifier = methodDeclaration.Identifier;
+                DiagnosticHelpers.ReportDiagnostic(context,
+                    DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync,
+                    identifier);
 
-            DiagnosticHelpers.ReportDiagnostic(context,
-                DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsync,
-                identifier);
+                DiagnosticHelpers.ReportDiagnostic(context,
+                    DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsyncFadeOut,
+                    Location.Create(identifier.SyntaxTree, TextSpan.FromBounds(identifier.Span.End - 5, identifier.Span.End)));
+            }
+            else
+            {
+                if (methodDeclaration.Modifiers.Contains(SyntaxKind.OverrideKeyword))
+                    return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
-                DiagnosticDescriptors.NonAsynchronousMethodNameShouldNotEndWithAsyncFadeOut,
-                Location.Create(identifier.SyntaxTree, TextSpan.FromBounds(identifier.Span.End - 5, identifier.Span.End)));
+                if (methodDeclaration.Body?.Statements.Any() == false)
+                    return;
+
+                IMethodSymbol methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration, context.CancellationToken);
+
+                if (methodSymbol.Name.EndsWith("Async", StringComparison.Ordinal))
+                    return;
+
+                if (SymbolUtility.CanBeEntryPoint(methodSymbol))
+                    return;
+
+                if (!SymbolUtility.IsAwaitable(methodSymbol.ReturnType, shouldCheckWindowsRuntimeTypes))
+                    return;
+
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AsynchronousMethodNameShouldEndWithAsync, methodDeclaration.Identifier);
+            }
         }
     }
 }
